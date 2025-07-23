@@ -37,7 +37,25 @@ CREATE USER valorize_user WITH PASSWORD 'password';
 GRANT ALL PRIVILEGES ON DATABASE valorize_db TO valorize_user;
 ```
 
-4. **Start Redis:**
+4. **Initialize Prisma:**
+
+```bash
+# Generate Prisma schema (you can customize the schema location)
+npx prisma init
+
+# Generate Prisma client after creating your schema
+npm run db:generate
+
+# Push your schema to the database
+npm run db:push
+# OR run migrations in development
+npm run db:migrate
+
+# Optional: Open Prisma Studio to view your data
+npm run db:studio
+```
+
+5. **Start Redis:**
 
 ```bash
 # On macOS with Homebrew
@@ -50,7 +68,7 @@ redis-server
 docker run -d -p 6379:6379 redis:alpine
 ```
 
-5. **Configure Auth0:**
+6. **Configure Auth0:**
 
    - Create an Auth0 account at [https://auth0.com](https://auth0.com)
    - Create a new Application (Single Page Application)
@@ -61,7 +79,7 @@ docker run -d -p 6379:6379 redis:alpine
      - `AUTH0_CLIENT_ID`: Your application client ID
      - `AUTH0_CLIENT_SECRET`: Your application client secret
 
-6. **Start the development server:**
+7. **Start the development server:**
 
 ```bash
 npm run dev
@@ -85,6 +103,14 @@ Once the server is running, you can access the API documentation at:
 - `npm run test:coverage` - Run tests with coverage
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Fix ESLint errors
+
+### Database Scripts (Prisma)
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:push` - Push schema changes to database
+- `npm run db:migrate` - Run database migrations in development
+- `npm run db:migrate:deploy` - Deploy migrations to production
+- `npm run db:studio` - Open Prisma Studio (database GUI)
+- `npm run db:seed` - Seed database with initial data
 
 ## Project Structure
 
@@ -142,7 +168,21 @@ Key environment variables you need to configure:
 
 ## Database
 
-The API uses PostgreSQL as the primary database. Database migrations and schema management will be added in future iterations.
+The API uses **PostgreSQL** as the primary database with **Prisma ORM** for type-safe database access and migrations.
+
+### Prisma Features:
+- **Type Safety**: Auto-generated TypeScript types
+- **Migrations**: Version-controlled database schema changes  
+- **Studio**: Web-based database browser at `http://localhost:5555`
+- **Query Builder**: Intuitive and type-safe database queries
+- **Connection Pooling**: Built-in connection management
+
+### Working with Prisma:
+
+1. **Modify your schema** in `prisma/schema.prisma`
+2. **Generate client**: `npm run db:generate`
+3. **Apply changes**: `npm run db:push` (dev) or `npm run db:migrate` (with versioning)
+4. **View data**: `npm run db:studio`
 
 ## Caching
 
@@ -164,9 +204,11 @@ Redis is used for:
 ### Common Issues
 
 1. **Port already in use**: Change the `PORT` in your `.env` file
-2. **Database connection failed**: Check PostgreSQL is running and credentials are correct
-3. **Redis connection failed**: Make sure Redis server is running
-4. **Auth0 token invalid**: Check your Auth0 configuration and token
+2. **Database connection failed**: Check PostgreSQL is running and `DATABASE_URL` is correct
+3. **Prisma client not generated**: Run `npm run db:generate` after schema changes
+4. **Migration failed**: Check your schema syntax and database permissions
+5. **Redis connection failed**: Make sure Redis server is running
+6. **Auth0 token invalid**: Check your Auth0 configuration and token
 
 ### Logs
 
@@ -179,12 +221,12 @@ npm run dev
 
 ## What's Next
 
-This is the initial API foundation. Future development will include:
+This is the initial API foundation with Prisma ORM integrated. Future development will include:
 
-1. **Database migrations** - Automated schema management
-2. **Complete user management** - Full CRUD operations
+1. **Database schema design** - Create Prisma models for your domain entities
+2. **Complete user management** - Full CRUD operations using Prisma
 3. **Coins module** - Virtual currency system
-4. **Praise module** - Employee recognition system
+4. **Praise module** - Employee recognition system  
 5. **Store module** - Rewards marketplace
 6. **Education module** - Learning vouchers
 7. **Library module** - Book reviews and ratings
