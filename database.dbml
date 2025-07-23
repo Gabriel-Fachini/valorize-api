@@ -1,146 +1,104 @@
+// ✅
 Table doubts {
-  id_question int [pk, increment]
-  question varchar(100)
-  answer varchar(100)
-  tags varchar(100)
+  id int [pk, increment]
+  question varchar(300)
+  answer text
+  tags json
 }
 
+// ✅
 Table compliment {
-  id_compliment int [pk, increment]
+  id int [pk, increment]
   date timestamp
-  id_sender_user int [ref: > user.id_user]
-  id_receiver_user int [ref: > user.id_user]
+  id_sender_user int [ref: > user.id]
+  id_receiver_user int [ref: > user.id]
   quantity int
   company_value varchar(100)
-  description varchar(1000)
+  description varchar(1000) // verify which data type is better
 }
 
-Table old_address {
-  id_address int [pk, increment]
-  id_user int [ref: > user.id_user]
-  cpf varchar(20)
-  zip_code varchar(10)
-  street varchar(50)
-  number int
-  city varchar(30)
-  neighborhood varchar(30)
-  complement varchar(30)
-  state varchar(5)
-  reference varchar(50)
-  observations varchar(100)
-}
-
+// ✅
 Table address {
-  id_address int [pk, increment]
-  id_user int [ref: > user.id_user]
-  nickname varchar(30)
+  id int [pk, increment]
+  id_user int [ref: > user.id]
+  nickname varchar(100)
   default_address boolean
   active boolean
   cpf varchar(20)
   zip_code varchar(10)
-  street varchar(50)
+  street varchar(75)
   number int
   city varchar(30)
-  neighborhood varchar(30)
+  neighborhood varchar(75)
   complement varchar(30)
   state varchar(5)
   reference varchar(50)
 }
 
-Table bovespa_index {
-  id_bovespa int [pk, increment]
-  guess_closing_date timestamp
-  bovespa_closing_date timestamp
-  closing_value int
-}
-
-Table initiative {
-  id_initiative int [pk, increment]
+Table credits {
+  id int [pk, increment]
   date timestamp
-  id_user int [ref: > user.id_user]
-  id_initiative_type int [ref: > initiative_type.id_initiative_type]
-  description varchar(600)
-  coins int
+  id_user int [ref: > user.id]
+  id_initiative int [ref: > initiatives.id] // maybe should be a nullable field
+  quantity int
+  // description varchar(600)
 }
 
-Table initiative_type {
-  id_initiative_type int [pk, increment]
+Table initiatives {
+  id int [pk, increment]
   title varchar(200)
   description varchar(1000)
   image varchar(200)
   coins int
   active boolean
   visible boolean
-  rules text
-  tags varchar(60)
+  rules json
+  tags json
   link varchar(50)
 }
 
-Table log {
+Table rewards {
   id int [pk, increment]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp
-  record_id int
-  record_title varchar(128)
-  action varchar(128)
-  resource varchar(128)
-  user_id varchar(128)
-}
-
-Table bovespa_guesses {
-  id_guess int [pk, increment]
-  id_bovespa int [ref: > bovespa_index.id_bovespa]
-  id_user int [ref: > user.id_user]
-  date timestamp
-  guess_value int
-}
-
-Table prize {
-  id_prize int [pk, increment]
   title varchar(200)
-  quantity int
+  // quantity int // this should be on stock
   image varchar(400)
   description varchar(500)
-  coins int
+  price int
   active boolean
   category varchar(50)
   brand varchar(50)
-  redeemed int [default: 0]
-  date date [default: `now()`]
-  limited boolean [default: false]
+  redeemed int [default: 0] // maybe this field shoudn't be here
+  created_at date [default: `now()`]
+  updated_at date [default: `now()`]
+  limited boolean [default: false] // just one redeem by user
   slug varchar(50) [unique]
-  stock boolean [default: false]
 }
 
 Table stock {
-  id_stock int [pk, increment]
-  id_prize int [ref: > prize.id_prize]
+  id int [pk, increment]
+  id_prize int [ref: > rewards.id]
   characteristic varchar(30)
   quantity smallint
 }
 
-Table redemption {
-  id_redemption int [pk, increment]
+Table redeem {
+  id int [pk, increment]
   date timestamp
-  id_user int [ref: > user.id_user]
-  id_prize int [ref: > prize.id_prize]
+  id_user int [ref: > user.id]
+  id_reward int [ref: > rewards.id]
   id_address int
-  id_new_address int
   purchased boolean
-  forecast varchar(10)
+  delivery_estimate date
   cancelled boolean
-  received_date timestamp
+  received_date date
   cost real
   carrier varchar(50)
   tracking_code varchar(50)
   observations varchar(50)
-  characteristic varchar(30)
-  redemption_value int
 }
 
 Table user {
-  id_user int [pk, increment]
-  user_code char(15)
+  id int [pk, increment]
   name varchar(200)
   avatar varchar(200)
   email varchar(200)
@@ -148,194 +106,6 @@ Table user {
   coins_to_donate int
   coins_to_spend int
   active boolean
-}
-
-Table bovespa_lottery_winners {
-  id_winners int [pk, increment]
-  id_guess int [ref: > bovespa_guesses.id_guess]
-  position int
-}
-
-Table certificates {
-  id_certificate int [pk, increment]
-  sending_date date
-  course_name varchar(100)
-  key varchar(100)
-  id_user int [ref: > user.id_user]
-  completion_date date
-  category varchar(50)
-  status varchar(20)
-  id_credit int
-  justification varchar(300)
-  workload int
-}
-
-Table blood_donation {
-  id_donation int [pk, increment]
-  collection_date varchar(100)
-  key varchar(100)
-  id_user int [ref: > user.id_user]
-}
-
-Table login_users {
-  id_log int [pk, increment]
-  id_user int
-  date date
-}
-
-Table search_clicks {
-  id_log int [pk, increment]
-  search varchar(30)
-  date timestamp
-}
-
-Table notifications {
-  id_notification int [pk, increment]
-  id_user int
-  date timestamp
-  type varchar(30)
-  preview varchar(200)
-  message varchar(300)
-  notified boolean
-  read boolean
-  clicked boolean
-  link varchar(100)
-  id_related int
-}
-
-Table notification_customization {
-  id_notification int [pk, increment]
-  type varchar(30)
-  preview varchar(200)
-  message varchar(300)
-}
-
-Table birthday_rewards {
-  id_reward int [pk, increment]
-  id_user smallint
-  date date [default: `now()`]
-  choice varchar(12)
-}
-
-Table books {
-  id_book int [pk, increment]
-  title varchar(100)
-  cover varchar(200)
-  author varchar(100)
-  rating decimal(2,1) [default: 0]
-  number_of_ratings int [default: 0]
-  category varchar(50)
-  value int
-  summary varchar(3000)
-  description varchar(200)
-  active boolean
-  slug varchar(100)
-  color varchar(7) [default: '#fff']
-  date date [default: `now()`]
-  reference_link varchar(200)
-  reference_price decimal(5,2)
-}
-
-Table book_reviews {
-  id_review int [pk, increment]
-  id_book int [ref: > books.id_book]
-  id_user int [ref: > user.id_user]
-  date timestamp
-  rating decimal(2,1)
-  comment varchar(500)
-}
-
-Table book_redemptions {
-  id_redemption int [pk, increment]
-  date timestamp [default: `now()`]
-  id_user int [ref: > user.id_user]
-  id_book int [ref: > books.id_book]
-  id_address int
-  value int
-  purchased boolean [default: false]
-  cancelled boolean [default: false]
-  cost real [default: 0]
-  forecast varchar(10)
-  received_date timestamp
-  carrier varchar(50)
-  tracking_code varchar(50)
-  observations varchar(50)
-  characteristic varchar(30)
-}
-
-Table slack_assistant_threads {
-  thread_id varchar(50) [pk]
-  thread_ts varchar(50) [pk]
-  message varchar(500)
-}
-
-Table compliment_classification {
-  compliment_id int [pk, unique, ref: - compliment.id_compliment]
-  reason varchar(500)
-  is_valid boolean
-  value varchar(50)
-  is_trade boolean
-  thread_id varchar(50)
-}
-
-Table events_confirmation {
-  user_id int [pk, ref: > user.id_user]
-  event_name varchar(75) [pk]
-  online boolean
-  date date
-}
-
-Table valuable_friend_donations {
-  user_id int [pk, ref: - user.id_user]
-  name varchar(100)
-  cpf varchar(12)
-  value decimal(12,2)
-  divided boolean
-  permission boolean
-}
-
-Table customer_service_feedback {
-  thread_ts varchar(30) [pk]
-  rating boolean
-  rating_date timestamp [default: `now()`]
-}
-
-Table transactions {
-  user_id int [pk, ref: > user.id_user]
-  date timestamp [pk, default: `now()`]
-  value int
-  previous_balance int
-  posterior_balance int
-  origin varchar(10)
-
-  indexes {
-    user_id
-  }
-}
-
-Table toro_news_slack {
-  user_code varchar(12) [pk]
-  ts varchar(30) [pk]
-  text text
-  date timestamp
-}
-
-Table services {
-  service_slug varchar(100) [pk]
-  title varchar(255)
-  description varchar(200)
-  schedule varchar(20)
-}
-
-Table service_executions {
-  id int [pk, increment]
-  service_slug varchar(100) [ref: > services.service_slug]
-  execution_time timestamp
-
-  indexes {
-    service_slug
-    execution_time
-  }
 }
 
 Table admin_users {
