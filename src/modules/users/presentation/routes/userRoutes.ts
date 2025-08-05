@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { getCurrentUser } from '@shared/presentation/middlewares/auth0Middleware'
-import { UserService } from '../../application/services/UserService'
+import { UserService, CallbackRequest } from '../../application/services/UserService'
 import { UserRepositoryImpl } from '../../infrastructure/database/UserRepositoryImpl'
 
 const userRoutes = async (fastify: FastifyInstance, options: FastifyPluginOptions) => {
@@ -90,12 +90,22 @@ const userRoutes = async (fastify: FastifyInstance, options: FastifyPluginOption
     }
   })
 
-  // Login route - handles user login and profile sync
-  fastify.post('/login', {
+  // Generate authorization URL for Auth0 login
+  fastify.post('/auth/authorize', {
     schema: {
       tags: ['Authentication'],
-      description: 'User login with profile sync from Auth0',
-      security: [{ bearerAuth: [] }],
+      description: 'Generate Auth0 authorization URL for login',
+      body: {
+        type: 'object',
+        required: ['redirectUri'],
+        properties: {
+          redirectUri: { 
+            type: 'string', 
+            format: 'uri',
+            description: 'Callback URL where Auth0 will redirect after authentication'
+          }
+        }
+      },
       response: {
         200: {
           type: 'object',
@@ -105,6 +115,83 @@ const userRoutes = async (fastify: FastifyInstance, options: FastifyPluginOption
             data: {
               type: 'object',
               properties: {
+                authorizeUrl: { type: 'string', format: 'uri' },
+                state: { type: 'string' }
+              }
+            }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' },
+            statusCode: { type: 'number' }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const { redirectUri } = request.body as { redirectUri: string }
+      
+      const result = await userService.generateAuthorizationUrl(redirectUri)
+      
+      return reply.code(200).send({
+        success: true,
+        message: 'Authorization URL generated successfully',
+        data: {
+          authorizeUrl: result.authorizeUrl,
+          state: result.state
+        }
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      
+      return reply.code(400).send({
+        error: 'Bad Request',
+        message: errorMessage,
+        statusCode: 400
+      })
+    }
+  })
+
+  // Handle Auth0 callback and exchange code for token
+  fastify.post('/auth/callback', {
+    schema: {
+      tags: ['Authentication'],
+      description: 'Exchange authorization code for access token',
+      body: {
+        type: 'object',
+        required: ['code', 'state', 'redirectUri'],
+        properties: {
+          code: { 
+            type: 'string',
+            description: 'Authorization code from Auth0'
+          },
+          state: { 
+            type: 'string',
+            description: 'State parameter for CSRF protection'
+          },
+          redirectUri: { 
+            type: 'string', 
+            format: 'uri',
+            description: 'Same redirect URI used in authorization request'
+          }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                access_token: { type: 'string' },
+                token_type: { type: 'string' },
+                expires_in: { type: 'number' },
                 user: {
                   type: 'object',
                   properties: {
@@ -129,34 +216,22 @@ const userRoutes = async (fastify: FastifyInstance, options: FastifyPluginOption
             message: { type: 'string' },
             statusCode: { type: 'number' }
           }
-        },
-        401: {
-          type: 'object',
-          properties: {
-            error: { type: 'string' },
-            message: { type: 'string' },
-            statusCode: { type: 'number' }
-          }
-        },
-        404: {
-          type: 'object',
-          properties: {
-            error: { type: 'string' },
-            message: { type: 'string' },
-            statusCode: { type: 'number' }
-          }
         }
       }
     }
   }, async (request, reply) => {
     try {
-      const currentUser = getCurrentUser(request)
-      const result = await userService.login(currentUser)
+      const { code, state, redirectUri } = request.body as CallbackRequest & { redirectUri: string }
+      
+      const result = await userService.exchangeCodeForToken({ code, state }, redirectUri)
       
       return reply.code(200).send({
         success: true,
         message: 'Login successful',
         data: {
+          access_token: result.access_token,
+          token_type: result.token_type,
+          expires_in: result.expires_in,
           user: result.user.toJSON(),
           lastLoginAt: result.lastLoginAt.toISOString()
         }
@@ -164,19 +239,19 @@ const userRoutes = async (fastify: FastifyInstance, options: FastifyPluginOption
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       
-      if (errorMessage.includes('User not found')) {
-        return reply.code(404).send({
-          error: 'Not Found',
-          message: errorMessage,
-          statusCode: 404
+      if (errorMessage.includes('Invalid or expired authorization code')) {
+        return reply.code(400).send({
+          error: 'Bad Request',
+          message: 'Invalid or expired authorization code',
+          statusCode: 400
         })
       }
       
-      if (errorMessage.includes('deactivated')) {
-        return reply.code(401).send({
-          error: 'Unauthorized',
-          message: errorMessage,
-          statusCode: 401
+      if (errorMessage.includes('Invalid client configuration')) {
+        return reply.code(400).send({
+          error: 'Bad Request',
+          message: 'Invalid client configuration',
+          statusCode: 400
         })
       }
       

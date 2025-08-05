@@ -8,7 +8,9 @@ const PUBLIC_ROUTES = [
   '/docs',
   '/docs/static',
   '/docs/json',
-  '/docs/yaml'
+  '/docs/yaml',
+  '/api/v1/users/auth/authorize',
+  '/api/v1/users/auth/callback'
 ]
 
 // Check if a route should be public
@@ -25,10 +27,10 @@ export interface AuthenticatedUser {
   [key: string]: any
 }
 
-// Extend FastifyRequest to include user
+// Extend FastifyRequest to include authenticated user
 declare module 'fastify' {
   interface FastifyRequest {
-    user?: AuthenticatedUser
+    authenticatedUser?: AuthenticatedUser
   }
 }
 
@@ -85,17 +87,18 @@ export const auth0Middleware = async (
       const decoded = await request.jwtVerify()
       
       // Extract user information from the decoded token
+      const decodedPayload = decoded as any
       const user: AuthenticatedUser = {
-        sub: decoded.sub as string,
-        email: decoded.email as string,
-        email_verified: decoded.email_verified as boolean,
-        name: decoded.name as string,
-        picture: decoded.picture as string,
-        ...decoded
+        sub: decodedPayload.sub as string,
+        email: decodedPayload.email as string,
+        email_verified: decodedPayload.email_verified as boolean,
+        name: decodedPayload.name as string,
+        picture: decodedPayload.picture as string,
+        ...decodedPayload
       }
 
       // Attach user to request
-      request.user = user
+      request.authenticatedUser = user
 
       logger.debug('User authenticated successfully', {
         userId: user.sub,
@@ -142,13 +145,13 @@ export const auth0Middleware = async (
 
 // Helper function to get the current user from request
 export const getCurrentUser = (request: FastifyRequest): AuthenticatedUser => {
-  if (!request.user) {
+  if (!request.authenticatedUser) {
     throw new UnauthorizedError('User not authenticated')
   }
-  return request.user
+  return request.authenticatedUser
 }
 
 // Helper function to check if user is authenticated
 export const isAuthenticated = (request: FastifyRequest): boolean => {
-  return !!request.user
+  return !!request.authenticatedUser
 } 
