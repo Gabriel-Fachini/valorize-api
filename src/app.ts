@@ -1,18 +1,13 @@
 import 'dotenv/config'
 import { buildApp } from '@config/app'
 import { logger } from '@shared/infrastructure/logger/Logger'
-import { PrismaConnection } from '@shared/infrastructure/database/PrismaConnection'
-import { RedisClient } from '@shared/infrastructure/cache/RedisClient'
+import { connectDB, disconnectDB } from '@shared/infrastructure/database/db'
 
 const start = async () => {
   try {
     // Initialize Prisma connection
-    await PrismaConnection.getInstance().connect()
+    await connectDB()
     logger.info('Prisma connected successfully')
-
-    // Initialize Redis connection
-    await RedisClient.getInstance().connect()
-    logger.info('Redis connected successfully')
 
     // Build and start the application
     const app = await buildApp()
@@ -36,8 +31,7 @@ process.on('SIGINT', async () => {
   logger.info('Received SIGINT, shutting down gracefully...')
   
   try {
-    await PrismaConnection.getInstance().disconnect()
-    await RedisClient.getInstance().disconnect()
+    await disconnectDB()
     logger.info('Connections closed successfully')
     process.exit(0)
   } catch (error) {
@@ -50,8 +44,7 @@ process.on('SIGTERM', async () => {
   logger.info('Received SIGTERM, shutting down gracefully...')
   
   try {
-    await PrismaConnection.getInstance().disconnect()
-    await RedisClient.getInstance().disconnect()
+    await disconnectDB()
     logger.info('Connections closed successfully')
     process.exit(0)
   } catch (error) {

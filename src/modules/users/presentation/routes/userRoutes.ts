@@ -8,90 +8,8 @@ const userRoutes = async (fastify: FastifyInstance, options: FastifyPluginOption
   const userRepository = new UserRepositoryImpl()
   const userService = new UserService(userRepository)
 
-  // Sign up route - creates a new user after Auth0 authentication
-  fastify.post('/signup', {
-    schema: {
-      tags: ['Authentication'],
-      description: 'Sign up a new user after successful Auth0 authentication',
-      security: [{ bearerAuth: [] }],
-      response: {
-        201: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            message: { type: 'string' },
-            data: {
-              type: 'object',
-              properties: {
-                user: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string', format: 'uuid' },
-                    auth0Id: { type: 'string' },
-                    email: { type: 'string', format: 'email' },
-                    name: { type: 'string' },
-                    isActive: { type: 'boolean' },
-                    createdAt: { type: 'string', format: 'date-time' },
-                    updatedAt: { type: 'string', format: 'date-time' }
-                  }
-                },
-                isNewUser: { type: 'boolean' }
-              }
-            }
-          }
-        },
-        400: {
-          type: 'object',
-          properties: {
-            error: { type: 'string' },
-            message: { type: 'string' },
-            statusCode: { type: 'number' }
-          }
-        },
-        401: {
-          type: 'object',
-          properties: {
-            error: { type: 'string' },
-            message: { type: 'string' },
-            statusCode: { type: 'number' }
-          }
-        },
-        500: {
-          type: 'object',
-          properties: {
-            error: { type: 'string' },
-            message: { type: 'string' },
-            statusCode: { type: 'number' }
-          }
-        }
-      }
-    }
-  }, async (request, reply) => {
-    try {
-      const currentUser = getCurrentUser(request)
-      const result = await userService.signUp(currentUser)
-      
-      return reply.code(201).send({
-        success: true,
-        message: result.isNewUser ? 'User created successfully' : 'User already exists',
-        data: {
-          user: result.user.toJSON(),
-          isNewUser: result.isNewUser
-        }
-      })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      
-      return reply.code(400).send({
-        error: 'Bad Request',
-        message: errorMessage,
-        statusCode: 400
-      })
-    }
-  })
-
-  // Generate authorization URL for Auth0 login
-  fastify.post('/auth/authorize', {
+  // Login route - handles user login and profile sync
+  fastify.post('/login', {
     schema: {
       tags: ['Authentication'],
       description: 'Generate Auth0 authorization URL for login',
@@ -350,7 +268,7 @@ const userRoutes = async (fastify: FastifyInstance, options: FastifyPluginOption
         }
       }
     }
-  }, async (request, reply) => {
+  }, async () => {
     return {
       status: 'ok',
       module: 'users',

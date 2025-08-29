@@ -25,15 +25,42 @@ class Logger {
   }
 
   private formatMessage(level: string, message: string, meta?: any): string {
-    const timestamp = new Date().toISOString()
-    const baseLog = {
-      timestamp,
-      level,
-      message
+    const timestamp = new Date().toLocaleTimeString()
+    const isDev = process.env.NODE_ENV !== 'production'
+    
+    if (isDev) {
+      // Formato mais legível para desenvolvimento
+      const levelColors = {
+        DEBUG: '\x1b[36m', // cyan
+        INFO: '\x1b[32m',  // green
+        WARN: '\x1b[33m',  // yellow
+        ERROR: '\x1b[31m'  // red
+      }
+      const reset = '\x1b[0m'
+      const color = levelColors[level as keyof typeof levelColors] || ''
+      
+      let formattedMessage = `${color}[${timestamp}] ${level}${reset}: ${message}`
+      
+      if (meta) {
+        // Formata metadata de forma mais legível
+        if (typeof meta === 'object' && meta !== null) {
+          formattedMessage += `\n  ${JSON.stringify(meta, null, 2).split('\n').join('\n  ')}`
+        } else {
+          formattedMessage += ` | ${meta}`
+        }
+      }
+      
+      return formattedMessage
+    } else {
+      // Formato JSON para produção
+      const baseLog = {
+        timestamp: new Date().toISOString(),
+        level,
+        message
+      }
+      const logObject = meta ? { ...baseLog, meta } : baseLog
+      return JSON.stringify(logObject)
     }
-
-    const logObject = meta ? { ...baseLog, meta } : baseLog
-    return JSON.stringify(logObject)
   }
 
   debug(message: string, meta?: any): void {

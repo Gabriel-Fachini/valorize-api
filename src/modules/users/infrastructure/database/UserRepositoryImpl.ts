@@ -1,6 +1,6 @@
 import { User } from '../../domain/entities/User'
 import { UserRepository } from '../../domain/repositories/UserRepository'
-import { BaseRepository } from '@shared/infrastructure/database/BaseRepository'
+import { prisma } from '../../../../shared/infrastructure/database/db'
 
 // This is an example implementation - you'll need to create the User model in your Prisma schema first
 // Example Prisma model:
@@ -16,11 +16,10 @@ import { BaseRepository } from '@shared/infrastructure/database/BaseRepository'
 //   @@map("users")
 // }
 
-export class UserRepositoryImpl extends BaseRepository implements UserRepository {
-  
+export class UserRepositoryImpl implements UserRepository {
   async findById(id: string): Promise<User | null> {
     try {
-      const user = await this.prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id }
       })
       
@@ -32,7 +31,7 @@ export class UserRepositoryImpl extends BaseRepository implements UserRepository
 
   async findByAuth0Id(auth0Id: string): Promise<User | null> {
     try {
-      const user = await this.prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { auth0Id }
       })
       
@@ -44,7 +43,7 @@ export class UserRepositoryImpl extends BaseRepository implements UserRepository
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      const user = await this.prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { email: email.toLowerCase() }
       })
       
@@ -64,7 +63,7 @@ export class UserRepositoryImpl extends BaseRepository implements UserRepository
         updatedAt: new Date()
       }
 
-      const savedUser = await this.prisma.user.upsert({
+      const savedUser = await prisma.user.upsert({
         where: { id: user.id },
         create: {
           id: user.id,
@@ -82,7 +81,7 @@ export class UserRepositoryImpl extends BaseRepository implements UserRepository
 
   async delete(id: string): Promise<void> {
     try {
-      await this.prisma.user.delete({
+      await prisma.user.delete({
         where: { id }
       })
     } catch (error) {
@@ -92,7 +91,7 @@ export class UserRepositoryImpl extends BaseRepository implements UserRepository
 
   async findAll(limit = 50, offset = 0): Promise<User[]> {
     try {
-      const users = await this.prisma.user.findMany({
+      const users = await prisma.user.findMany({
         take: limit,
         skip: offset,
         orderBy: { createdAt: 'desc' }
@@ -106,7 +105,7 @@ export class UserRepositoryImpl extends BaseRepository implements UserRepository
 
   async existsByEmail(email: string): Promise<boolean> {
     try {
-      const count = await this.prisma.user.count({
+      const count = await prisma.user.count({
         where: { email: email.toLowerCase() }
       })
       return count > 0
@@ -117,7 +116,7 @@ export class UserRepositoryImpl extends BaseRepository implements UserRepository
 
   async existsByAuth0Id(auth0Id: string): Promise<boolean> {
     try {
-      const count = await this.prisma.user.count({
+      const count = await prisma.user.count({
         where: { auth0Id }
       })
       return count > 0

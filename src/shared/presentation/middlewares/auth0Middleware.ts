@@ -9,8 +9,10 @@ const PUBLIC_ROUTES = [
   '/docs/static',
   '/docs/json',
   '/docs/yaml',
-  '/api/v1/users/auth/authorize',
-  '/api/v1/users/auth/callback'
+  '/login',                   // Direct login route
+  '/users/login',             // Prefixed login route  
+  '/users/auth/callback',
+  '/session/refresh-info'
 ]
 
 // Check if a route should be public
@@ -111,8 +113,7 @@ export const auth0Middleware = async (
       logger.warn('JWT verification failed', {
         url,
         method,
-        error: jwtError.message,
-        tokenPreview: token.substring(0, 20) + '...'
+        error: jwtError.message
       })
 
       if (jwtError.code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED') {

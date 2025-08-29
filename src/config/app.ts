@@ -36,13 +36,21 @@ export const buildApp = async (): Promise<FastifyInstance> => {
 
   // Register JWT for Auth0 token verification
   await app.register(jwt, {
-    secret: {
-      jwks: true,
-      cache: true,
-      cacheSize: 100,
-      jwksUrl: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-      audience: process.env.AUTH0_AUDIENCE,
-      issuer: `https://${process.env.AUTH0_DOMAIN}/`
+    secret: async function (decodedToken: any) {
+      const jwksClient = require('jwks-rsa')
+      const client = jwksClient({
+        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+        cache: true,
+        cacheMaxEntries: 5,
+        cacheMaxAge: 600000 // 10 minutes
+      })
+
+      if (!decodedToken.header || !decodedToken.header.kid) {
+        throw new Error('Invalid token header')
+      }
+
+      const key = await client.getSigningKey(decodedToken.header.kid)
+      return key.getPublicKey()
     }
   })
 
@@ -121,8 +129,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     }
   })
 
-  // Register API routes
-  const apiPrefix = process.env.API_PREFIX || '/api/v1'
+  // Register API routes (no prefix)
   
   // Users module routes
   await app.register(
@@ -130,7 +137,16 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       const { default: userRoutes } = await import('@modules/users/presentation/routes/userRoutes')
       await fastify.register(userRoutes)
     },
-    { prefix: `${apiPrefix}/users` }
+    { prefix: '/users' }
+  )
+
+  // Session/Auth module routes
+  await app.register(
+    async function (fastify) {
+      const { default: sessionRoutes } = await import('@modules/auth/presentation/routes/sessionRoutes')
+      await fastify.register(sessionRoutes)
+    },
+    { prefix: '/session' }
   )
 
   // 404 handler
