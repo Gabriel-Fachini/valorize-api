@@ -59,7 +59,7 @@ export class ConflictError extends Error implements ApiError {
 export const errorHandler = async (
   error: FastifyError,
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) => {
   const requestId = request.id
   const method = request.method
@@ -74,8 +74,8 @@ export const errorHandler = async (
       name: error.name,
       message: error.message,
       code: error.code,
-      stack: error.stack
-    }
+      stack: error.stack,
+    },
   })
 
   // Handle Fastify validation errors
@@ -85,7 +85,7 @@ export const errorHandler = async (
       message: 'Request validation failed',
       details: error.validation,
       statusCode: 400,
-      requestId
+      requestId,
     })
   }
 
@@ -96,7 +96,7 @@ export const errorHandler = async (
       message: error.message,
       statusCode: error.statusCode,
       code: (error as ApiError).code,
-      requestId
+      requestId,
     })
   }
 
@@ -107,7 +107,7 @@ export const errorHandler = async (
       message: 'Token expired',
       statusCode: 401,
       code: 'TOKEN_EXPIRED',
-      requestId
+      requestId,
     })
   }
 
@@ -117,7 +117,7 @@ export const errorHandler = async (
       message: 'Invalid token',
       statusCode: 401,
       code: 'INVALID_TOKEN',
-      requestId
+      requestId,
     })
   }
 
@@ -128,7 +128,7 @@ export const errorHandler = async (
       message: 'Resource already exists',
       statusCode: 409,
       code: 'DUPLICATE_RESOURCE',
-      requestId
+      requestId,
     })
   }
 
@@ -138,7 +138,7 @@ export const errorHandler = async (
       message: 'Referenced resource does not exist',
       statusCode: 400,
       code: 'INVALID_REFERENCE',
-      requestId
+      requestId,
     })
   }
 
@@ -149,7 +149,7 @@ export const errorHandler = async (
       message: 'Rate limit exceeded. Please try again later.',
       statusCode: 429,
       code: 'RATE_LIMIT_EXCEEDED',
-      requestId
+      requestId,
     })
   }
 
@@ -164,6 +164,6 @@ export const errorHandler = async (
     statusCode: 500,
     code: 'INTERNAL_ERROR',
     requestId,
-    ...(isDevelopment && { stack: error.stack })
+    ...(isDevelopment && { stack: error.stack }),
   })
 } 

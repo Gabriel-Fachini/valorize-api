@@ -24,9 +24,9 @@ const prisma = new PrismaClient({
   errorFormat: 'pretty',
   datasources: {
     db: {
-      url: process.env.DATABASE_URL
-    }
-  }
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
 
 // Set up logging events
@@ -35,28 +35,28 @@ prisma.$on('query', (e) => {
     query: e.query,
     params: e.params,
     duration: `${e.duration}ms`,
-    target: e.target
+    target: e.target,
   })
 })
 
 prisma.$on('error', (e) => {
   logger.error('Prisma Error', {
     message: e.message,
-    target: e.target
+    target: e.target,
   })
 })
 
 prisma.$on('info', (e) => {
   logger.info('Prisma Info', {
     message: e.message,
-    target: e.target
+    target: e.target,
   })
 })
 
 prisma.$on('warn', (e) => {
   logger.warn('Prisma Warning', {
     message: e.message,
-    target: e.target
+    target: e.target,
   })
 })
 

@@ -9,10 +9,9 @@ const PUBLIC_ROUTES = [
   '/docs/static',
   '/docs/json',
   '/docs/yaml',
-  '/login',                   // Direct login route
-  '/users/login',             // Prefixed login route  
-  '/users/auth/callback',
-  '/session/refresh-info'
+  '/session/login',           // Session login route (password grant)
+  '/session/refresh',         // Token refresh route
+  '/session/refresh-info',
 ]
 
 // Check if a route should be public
@@ -26,7 +25,7 @@ export interface AuthenticatedUser {
   email_verified?: boolean
   name?: string
   picture?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 // Extend FastifyRequest to include authenticated user
@@ -38,7 +37,7 @@ declare module 'fastify' {
 
 export const auth0Middleware = async (
   request: FastifyRequest,
-  reply: FastifyReply
+  _reply: FastifyReply,
 ): Promise<void> => {
   const { url, method } = request
 
@@ -60,7 +59,7 @@ export const auth0Middleware = async (
       logger.warn('Missing authorization header', {
         url,
         method,
-        headers: request.headers
+        headers: request.headers,
       })
       throw new UnauthorizedError('Authorization header is required')
     }
@@ -70,7 +69,7 @@ export const auth0Middleware = async (
       logger.warn('Invalid authorization format', {
         url,
         method,
-        authorization: authorization.substring(0, 20) + '...'
+        authorization: authorization.substring(0, 20) + '...',
       })
       throw new UnauthorizedError('Authorization header must be a Bearer token')
     }
@@ -83,20 +82,64 @@ export const auth0Middleware = async (
       throw new UnauthorizedError('Token is required')
     }
 
+    // DEBUG: Quick token validation (can be removed later)
     try {
+      const parts = token.split('.')
+      if (parts.length >= 1) {
+        const headerDecoded = JSON.parse(Buffer.from(parts[0], 'base64url').toString())
+      }
+    } catch (debugError) {
+      logger.warn('Token validation error:', debugError)
+    }
+
+    try {
+      console.log('Attempting JWT verification...')
       // Verify the JWT token using Fastify's JWT plugin
       // The plugin is configured with Auth0's JWKS URL in app.ts
       const decoded = await request.jwtVerify()
+      console.log('JWT verification successful:', decoded)
       
       // Extract user information from the decoded token
-      const decodedPayload = decoded as any
+      const decodedPayload = decoded as Record<string, unknown>
+      
+      // Validate Auth0 issuer
+      const expectedIssuer = `https://${process.env.AUTH0_DOMAIN}/`
+      if (decodedPayload.iss !== expectedIssuer) {
+        console.log('ERROR: Invalid issuer. Expected:', expectedIssuer, 'Got:', decodedPayload.iss)
+        logger.warn('Invalid JWT issuer', {
+          expected: expectedIssuer,
+          received: decodedPayload.iss,
+        })
+        throw new UnauthorizedError('Invalid token issuer')
+      }
+      
+      // Validate Auth0 audience (if configured)
+      if (process.env.AUTH0_AUDIENCE) {
+        const audience = decodedPayload.aud as string | string[]
+        const expectedAudience = process.env.AUTH0_AUDIENCE
+        
+        // Check if audience matches (handle both string and array formats)
+        const audienceValid = Array.isArray(audience) 
+          ? audience.includes(expectedAudience)
+          : audience === expectedAudience
+          
+        if (!audienceValid) {
+          console.log('ERROR: Invalid audience. Expected:', expectedAudience, 'Got:', audience)
+          logger.warn('Invalid JWT audience', {
+            expected: expectedAudience,
+            received: audience,
+          })
+          throw new UnauthorizedError('Invalid token audience')
+        }
+      }
+      
       const user: AuthenticatedUser = {
         sub: decodedPayload.sub as string,
         email: decodedPayload.email as string,
         email_verified: decodedPayload.email_verified as boolean,
         name: decodedPayload.name as string,
         picture: decodedPayload.picture as string,
-        ...decodedPayload
+        ...decodedPayload,
       }
 
       // Attach user to request
@@ -106,24 +149,38 @@ export const auth0Middleware = async (
         userId: user.sub,
         email: user.email,
         url,
-        method
+        method,
       })
 
-    } catch (jwtError: any) {
+    } catch (jwtError: unknown) {
+      console.log('=== DEBUG: JWT verification failed ===')
+      console.log('JWT Error:', jwtError)
+      console.log('JWT Error type:', typeof jwtError)
+      console.log('JWT Error instanceof Error:', jwtError instanceof Error)
+      if (jwtError instanceof Error) {
+        console.log('JWT Error message:', jwtError.message)
+        console.log('JWT Error stack:', jwtError.stack)
+      }
+      const errorCode = (jwtError as { code?: string }).code
+      console.log('JWT Error code:', errorCode)
+      
       logger.warn('JWT verification failed', {
         url,
         method,
-        error: jwtError.message
+        error: jwtError instanceof Error ? jwtError.message : String(jwtError),
       })
 
-      if (jwtError.code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED') {
+      if (errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED') {
+        console.log('Token expired')
         throw new UnauthorizedError('Token has expired')
       }
 
-      if (jwtError.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID') {
+      if (errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID') {
+        console.log('Token invalid')
         throw new UnauthorizedError('Invalid token')
       }
 
+      console.log('Generic token verification failed')
       throw new UnauthorizedError('Token verification failed')
     }
 
@@ -137,7 +194,7 @@ export const auth0Middleware = async (
     logger.error('Unexpected error in auth middleware', {
       url,
       method,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     })
 
     throw new UnauthorizedError('Authentication failed')

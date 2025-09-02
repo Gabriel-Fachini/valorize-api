@@ -29,13 +29,13 @@ export class SessionService {
   async getSessionInfo(user: AuthenticatedUser, token: string): Promise<SessionInfo> {
     try {
       // Decode the token to get expiration time
-      const decoded = jwt.decode(token) as any
+      const decoded = jwt.decode(token) as Record<string, unknown>
       
-      if (!decoded || !decoded.exp) {
+      if (!decoded?.exp) {
         throw new Error('Invalid token format')
       }
 
-      const expiresAt = new Date(decoded.exp * 1000)
+      const expiresAt = new Date(Number(decoded.exp) * 1000)
       const now = new Date()
       const timeRemaining = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000))
       const isValid = timeRemaining > 0
@@ -46,7 +46,7 @@ export class SessionService {
         email: user.email,
         expiresAt: expiresAt.toISOString(),
         timeRemaining,
-        needsRefresh
+        needsRefresh,
       })
 
       return {
@@ -54,12 +54,12 @@ export class SessionService {
         user,
         expiresAt,
         timeRemaining,
-        needsRefresh
+        needsRefresh,
       }
     } catch (error) {
       logger.error('Error getting session info', {
         userId: user.sub,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       })
       
       throw new Error('Failed to retrieve session information')
@@ -78,7 +78,7 @@ export class SessionService {
         return {
           valid: false,
           expired: false,
-          error: 'Invalid token format'
+          error: 'Invalid token format',
         }
       }
 
@@ -86,7 +86,7 @@ export class SessionService {
         return {
           valid: false,
           expired: false,
-          error: 'Token missing expiration'
+          error: 'Token missing expiration',
         }
       }
 
@@ -101,7 +101,7 @@ export class SessionService {
         email_verified: decoded.email_verified,
         name: decoded.name,
         picture: decoded.picture,
-        ...decoded
+        ...decoded,
       }
 
       return {
@@ -109,17 +109,17 @@ export class SessionService {
         expired,
         user,
         expiresAt,
-        timeRemaining
+        timeRemaining,
       }
     } catch (error) {
       logger.warn('Token validation failed', {
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       })
 
       return {
         valid: false,
         expired: false,
-        error: 'Token validation failed'
+        error: 'Token validation failed',
       }
     }
   }
@@ -141,8 +141,8 @@ export class SessionService {
         'grant_type: "refresh_token"',
         'client_id: "seu_client_id"',
         'client_secret: "seu_client_secret" (se aplicável)',
-        'refresh_token: "seu_refresh_token"'
-      ]
+        'refresh_token: "seu_refresh_token"',
+      ],
     }
   }
 

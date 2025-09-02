@@ -9,7 +9,7 @@ const LOG_LEVELS: LogLevel = {
   DEBUG: 0,
   INFO: 1,
   WARN: 2,
-  ERROR: 3
+  ERROR: 3,
 }
 
 class Logger {
@@ -34,7 +34,7 @@ class Logger {
         DEBUG: '\x1b[36m', // cyan
         INFO: '\x1b[32m',  // green
         WARN: '\x1b[33m',  // yellow
-        ERROR: '\x1b[31m'  // red
+        ERROR: '\x1b[31m',  // red
       }
       const reset = '\x1b[0m'
       const color = levelColors[level as keyof typeof levelColors] || ''
@@ -56,7 +56,7 @@ class Logger {
       const baseLog = {
         timestamp: new Date().toISOString(),
         level,
-        message
+        message,
       }
       const logObject = meta ? { ...baseLog, meta } : baseLog
       return JSON.stringify(logObject)
@@ -87,7 +87,7 @@ class Logger {
         ? { 
             name: error.name, 
             message: error.message, 
-            stack: error.stack 
+            stack: error.stack, 
           }
         : error
 

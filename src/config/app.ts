@@ -13,45 +13,71 @@ import { auth0Middleware } from '@shared/presentation/middlewares/auth0Middlewar
 export const buildApp = async (): Promise<FastifyInstance> => {
   const app = fastify({
     logger: {
-      level: process.env.LOG_LEVEL || 'info'
-    }
+      level: process.env.LOG_LEVEL ?? 'info',
+    },
   })
 
   // Register CORS
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN || true,
-    credentials: process.env.CORS_CREDENTIALS === 'true'
+    origin: process.env.CORS_ORIGIN ?? true,
+    credentials: process.env.CORS_CREDENTIALS === 'true',
   })
 
   // Register Helmet for security
   await app.register(helmet, {
-    contentSecurityPolicy: false
+    contentSecurityPolicy: false,
   })
 
   // Register Rate Limiting
   await app.register(rateLimit, {
-    max: parseInt(process.env.RATE_LIMIT_MAX || '100'),
-    timeWindow: parseInt(process.env.RATE_LIMIT_TIME_WINDOW || '60000')
+    max: parseInt(process.env.RATE_LIMIT_MAX ?? '100'),
+    timeWindow: parseInt(process.env.RATE_LIMIT_TIME_WINDOW ?? '60000'),
   })
 
   // Register JWT for Auth0 token verification
   await app.register(jwt, {
-    secret: async function (decodedToken: any) {
+    secret: async function (request: any, token: any) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const jwksClient = require('jwks-rsa')
       const client = jwksClient({
         jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
         cache: true,
         cacheMaxEntries: 5,
-        cacheMaxAge: 600000 // 10 minutes
+        cacheMaxAge: 600000, // 10 minutes
       })
 
-      if (!decodedToken.header || !decodedToken.header.kid) {
-        throw new Error('Invalid token header')
+      // Handle different possible parameter structures
+      let tokenString: string
+      let kid: string | undefined
+
+      // Check if token is a string (direct token) or if we need to extract from request
+      if (typeof token === 'string') {
+        tokenString = token
+      } else if (request?.headers?.authorization) {
+        tokenString = request.headers.authorization.replace('Bearer ', '')
+      } else {
+        throw new Error('Unable to extract JWT token')
       }
 
-      const key = await client.getSigningKey(decodedToken.header.kid)
+      // Extract kid from JWT header
+      try {
+        const parts = tokenString.split('.')
+        if (parts.length >= 1) {
+          const headerBase64 = parts[0]
+          const headerDecoded = JSON.parse(Buffer.from(headerBase64, 'base64url').toString())
+          kid = headerDecoded.kid
+        }
+      } catch {
+        throw new Error('Failed to parse JWT header')
+      }
+      
+      if (!kid) {
+        throw new Error('Invalid token header - missing kid')
+      }
+
+      const key = await client.getSigningKey(kid)
       return key.getPublicKey()
-    }
+    },
   })
 
   // Register Swagger
@@ -64,30 +90,30 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         version: '1.0.0',
         contact: {
           name: 'API Support',
-          email: 'support@valorize.com'
-        }
+          email: 'support@valorize.com',
+        },
       },
       servers: [
         {
           url: 'http://localhost:3000',
-          description: 'Development server'
-        }
+          description: 'Development server',
+        },
       ],
       components: {
         securitySchemes: {
           bearerAuth: {
             type: 'http',
             scheme: 'bearer',
-            bearerFormat: 'JWT'
-          }
-        }
+            bearerFormat: 'JWT',
+          },
+        },
       },
       security: [
         {
-          bearerAuth: []
-        }
-      ]
-    }
+          bearerAuth: [],
+        },
+      ],
+    },
   })
 
   // Register Swagger UI
@@ -95,10 +121,10 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     routePrefix: '/docs',
     uiConfig: {
       docExpansion: 'list',
-      deepLinking: false
+      deepLinking: false,
     },
     staticCSP: true,
-    transformStaticCSP: (header) => header
+    transformStaticCSP: (header) => header,
   })
 
   // Register global middlewares
@@ -116,16 +142,16 @@ export const buildApp = async (): Promise<FastifyInstance> => {
           properties: {
             status: { type: 'string' },
             timestamp: { type: 'string' },
-            uptime: { type: 'number' }
-          }
-        }
-      }
-    }
-  }, async (request, reply) => {
+            uptime: { type: 'number' },
+          },
+        },
+      },
+    },
+  }, async (_request, _reply) => {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     }
   })
 
@@ -137,7 +163,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       const { default: userRoutes } = await import('@modules/users/presentation/routes/userRoutes')
       await fastify.register(userRoutes)
     },
-    { prefix: '/users' }
+    { prefix: '/users' },
   )
 
   // Session/Auth module routes
@@ -146,17 +172,17 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       const { default: sessionRoutes } = await import('@modules/auth/presentation/routes/sessionRoutes')
       await fastify.register(sessionRoutes)
     },
-    { prefix: '/session' }
+    { prefix: '/session' },
   )
 
   // 404 handler
   app.setNotFoundHandler({
-    preHandler: app.rateLimit()
+    preHandler: app.rateLimit(),
   }, (request, reply) => {
     reply.code(404).send({
       error: 'Not Found',
       message: 'Route not found',
-      statusCode: 404
+      statusCode: 404,
     })
   })
 

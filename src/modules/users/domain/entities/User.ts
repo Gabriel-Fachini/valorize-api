@@ -18,7 +18,7 @@ export class User extends BaseEntity {
     private _isActive: boolean = true,
     id?: string,
     createdAt?: Date,
-    updatedAt?: Date
+    updatedAt?: Date,
   ) {
     super(id, createdAt, updatedAt)
   }
@@ -54,7 +54,7 @@ export class User extends BaseEntity {
       isActive,
       id,
       createdAt,
-      updatedAt
+      updatedAt,
     )
   }
 
@@ -125,7 +125,7 @@ export class User extends BaseEntity {
       name: this._name,
       isActive: this._isActive,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
     }
   }
 } 

@@ -20,7 +20,7 @@ export class UserRepositoryImpl implements UserRepository {
   async findById(id: string): Promise<User | null> {
     try {
       const user = await prisma.user.findUnique({
-        where: { id }
+        where: { id },
       })
       
       return user ? this.toDomainEntity(user) : null
@@ -32,7 +32,7 @@ export class UserRepositoryImpl implements UserRepository {
   async findByAuth0Id(auth0Id: string): Promise<User | null> {
     try {
       const user = await prisma.user.findUnique({
-        where: { auth0Id }
+        where: { auth0Id },
       })
       
       return user ? this.toDomainEntity(user) : null
@@ -44,7 +44,7 @@ export class UserRepositoryImpl implements UserRepository {
   async findByEmail(email: string): Promise<User | null> {
     try {
       const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() }
+        where: { email: email.toLowerCase() },
       })
       
       return user ? this.toDomainEntity(user) : null
@@ -60,7 +60,7 @@ export class UserRepositoryImpl implements UserRepository {
         email: user.email,
         name: user.name,
         isActive: user.isActive,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }
 
       const savedUser = await prisma.user.upsert({
@@ -68,9 +68,9 @@ export class UserRepositoryImpl implements UserRepository {
         create: {
           id: user.id,
           ...userData,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
         },
-        update: userData
+        update: userData,
       })
 
       return this.toDomainEntity(savedUser)
@@ -82,7 +82,7 @@ export class UserRepositoryImpl implements UserRepository {
   async delete(id: string): Promise<void> {
     try {
       await prisma.user.delete({
-        where: { id }
+        where: { id },
       })
     } catch (error) {
       throw new Error(`Failed to delete user: ${error}`)
@@ -94,7 +94,7 @@ export class UserRepositoryImpl implements UserRepository {
       const users = await prisma.user.findMany({
         take: limit,
         skip: offset,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       })
 
       return users.map(user => this.toDomainEntity(user))
@@ -106,7 +106,7 @@ export class UserRepositoryImpl implements UserRepository {
   async existsByEmail(email: string): Promise<boolean> {
     try {
       const count = await prisma.user.count({
-        where: { email: email.toLowerCase() }
+        where: { email: email.toLowerCase() },
       })
       return count > 0
     } catch (error) {
@@ -117,7 +117,7 @@ export class UserRepositoryImpl implements UserRepository {
   async existsByAuth0Id(auth0Id: string): Promise<boolean> {
     try {
       const count = await prisma.user.count({
-        where: { auth0Id }
+        where: { auth0Id },
       })
       return count > 0
     } catch (error) {
@@ -133,7 +133,7 @@ export class UserRepositoryImpl implements UserRepository {
       name: prismaUser.name,
       isActive: prismaUser.isActive,
       createdAt: prismaUser.createdAt,
-      updatedAt: prismaUser.updatedAt
+      updatedAt: prismaUser.updatedAt,
     })
   }
 } 
