@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import jwt from '@fastify/jwt'
+import jwksClient from 'jwks-rsa'
 
 import { logger } from '@shared/infrastructure/logger/Logger'
 import { errorHandler } from '@shared/presentation/middlewares/errorHandler'
@@ -37,8 +38,6 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Register JWT for Auth0 token verification
   await app.register(jwt, {
     secret: async function (request: any, token: any) {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const jwksClient = require('jwks-rsa')
       const client = jwksClient({
         jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
         cache: true,

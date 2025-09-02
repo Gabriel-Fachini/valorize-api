@@ -12,8 +12,8 @@ const start = async () => {
     // Build and start the application
     const app = await buildApp()
     
-    const port = parseInt(process.env.PORT || '3000')
-    const host = process.env.HOST || '0.0.0.0'
+    const port = parseInt(process.env.PORT ?? '3000')
+    const host = process.env.HOST ?? '0.0.0.0'
     
     await app.listen({ port, host })
     

@@ -82,22 +82,10 @@ export const auth0Middleware = async (
       throw new UnauthorizedError('Token is required')
     }
 
-    // DEBUG: Quick token validation (can be removed later)
     try {
-      const parts = token.split('.')
-      if (parts.length >= 1) {
-        const headerDecoded = JSON.parse(Buffer.from(parts[0], 'base64url').toString())
-      }
-    } catch (debugError) {
-      logger.warn('Token validation error:', debugError)
-    }
-
-    try {
-      console.log('Attempting JWT verification...')
       // Verify the JWT token using Fastify's JWT plugin
       // The plugin is configured with Auth0's JWKS URL in app.ts
       const decoded = await request.jwtVerify()
-      console.log('JWT verification successful:', decoded)
       
       // Extract user information from the decoded token
       const decodedPayload = decoded as Record<string, unknown>
@@ -105,7 +93,6 @@ export const auth0Middleware = async (
       // Validate Auth0 issuer
       const expectedIssuer = `https://${process.env.AUTH0_DOMAIN}/`
       if (decodedPayload.iss !== expectedIssuer) {
-        console.log('ERROR: Invalid issuer. Expected:', expectedIssuer, 'Got:', decodedPayload.iss)
         logger.warn('Invalid JWT issuer', {
           expected: expectedIssuer,
           received: decodedPayload.iss,
@@ -124,7 +111,6 @@ export const auth0Middleware = async (
           : audience === expectedAudience
           
         if (!audienceValid) {
-          console.log('ERROR: Invalid audience. Expected:', expectedAudience, 'Got:', audience)
           logger.warn('Invalid JWT audience', {
             expected: expectedAudience,
             received: audience,
@@ -153,16 +139,16 @@ export const auth0Middleware = async (
       })
 
     } catch (jwtError: unknown) {
-      console.log('=== DEBUG: JWT verification failed ===')
-      console.log('JWT Error:', jwtError)
-      console.log('JWT Error type:', typeof jwtError)
-      console.log('JWT Error instanceof Error:', jwtError instanceof Error)
+      logger.warn('JWT verification failed', {
+        url,
+        method,
+        error: jwtError instanceof Error ? jwtError.message : String(jwtError),
+      })
       if (jwtError instanceof Error) {
-        console.log('JWT Error message:', jwtError.message)
-        console.log('JWT Error stack:', jwtError.stack)
+        logger.warn('JWT Error message:', jwtError.message)
       }
       const errorCode = (jwtError as { code?: string }).code
-      console.log('JWT Error code:', errorCode)
+      logger.warn('JWT Error code:', errorCode)
       
       logger.warn('JWT verification failed', {
         url,
@@ -171,16 +157,16 @@ export const auth0Middleware = async (
       })
 
       if (errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED') {
-        console.log('Token expired')
+        logger.warn('Token expired')
         throw new UnauthorizedError('Token has expired')
       }
 
       if (errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID') {
-        console.log('Token invalid')
+        logger.warn('Token invalid')
         throw new UnauthorizedError('Invalid token')
       }
 
-      console.log('Generic token verification failed')
+      logger.warn('Generic token verification failed')
       throw new UnauthorizedError('Token verification failed')
     }
 

@@ -75,13 +75,13 @@ export class AuthService {
 
       // Add audience if configured (for API access)
       if (this.audience) {
-        console.log('🎯 Using audience:', this.audience)
+        logger.info('Using audience:', this.audience)
         tokenRequestBody.audience = this.audience
       } else {
-        console.log('⚠️ No audience configured - will return opaque token!')
+        logger.warn('No audience configured - will return opaque token!')
       }
       
-      console.log('📤 Token request body:', tokenRequestBody)
+      logger.info('Token request body:', tokenRequestBody)
 
       // Make the token request to Auth0
       const tokenResponse = await axios.post(
@@ -102,7 +102,7 @@ export class AuthService {
       
       // Check if token is JWT or opaque
       const isJWT = tokenData.access_token.includes('.')
-      console.log('📥 Token received:', {
+      logger.info('Token received:', {
         isJWT,
         tokenStart: tokenData.access_token.substring(0, 50) + '...',
         tokenType: tokenData.token_type,
@@ -261,7 +261,7 @@ export class AuthService {
       }
 
       // Try to decode the payload (without verification)
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
       
       // Check for required claims
       return !!(payload.sub && payload.exp)
