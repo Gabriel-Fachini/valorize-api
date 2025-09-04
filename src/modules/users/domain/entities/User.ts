@@ -1,4 +1,5 @@
 import { BaseEntity } from '@shared/domain/entities/BaseEntity'
+import { Role } from '@modules/rbac/domain/entities/Role'
 
 export interface UserProps {
   id?: string
@@ -6,6 +7,7 @@ export interface UserProps {
   email: string
   name: string
   isActive?: boolean
+  roles?: Role[]
   createdAt?: Date
   updatedAt?: Date
 }
@@ -16,6 +18,7 @@ export class User extends BaseEntity {
     private readonly _email: string,
     private _name: string,
     private _isActive: boolean = true,
+    private _roles: Role[] = [],
     id?: string,
     createdAt?: Date,
     updatedAt?: Date,
@@ -25,7 +28,7 @@ export class User extends BaseEntity {
 
   // Factory method to create a new user
   public static create(props: UserProps): User {
-    const { auth0Id, email, name, isActive = true, id, createdAt, updatedAt } = props
+    const { auth0Id, email, name, isActive = true, roles = [], id, createdAt, updatedAt } = props
 
     if (!auth0Id?.trim()) {
       throw new Error('Auth0 ID is required')
@@ -52,6 +55,7 @@ export class User extends BaseEntity {
       email.trim().toLowerCase(),
       name.trim(),
       isActive,
+      roles,
       id,
       createdAt,
       updatedAt,
@@ -73,6 +77,47 @@ export class User extends BaseEntity {
 
   public get isActive(): boolean {
     return this._isActive
+  }
+
+  public get roles(): Role[] {
+    return [...this._roles] // Return a copy to prevent mutation
+  }
+
+  // RBAC methods
+  public hasRole(roleName: string): boolean {
+    return this._roles.some(role => role.name === roleName.toLowerCase() && role.isActive)
+  }
+
+  public hasAnyRole(roleNames: string[]): boolean {
+    return roleNames.some(roleName => this.hasRole(roleName))
+  }
+
+  public addRole(role: Role): void {
+    if (!role.isActive) {
+      throw new Error('Cannot assign inactive role to user')
+    }
+
+    if (this.hasRole(role.name)) {
+      throw new Error(`User already has role: ${role.name}`)
+    }
+
+    this._roles.push(role)
+    this.touch()
+  }
+
+  public removeRole(roleName: string): void {
+    const roleIndex = this._roles.findIndex(role => role.name === roleName.toLowerCase())
+    
+    if (roleIndex === -1) {
+      throw new Error(`User does not have role: ${roleName}`)
+    }
+
+    this._roles.splice(roleIndex, 1)
+    this.touch()
+  }
+
+  public getActiveRoles(): Role[] {
+    return this._roles.filter(role => role.isActive)
   }
 
   // Business methods
@@ -124,6 +169,7 @@ export class User extends BaseEntity {
       email: this._email,
       name: this._name,
       isActive: this._isActive,
+      roles: this._roles.map(role => role.toJSON()),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     }

@@ -1,6 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { UnauthorizedError } from './errorHandler'
 import { logger } from '@shared/infrastructure/logger/Logger'
+import { User } from '@modules/users/domain/entities/User'
+import { UserPermissions } from '@modules/rbac/application/services/RBACService'
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -32,6 +34,13 @@ export interface AuthenticatedUser {
 declare module 'fastify' {
   interface FastifyRequest {
     authenticatedUser?: AuthenticatedUser
+    currentUser?: User
+    userPermissions?: UserPermissions
+  }
+  
+  interface FastifyInstance {
+    rbacService?: any
+    userService?: any
   }
 }
 

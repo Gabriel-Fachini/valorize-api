@@ -166,4 +166,16 @@ export class UserService {
       throw error
     }
   }
+
+  async findByAuth0Id(auth0Id: string): Promise<User | null> {
+    return this.userRepository.findByAuth0Id(auth0Id)
+  }
+
+  async findById(id: string): Promise<User | null> {
+    return this.userRepository.findById(id)
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.findAll()
+  }
 } 
