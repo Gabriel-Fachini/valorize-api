@@ -411,5 +411,5 @@ export const authService = {
         'refresh_token: "seu_refresh_token"',
       ],
     }
-  }
+  },
 }

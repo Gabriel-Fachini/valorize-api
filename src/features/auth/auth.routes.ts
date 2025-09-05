@@ -207,16 +207,16 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
               properties: {
                 endpoint: { type: 'string' },
                 instructions: { type: 'string' },
-                requiredFields: {
-                  type: 'array',
-                  items: { type: 'string' }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  requiredFields: {
+                    type: 'array',
+                    items: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
   }, async (_request, reply) => {
     return reply.code(200).send({
       success: true,
