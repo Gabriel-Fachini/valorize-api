@@ -1,14 +1,11 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
-import { getCurrentUser } from '@shared/presentation/middlewares/auth0Middleware'
-import { SessionService } from '../../application/services/SessionService'
-import { AuthService } from '../../application/services/AuthService'
-import { UnauthorizedError } from '@shared/presentation/middlewares/errorHandler'
-import { loginSchema, refreshTokenSchema, verifySessionSchema } from '../schemas/sessionSchemas'
+import { getCurrentUser } from '@/middleware/auth'
+import { authService } from './auth.service'
+import { UnauthorizedError } from '@/middleware/error-handler'
+import { loginSchema, refreshTokenSchema, verifySessionSchema } from './auth.schemas'
 
-const sessionRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptions) => {
-  const sessionService = new SessionService()
-  const authService = new AuthService()
-
+const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptions) => {
+  // Login endpoint
   fastify.post('/login', {
     schema: loginSchema,
   }, async (request, reply) => {
@@ -127,7 +124,7 @@ const sessionRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOp
 
       // For minimal mode, use simple token validation
       if (minimal) {
-        const validation = sessionService.validateToken(token)
+        const validation = authService.validateToken(token)
         
         if (!validation.valid) {
           return reply.code(401).send({
@@ -152,7 +149,7 @@ const sessionRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOp
 
       // Full mode - get complete session info
       const currentUser = getCurrentUser(request)
-      const sessionInfo = await sessionService.getSessionInfo(currentUser, token)
+      const sessionInfo = await authService.getSessionInfo(currentUser, token)
       
       return reply.code(200).send({
         success: true,
@@ -160,7 +157,7 @@ const sessionRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOp
           isValid: sessionInfo.isValid,
           expiresAt: sessionInfo.expiresAt.toISOString(),
           timeRemaining: sessionInfo.timeRemaining,
-          timeRemainingFormatted: sessionService.formatTimeRemaining(sessionInfo.timeRemaining),
+          timeRemainingFormatted: authService.formatTimeRemaining(sessionInfo.timeRemaining),
           needsRefresh: sessionInfo.needsRefresh,
           user: {
             sub: sessionInfo.user.sub,
@@ -171,7 +168,7 @@ const sessionRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOp
           },
           message: sessionInfo.needsRefresh 
             ? 'Token should be refreshed soon'
-            : `Token is valid for ${sessionService.formatTimeRemaining(sessionInfo.timeRemaining)}`,
+            : `Token is valid for ${authService.formatTimeRemaining(sessionInfo.timeRemaining)}`,
         },
       })
     } catch (error) {      
@@ -194,6 +191,62 @@ const sessionRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOp
       })
     }
   })
+
+  // Get refresh instructions
+  fastify.get('/refresh-instructions', {
+    schema: {
+      tags: ['Authentication'],
+      description: 'Get instructions for refreshing tokens',
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                endpoint: { type: 'string' },
+                instructions: { type: 'string' },
+                requiredFields: {
+                  type: 'array',
+                  items: { type: 'string' }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, async (_request, reply) => {
+    return reply.code(200).send({
+      success: true,
+      data: authService.getRefreshInstructions(),
+    })
+  })
+
+  // Health check for auth module
+  fastify.get('/health', {
+    schema: {
+      tags: ['Authentication'],
+      description: 'Auth module health check',
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            status: { type: 'string' },
+            module: { type: 'string' },
+            timestamp: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
+  }, async () => {
+    return {
+      status: 'ok',
+      module: 'auth',
+      timestamp: new Date().toISOString(),
+    }
+  })
 }
 
-export default sessionRoutes
+export default authRoutes

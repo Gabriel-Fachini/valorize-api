@@ -1,7 +1,6 @@
-import { User } from '../../domain/entities/User'
-import { UserRepository } from '../../domain/repositories/UserRepository'
-import { AuthenticatedUser } from '@shared/presentation/middlewares/auth0Middleware'
-import { logger } from '@shared/infrastructure/logger/Logger'
+import { User } from './user.model'
+import { AuthenticatedUser } from '@/middleware/auth'
+import { logger } from '@/lib/logger'
 
 export interface SignUpResult {
   user: User
@@ -13,13 +12,11 @@ export interface LoginResult {
   lastLoginAt: Date
 }
 
-export class UserService {
-  constructor(private userRepository: UserRepository) {}
-
+export const userService = {
   async signUp(auth0User: AuthenticatedUser): Promise<SignUpResult> {
     try {
       // Check if user already exists
-      const existingUser = await this.userRepository.findByAuth0Id(auth0User.sub)
+      const existingUser = await User.findByAuth0Id(auth0User.sub)
       
       if (existingUser) {
         logger.info('User already exists, returning existing user', {
@@ -50,7 +47,7 @@ export class UserService {
         isActive: true,
       })
 
-      const savedUser = await this.userRepository.save(newUser)
+      const savedUser = await newUser.save()
 
       logger.info('New user created successfully', {
         userId: savedUser.id,
@@ -71,12 +68,12 @@ export class UserService {
       })
       throw error
     }
-  }
+  },
 
   async login(auth0User: AuthenticatedUser): Promise<LoginResult> {
     try {
       // Find user by Auth0 ID
-      const user = await this.userRepository.findByAuth0Id(auth0User.sub)
+      const user = await User.findByAuth0Id(auth0User.sub)
       
       if (!user) {
         logger.warn('User not found during login, this might indicate they need to sign up first', {
@@ -121,7 +118,7 @@ export class UserService {
       // Save changes if any
       let updatedUser = user
       if (hasChanges) {
-        updatedUser = await this.userRepository.save(user)
+        updatedUser = await user.save()
       }
 
       logger.info('User login successful', {
@@ -143,11 +140,11 @@ export class UserService {
       })
       throw error
     }
-  }
+  },
 
   async getUserProfile(auth0Id: string): Promise<User | null> {
     try {
-      const user = await this.userRepository.findByAuth0Id(auth0Id)
+      const user = await User.findByAuth0Id(auth0Id)
       
       if (user && !user.isActive) {
         logger.warn('Inactive user profile requested', {
@@ -165,5 +162,64 @@ export class UserService {
       })
       throw error
     }
+  },
+
+  async updateUserProfile(auth0Id: string, updates: { name?: string }): Promise<User> {
+    try {
+      const user = await User.findByAuth0Id(auth0Id)
+      
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      if (!user.isActive) {
+        throw new Error('Cannot update inactive user profile')
+      }
+
+      if (updates.name) {
+        user.updateName(updates.name)
+      }
+
+      const updatedUser = await user.save()
+
+      logger.info('User profile updated successfully', {
+        userId: updatedUser.id,
+        auth0Id,
+        updates,
+      })
+
+      return updatedUser
+    } catch (error) {
+      logger.error('Error updating user profile', {
+        auth0Id,
+        updates,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  },
+
+  async deactivateUser(auth0Id: string): Promise<void> {
+    try {
+      const user = await User.findByAuth0Id(auth0Id)
+      
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      user.deactivate()
+      await user.save()
+
+      logger.info('User deactivated successfully', {
+        userId: user.id,
+        auth0Id,
+      })
+    } catch (error) {
+      logger.error('Error deactivating user', {
+        auth0Id,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
   }
-} 
+}

@@ -1,5 +1,5 @@
 import { FastifyError, FastifyRequest, FastifyReply } from 'fastify'
-import { logger } from '@shared/infrastructure/logger/Logger'
+import { logger } from '@/lib/logger'
 
 export interface ApiError extends Error {
   statusCode?: number

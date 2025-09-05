@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { UnauthorizedError } from './errorHandler'
-import { logger } from '@shared/infrastructure/logger/Logger'
+import { UnauthorizedError } from './error-handler'
+import { logger } from '@/lib/logger'
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
