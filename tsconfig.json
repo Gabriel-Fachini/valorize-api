@@ -22,7 +22,11 @@
       "@/*": ["./*"],
       "@shared/*": ["./shared/*"],
       "@modules/*": ["./modules/*"],
-      "@config/*": ["./config/*"]
+      "@config/*": ["./config/*"],
+      "@features/*": ["./features/*"],
+      "@lib/*": ["./lib/*"],
+      "@middleware/*": ["./middleware/*"],
+      "@types/*": ["./types/*"]
     }
   },
   "include": [

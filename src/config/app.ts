@@ -7,9 +7,9 @@ import swaggerUI from '@fastify/swagger-ui'
 import jwt from '@fastify/jwt'
 import jwksClient from 'jwks-rsa'
 
-import { logger } from '@shared/infrastructure/logger/Logger'
-import { errorHandler } from '@shared/presentation/middlewares/errorHandler'
-import { auth0Middleware } from '@shared/presentation/middlewares/auth0Middleware'
+import { logger } from '@/lib/logger'
+import { errorHandler } from '@/middleware/error-handler'
+import { auth0Middleware } from '@/middleware/auth'
 
 export const buildApp = async (): Promise<FastifyInstance> => {
   const app = fastify({
@@ -159,19 +159,19 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Users module routes
   await app.register(
     async function (fastify) {
-      const { default: userRoutes } = await import('@modules/users/presentation/routes/userRoutes')
+      const { default: userRoutes } = await import('@/features/users/user.routes')
       await fastify.register(userRoutes)
     },
     { prefix: '/users' },
   )
 
-  // Session/Auth module routes
+  // Auth module routes  
   await app.register(
     async function (fastify) {
-      const { default: sessionRoutes } = await import('@modules/auth/presentation/routes/sessionRoutes')
-      await fastify.register(sessionRoutes)
+      const { default: authRoutes } = await import('@/features/auth/auth.routes')
+      await fastify.register(authRoutes)
     },
-    { prefix: '/session' },
+    { prefix: '/auth' },
   )
 
   // 404 handler

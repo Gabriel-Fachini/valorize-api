@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { buildApp } from '@config/app'
-import { logger } from '@shared/infrastructure/logger/Logger'
-import { connectDB, disconnectDB } from '@shared/infrastructure/database/db'
+import { logger } from '@/lib/logger'
+import { connectDB, disconnectDB } from '@/lib/database'
 
 const start = async () => {
   try {
