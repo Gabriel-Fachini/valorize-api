@@ -44,6 +44,7 @@ export const userService = {
         auth0Id: auth0User.sub,
         email: auth0User.email,
         name: auth0User.name ?? auth0User.email.split('@')[0], // Fallback to email prefix if name not provided
+        companyId: 'default_company',
         isActive: true,
       })
 
@@ -221,5 +222,5 @@ export const userService = {
       })
       throw error
     }
-  }
+  },
 }
