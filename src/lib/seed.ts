@@ -105,6 +105,13 @@ const ROLES_CONFIG = [
 
 const DEMO_USERS = [
   {
+    auth0Id: 'auth0|688aa3e7f3f1dbd119c3b600',
+    email: 'gabriel@valorize.com',
+    name: 'Gabriel',
+    companyId: DEMO_COMPANY_ID,
+    roles: ['super_admin'],
+  },
+  {
     auth0Id: 'auth0|demo-super-admin',
     email: 'admin@valorize.com',
     name: 'Super Admin',

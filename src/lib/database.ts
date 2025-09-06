@@ -30,14 +30,14 @@ const prisma = new PrismaClient({
 })
 
 // Set up logging events
-prisma.$on('query', (e) => {
-  logger.debug('Prisma Query', {
-    query: e.query,
-    params: e.params,
-    duration: `${e.duration}ms`,
-    target: e.target,
-  })
-})
+// prisma.$on('query', (e) => {
+//   logger.debug('Prisma Query', {
+//     query: e.query,
+//     params: e.params,
+//     duration: `${e.duration}ms`,
+//     target: e.target,
+//   })
+// })
 
 prisma.$on('error', (e) => {
   logger.error('Prisma Error', {

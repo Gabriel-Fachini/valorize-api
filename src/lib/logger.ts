@@ -17,7 +17,7 @@ class Logger {
 
   constructor() {
     const level = process.env.LOG_LEVEL?.toUpperCase() ?? 'INFO'
-    this.currentLevel = LOG_LEVELS[level as keyof LogLevel] || LOG_LEVELS.INFO
+    this.currentLevel = LOG_LEVELS[level as keyof LogLevel] ?? LOG_LEVELS.INFO
   }
 
   private shouldLog(level: number): boolean {

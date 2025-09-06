@@ -46,6 +46,20 @@ export class ForbiddenError extends Error implements ApiError {
   }
 }
 
+export class InsufficientPermissionError extends Error implements ApiError {
+  statusCode = 403
+  code = 'INSUFFICIENT_PERMISSION'
+  
+  constructor(
+    public requiredPermission: string,
+    public userPermissions: string[] = [],
+    message?: string,
+  ) {
+    super(message ?? `Access denied. Required permission: ${requiredPermission}`)
+    this.name = 'InsufficientPermissionError'
+  }
+}
+
 export class ConflictError extends Error implements ApiError {
   statusCode = 409
   code = 'CONFLICT'
@@ -85,6 +99,24 @@ export const errorHandler = async (
       message: 'Request validation failed',
       details: error.validation,
       statusCode: 400,
+      requestId,
+    })
+  }
+
+  // Handle insufficient permission errors with detailed information
+  if (error instanceof InsufficientPermissionError) {
+    return reply.code(403).send({
+      error: 'Insufficient Permission',
+      message: error.message,
+      statusCode: 403,
+      code: 'INSUFFICIENT_PERMISSION',
+      details: {
+        requiredPermission: error.requiredPermission,
+        userPermissions: error.userPermissions,
+        missingPermissions: [error.requiredPermission].filter(
+          perm => !error.userPermissions.includes(perm),
+        ),
+      },
       requestId,
     })
   }
