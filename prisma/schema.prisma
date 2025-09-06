@@ -19,6 +19,7 @@ model User {
 
   roles     UserRole[]
 
+  @@index([companyId])
   @@map("users")
 }
 
@@ -34,6 +35,7 @@ model Role {
   users       UserRole[]
 
   @@unique([name, companyId])
+  @@index([companyId])
   @@map("roles")
 }
 
@@ -48,25 +50,28 @@ model Permission {
 }
 
 model UserRole {
-  id     String @id @default(cuid())
   userId String @map("user_id")
   roleId String @map("role_id")
 
   user User @relation(fields: [userId], references: [id])
   role Role @relation(fields: [roleId], references: [id])
 
-  @@unique([userId, roleId])
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([userId, roleId])
   @@map("user_roles")
 }
 
 model RolePermission {
-  id           String @id @default(cuid())
   roleId       String @map("role_id")
   permissionId String @map("permission_id")
 
   role       Role       @relation(fields: [roleId], references: [id])
   permission Permission @relation(fields: [permissionId], references: [id])
 
-  @@unique([roleId, permissionId])
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
   @@map("role_permissions")
 }
