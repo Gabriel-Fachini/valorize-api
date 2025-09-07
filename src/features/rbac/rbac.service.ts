@@ -1,0 +1,179 @@
+import { prisma } from '@/lib/database'
+import { logger } from '@/lib/logger'
+
+export const rbacService = {
+  async checkPermission(auth0Id: string, permission: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({
+      where: { auth0Id },
+      select: { id: true, companyId: true },
+    })
+    if (!user) return false
+    logger.debug('User found', { user })
+
+    const record = await prisma.userRole.findFirst({
+      where: {
+        userId: user.id,
+        role: {
+          companyId: user.companyId,
+          permissions: {
+            some: { permission: { name: permission } },
+          },
+        },
+      },
+    })
+    logger.debug('User role found', { record })
+
+    return !!record
+  },
+
+  async createRole(
+    companyId: string,
+    name: string,
+    permissions: string[] = [],
+    description?: string,
+  ) {
+    return prisma.role.create({
+      data: {
+        name,
+        description,
+        companyId,
+        permissions: {
+          create: permissions.map(p => ({
+            permission: {
+              connectOrCreate: {
+                where: { name: p },
+                create: { name: p },
+              },
+            },
+          })),
+        },
+      },
+      include: {
+        permissions: { include: { permission: true } },
+      },
+    })
+  },
+
+  async assignRoleToUser(userId: string, roleId: string) {
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId, roleId } },
+      update: {},
+      create: { userId, roleId },
+    })
+  },
+
+  async getUserPermissions(auth0Id: string) {
+    const user = await prisma.user.findUnique({
+      where: { auth0Id },
+      select: { 
+        id: true, 
+        companyId: true,
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    logger.debug('Getting user permissions', { userId: user.id })
+
+    // Collect all unique permissions from all user roles
+    const permissions = new Set<string>()
+    const roles: Array<{ id: string; name: string; description: string | null }> = []
+
+    for (const userRole of user.roles) {
+      const role = userRole.role
+      roles.push({
+        id: role.id,
+        name: role.name,
+        description: role.description,
+      })
+
+      for (const rolePermission of role.permissions) {
+        permissions.add(rolePermission.permission.name)
+      }
+    }
+
+    const result = {
+      permissions: Array.from(permissions).sort(),
+      roles: roles,
+    }
+
+    logger.debug('User permissions retrieved', { 
+      userId: user.id, 
+      permissionsCount: result.permissions.length,
+      rolesCount: result.roles.length,
+    })
+
+    return result
+  },
+
+  async checkPermissionWithDetails(auth0Id: string, permission: string) {
+    const user = await prisma.user.findUnique({
+      where: { auth0Id },
+      select: { 
+        id: true, 
+        companyId: true,
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!user) {
+      return {
+        allowed: false,
+        userPermissions: [],
+      }
+    }
+
+    logger.debug('Checking permission with details', { userId: user.id, permission })
+
+    // Collect all unique permissions from all user roles
+    const userPermissions = new Set<string>()
+    
+    for (const userRole of user.roles) {
+      for (const rolePermission of userRole.role.permissions) {
+        userPermissions.add(rolePermission.permission.name)
+      }
+    }
+
+    const userPermissionsArray = Array.from(userPermissions).sort()
+    const allowed = userPermissionsArray.includes(permission)
+
+    logger.debug('Permission check with details result', { 
+      userId: user.id, 
+      permission,
+      allowed,
+      userPermissionsCount: userPermissionsArray.length,
+    })
+
+    return {
+      allowed,
+      userPermissions: userPermissionsArray,
+    }
+  },
+}

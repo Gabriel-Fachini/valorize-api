@@ -94,7 +94,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       },
       servers: [
         {
-          url: 'http://localhost:3000',
+          url: `http://localhost:${process.env.PORT}`,
           description: 'Development server',
         },
       ],
@@ -165,13 +165,22 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/users' },
   )
 
-  // Auth module routes  
+  // Auth module routes
   await app.register(
     async function (fastify) {
       const { default: authRoutes } = await import('@/features/auth/auth.routes')
       await fastify.register(authRoutes)
     },
     { prefix: '/auth' },
+  )
+
+  // RBAC module routes
+  await app.register(
+    async function (fastify) {
+      const { default: rbacRoutes } = await import('@/features/rbac/rbac.routes')
+      await fastify.register(rbacRoutes)
+    },
+    { prefix: '/admin' },
   )
 
   // 404 handler

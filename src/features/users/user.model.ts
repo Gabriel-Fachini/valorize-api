@@ -6,6 +6,7 @@ export interface UserProps {
   auth0Id: string
   email: string
   name: string
+  companyId: string
   isActive?: boolean
   createdAt?: Date
   updatedAt?: Date
@@ -20,19 +21,20 @@ export class User {
     private readonly _auth0Id: string,
     private readonly _email: string,
     private _name: string,
+    private _companyId: string,
     private _isActive: boolean = true,
     id?: string,
     createdAt?: Date,
     updatedAt?: Date,
   ) {
-    this._id = id || randomUUID()
-    this._createdAt = createdAt || new Date()
-    this._updatedAt = updatedAt || new Date()
+    this._id = id ?? randomUUID()
+    this._createdAt = createdAt ?? new Date()
+    this._updatedAt = updatedAt ?? new Date()
   }
 
   // Factory method to create a new user
   public static create(props: UserProps): User {
-    const { auth0Id, email, name, isActive = true, id, createdAt, updatedAt } = props
+    const { auth0Id, email, name, companyId, isActive = true, id, createdAt, updatedAt } = props
 
     if (!auth0Id?.trim()) {
       throw new Error('Auth0 ID is required')
@@ -54,10 +56,15 @@ export class User {
       throw new Error('Name must be between 2 and 100 characters')
     }
 
+    if (!companyId?.trim()) {
+      throw new Error('Company ID is required')
+    }
+
     return new User(
       auth0Id.trim(),
       email.trim().toLowerCase(),
       name.trim(),
+      companyId.trim(),
       isActive,
       id,
       createdAt,
@@ -76,6 +83,10 @@ export class User {
 
   public get email(): string {
     return this._email
+  }
+
+  public get companyId(): string {
+    return this._companyId
   }
 
   public get name(): string {
@@ -147,6 +158,7 @@ export class User {
       email: this._email,
       name: this._name,
       isActive: this._isActive,
+      companyId: this._companyId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     }
@@ -232,6 +244,7 @@ export class User {
         auth0Id: this._auth0Id,
         email: this._email,
         name: this._name,
+        companyId: this._companyId,
         isActive: this._isActive,
         updatedAt: new Date(),
       }
@@ -269,6 +282,7 @@ export class User {
       auth0Id: prismaUser.auth0Id,
       email: prismaUser.email,
       name: prismaUser.name,
+      companyId: prismaUser.companyId,
       isActive: prismaUser.isActive,
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,

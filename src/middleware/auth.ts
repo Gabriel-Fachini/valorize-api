@@ -9,9 +9,9 @@ const PUBLIC_ROUTES = [
   '/docs/static',
   '/docs/json',
   '/docs/yaml',
-  '/session/login',           // Session login route (password grant)
-  '/session/refresh',         // Token refresh route
-  '/session/refresh-info',
+  '/auth/login',           // Session login route (password grant)
+  '/auth/refresh',         // Token refresh route
+  '/auth/refresh-info',
 ]
 
 // Check if a route should be public
