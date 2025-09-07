@@ -1,6 +1,48 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 
+/**
+ * Validates that a permission follows the pattern: feature:objective
+ * @param permission - The permission string to validate
+ * @returns true if valid, false otherwise
+ */
+function validatePermissionPattern(permission: string): boolean {
+  // Check if permission contains exactly one colon and has content before and after it
+  const parts = permission.split(':')
+  if (parts.length !== 2) {
+    return false
+  }
+  
+  const [feature, objective] = parts
+  
+  // Both parts must be non-empty and contain only valid characters
+  // Allow letters, numbers, underscores, and hyphens
+  const validPattern = /^[a-zA-Z0-9_-]+$/
+  
+  return (
+    feature.trim().length > 0 &&
+    objective.trim().length > 0 &&
+    validPattern.test(feature.trim()) &&
+    validPattern.test(objective.trim())
+  )
+}
+
+/**
+ * Validates an array of permissions
+ * @param permissions - Array of permission strings to validate
+ * @throws Error if any permission is invalid
+ */
+function validatePermissions(permissions: string[]): void {
+  const invalidPermissions = permissions.filter(permission => !validatePermissionPattern(permission))
+  
+  if (invalidPermissions.length > 0) {
+    throw new Error(
+      'Invalid permissions found. Permissions must follow the pattern \'feature:objective\'. ' +
+      `Permissões inválidas: ${invalidPermissions.join(', ')}`,
+    )
+  }
+}
+
 export const rbacService = {
   async checkPermission(auth0Id: string, permission: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
@@ -32,6 +74,12 @@ export const rbacService = {
     permissions: string[] = [],
     description?: string,
   ) {
+    // Validate permissions pattern before creating the role
+    if (permissions.length > 0) {
+      validatePermissions(permissions)
+      logger.debug('Permissions validated successfully', { permissions })
+    }
+
     return prisma.role.create({
       data: {
         name,

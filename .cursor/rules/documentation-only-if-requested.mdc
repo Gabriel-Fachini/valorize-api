@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Create documentation files only if is requested. We have a folder called docs where should all documentation files should be writte.

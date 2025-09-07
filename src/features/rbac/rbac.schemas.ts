@@ -7,7 +7,15 @@ export const createRoleSchema = {
     properties: {
       name: { type: 'string' },
       description: { type: 'string' },
-      permissions: { type: 'array', items: { type: 'string' } },
+      permissions: { 
+        type: 'array', 
+        items: { 
+          type: 'string',
+          pattern: '^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$',
+          description: 'Permission must follow the pattern: feature:objective (e.g., users:create, reports:view)',
+        },
+        description: 'Array of permissions following the pattern feature:objective',
+      },
     },
     additionalProperties: false,
   },
