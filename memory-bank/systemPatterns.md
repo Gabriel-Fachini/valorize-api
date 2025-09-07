@@ -11,6 +11,8 @@ src/
 ├── features/           # Funcionalidades organizadas por domínio
 │   ├── auth/          # Autenticação e autorização
 │   ├── users/         # Gestão de usuários
+│   ├── companies/     # Sistema de empresas
+│   ├── rbac/          # Controle de acesso (implementado)
 │   └── [future]/      # Próximas features (coins, praise, store, library)
 ├── lib/               # Utilitários compartilhados
 ├── middleware/        # Middlewares do Fastify
@@ -26,7 +28,25 @@ feature/
 ├── feature.model.ts     # Entidade + Repository methods
 ├── feature.service.ts   # Business logic
 ├── feature.routes.ts    # HTTP endpoints
+├── feature.schemas.ts   # Validações Zod
 └── feature.types.ts     # TypeScript types (quando necessário)
+```
+
+### Padrão de Feature Multi-País (Exemplo: Companies)
+Para features que precisam de dados específicos por país:
+
+```
+companies/
+├── company.model.ts              # Model genérico
+├── company.service.ts            # Service principal
+├── company.routes.ts             # Routes principais
+├── company.schemas.ts            # Validações
+├── brazil/                       # Pasta específica do país
+│   ├── company-brazil.model.ts   # Model específico
+│   └── company-brazil.service.ts # Service específico
+└── contacts/                     # Sub-funcionalidades
+    ├── company-contact.model.ts
+    └── company-contact.service.ts
 ```
 
 ## Padrões de Implementação
@@ -167,10 +187,12 @@ try {
 - **Middleware**: Proteção automática de rotas
 - **User Context**: Injeção automática de dados do usuário
 
-### Autorização (RBAC - Próxima Feature)
+### Autorização (RBAC - Implementado)
 - **Role-Based**: Roles definidos por empresa
-- **Permissions**: Permissões granulares por recurso
-- **Middleware**: Verificação automática de permissões
+- **Permissions**: Permissões granulares com padrão feature:objective
+- **Middleware**: requirePermission para verificação automática
+- **Error Handling**: InsufficientPermissionError customizado
+- **Validation**: Validação de padrões de permissão
 
 ## Padrões de Dados
 

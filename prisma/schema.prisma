@@ -17,7 +17,9 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  roles     UserRole[]
+  roles           UserRole[]
+  company         Company @relation(fields: [companyId], references: [id])
+  companyContacts CompanyContact[]
 
   @@index([companyId])
   @@map("users")
@@ -33,6 +35,7 @@ model Role {
 
   permissions RolePermission[]
   users       UserRole[]
+  company     Company @relation(fields: [companyId], references: [id])
 
   @@unique([name, companyId])
   @@index([companyId])
@@ -74,4 +77,68 @@ model RolePermission {
   @@index([roleId])
   @@index([permissionId])
   @@map("role_permissions")
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String   // Nome fantasia
+  domain      String   @unique // Para verificação de email no login
+  country     String   @default("BR") // Código do país
+  timezone    String   @default("America/Sao_Paulo")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  users         User[]
+  roles         Role[]
+  companyBrazil CompanyBrazil?
+  contacts      CompanyContact[]
+
+  @@index([domain])
+  @@index([country])
+  @@index([isActive])
+  @@map("companies")
+}
+
+model CompanyBrazil {
+  id                String  @id @default(cuid())
+  companyId         String  @unique @map("company_id")
+  cnpj              String  @unique
+  razaoSocial       String  @map("razao_social") // Razão social
+  inscricaoEstadual String? @map("inscricao_estadual") // IE
+  inscricaoMunicipal String? @map("inscricao_municipal") // IM
+  nire              String? @unique // Número de Identificação do Registro de Empresas
+  cnaePrincipal     String  @map("cnae_principal") // Atividade econômica principal
+  cnaeSecundario    String? @map("cnae_secundario") // Atividades secundárias
+  naturezaJuridica  String  @map("natureza_juridica") // Forma jurídica
+  porteEmpresa      String  @map("porte_empresa") // MEI, ME, EPP, etc.
+  situacaoCadastral String  @map("situacao_cadastral") // Ativa, Suspensa, etc.
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([cnpj])
+  @@index([situacaoCadastral])
+  @@map("companies_brazil")
+}
+
+model CompanyContact {
+  id        String   @id @default(cuid())
+  companyId String   @map("company_id")
+  userId    String   @map("user_id")
+  role      String   // CEO, CFO, CTO, HR Manager, etc.
+  isPrimary Boolean  @default(false) @map("is_primary") // Contato principal
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId]) // Um usuário pode ser contato apenas uma vez por empresa
+  @@index([companyId])
+  @@index([userId])
+  @@index([isPrimary])
+  @@map("company_contacts")
 }

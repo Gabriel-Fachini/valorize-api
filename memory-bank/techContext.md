@@ -64,7 +64,8 @@
   "eslint": "^9.34.0",                   // Code linting
   "@typescript-eslint/parser": "^8.41.0", // TS ESLint parser
   "vitest": "^3.2.4",                    // Testing framework
-  "prisma": "^6.15.0"                    // Prisma CLI
+  "prisma": "^6.15.0",                   // Prisma CLI
+  "zod": "^3.22.4"                       // Schema validation
 }
 ```
 
@@ -151,6 +152,8 @@ export const buildApp = async () => {
   // Features
   await fastify.register(authRoutes, { prefix: '/auth' })
   await fastify.register(userRoutes, { prefix: '/users' })
+  await fastify.register(companyRoutes, { prefix: '/companies' })
+  await fastify.register(rbacRoutes, { prefix: '/admin' })
 
   return fastify
 }
@@ -268,11 +271,25 @@ export const logger = pino({
 ## Evolução Técnica
 
 ### Próximas Adições
-1. **Testing Suite**: Configuração completa de testes
-2. **RBAC System**: Sistema de permissões granulares
+1. **Praise System**: Sistema de elogios (próxima prioridade)
+2. **Testing Suite**: Expansão da cobertura de testes
 3. **File Upload**: Suporte a imagens e documentos
 4. **Caching Layer**: Redis para performance
 5. **Monitoring**: APM e métricas de negócio
+
+### Recém-Implementado
+1. **RBAC System**: Sistema completo de controle de acesso
+   - Middleware requirePermission
+   - Padrão feature:objective para permissões
+   - 3 endpoints administrativos
+   - Testes unitários implementados
+   - Error handling customizado
+
+2. **Companies System**: Sistema completo de empresas
+   - Validação CNPJ brasileira
+   - Dados específicos por país
+   - Sistema de contatos empresariais
+   - 10 endpoints REST com validação Zod
 
 ### Considerações Futuras
 - **Microservices**: Se complexidade justificar
