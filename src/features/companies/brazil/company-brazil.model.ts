@@ -112,7 +112,7 @@ export class CompanyBrazil {
       situacaoCadastral: this.situacaoCadastral,
       company: this.company,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
     }
   }
 
@@ -131,11 +131,11 @@ export class CompanyBrazil {
           cnaeSecundario: this.data.cnaeSecundario,
           naturezaJuridica: this.data.naturezaJuridica,
           porteEmpresa: this.data.porteEmpresa,
-          situacaoCadastral: this.data.situacaoCadastral
+          situacaoCadastral: this.data.situacaoCadastral,
         },
         include: {
-          company: true
-        }
+          company: true,
+        },
       })
 
       this.data = updated
@@ -150,7 +150,7 @@ export class CompanyBrazil {
   async delete(): Promise<void> {
     try {
       await prisma.companyBrazil.delete({
-        where: { id: this.id }
+        where: { id: this.id },
       })
 
       logger.info('CompanyBrazil deleted successfully', { companyBrazilId: this.id })
@@ -199,8 +199,8 @@ export class CompanyBrazil {
       const companyBrazil = await prisma.companyBrazil.findUnique({
         where: { companyId },
         include: {
-          company: true
-        }
+          company: true,
+        },
       })
 
       if (!companyBrazil) {
@@ -221,8 +221,8 @@ export class CompanyBrazil {
       const companyBrazil = await prisma.companyBrazil.findUnique({
         where: { cnpj: cleanCNPJ },
         include: {
-          company: true
-        }
+          company: true,
+        },
       })
 
       if (!companyBrazil) {
@@ -252,11 +252,11 @@ export class CompanyBrazil {
           cnaeSecundario: data.cnaeSecundario,
           naturezaJuridica: data.naturezaJuridica,
           porteEmpresa: data.porteEmpresa,
-          situacaoCadastral: data.situacaoCadastral
+          situacaoCadastral: data.situacaoCadastral,
         },
         include: {
-          company: true
-        }
+          company: true,
+        },
       })
 
       logger.info('CompanyBrazil created successfully', { companyBrazilId: companyBrazil.id })
@@ -272,7 +272,7 @@ export class CompanyBrazil {
       const cleanCNPJ = cnpj.replace(/[^\d]/g, '')
       
       const count = await prisma.companyBrazil.count({
-        where: { cnpj: cleanCNPJ }
+        where: { cnpj: cleanCNPJ },
       })
 
       return count > 0

@@ -30,7 +30,7 @@ export const companyBrazilService = {
       
       logger.info('Brazil data created successfully', { 
         companyId: data.companyId,
-        companyBrazilId: companyBrazil.id 
+        companyBrazilId: companyBrazil.id, 
       })
       
       return companyBrazil
@@ -147,5 +147,5 @@ export const companyBrazilService = {
       logger.error('Failed to delete Brazil data', { error, companyId })
       throw error
     }
-  }
+  },
 }

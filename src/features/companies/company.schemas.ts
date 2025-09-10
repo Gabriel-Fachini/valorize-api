@@ -1,239 +1,544 @@
-import { z } from 'zod'
+import { FastifySchema } from 'fastify'
 
-// Company schemas
-export const createCompanySchema = {
-  body: z.object({
-    name: z.string().min(1, 'Company name is required').max(255, 'Company name too long'),
-    domain: z.string()
-      .min(1, 'Domain is required')
-      .max(255, 'Domain too long')
-      .regex(/^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/, 'Invalid domain format'),
-    country: z.string().length(2, 'Country code must be 2 characters').optional(),
-    timezone: z.string().optional(),
-    brazilData: z.object({
-      cnpj: z.string().min(14, 'CNPJ must have 14 digits').max(18, 'CNPJ too long'),
-      razaoSocial: z.string().min(1, 'Razão social is required').max(255, 'Razão social too long'),
-      inscricaoEstadual: z.string().max(20, 'Inscrição estadual too long').optional(),
-      inscricaoMunicipal: z.string().max(20, 'Inscrição municipal too long').optional(),
-      nire: z.string().max(20, 'NIRE too long').optional(),
-      cnaePrincipal: z.string().min(1, 'CNAE principal is required').max(10, 'CNAE principal too long'),
-      cnaeSecundario: z.string().max(255, 'CNAE secundário too long').optional(),
-      naturezaJuridica: z.string().min(1, 'Natureza jurídica is required').max(100, 'Natureza jurídica too long'),
-      porteEmpresa: z.string().min(1, 'Porte da empresa is required').max(50, 'Porte da empresa too long'),
-      situacaoCadastral: z.string().min(1, 'Situação cadastral is required').max(50, 'Situação cadastral too long'),
-    }).optional(),
-  }),
-}
+// Common response schemas
+const commonErrorResponse = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean', default: false },
+    error: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        code: { type: 'string' },
+        details: {},
+      },
+      required: ['message'],
+    },
+  },
+} as const
 
-export const updateCompanySchema = {
-  params: z.object({
-    id: z.string().cuid('Invalid company ID format'),
-  }),
-  body: z.object({
-    name: z.string().min(1, 'Company name is required').max(255, 'Company name too long').optional(),
-    domain: z.string()
-      .min(1, 'Domain is required')
-      .max(255, 'Domain too long')
-      .regex(/^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/, 'Invalid domain format')
-      .optional(),
-    country: z.string().length(2, 'Country code must be 2 characters').optional(),
-    timezone: z.string().optional(),
-    isActive: z.boolean().optional(),
-  }),
-}
+const commonSuccessResponse = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean', default: true },
+    meta: {
+      type: 'object',
+      properties: {
+        timestamp: { type: 'string', format: 'date-time' },
+      },
+    },
+  },
+} as const
 
-export const getCompanySchema = {
-  params: z.object({
-    id: z.string().cuid('Invalid company ID format'),
-  }),
-}
+const commonListMeta = {
+  type: 'object',
+  properties: {
+    total: { type: 'number' },
+    timestamp: { type: 'string', format: 'date-time' },
+  },
+} as const
 
-export const getCompanyByDomainSchema = {
-  params: z.object({
-    domain: z.string().min(1, 'Domain is required'),
-  }),
-}
+// Company data schemas
+const companyDataSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    name: { type: 'string' },
+    domain: { type: 'string' },
+    country: { type: 'string' },
+    timezone: { type: 'string' },
+    isActive: { type: 'boolean' },
+    createdAt: { type: 'string', format: 'date-time' },
+    updatedAt: { type: 'string', format: 'date-time' },
+  },
+} as const
 
-export const deleteCompanySchema = {
-  params: z.object({
-    id: z.string().cuid('Invalid company ID format'),
-  }),
-}
+const companyBrazilDataSchema = {
+  type: ['object', 'null'],
+  properties: {
+    id: { type: 'string' },
+    cnpj: { type: 'string' },
+    razaoSocial: { type: 'string' },
+    inscricaoEstadual: { type: ['string', 'null'] },
+    inscricaoMunicipal: { type: ['string', 'null'] },
+    nire: { type: ['string', 'null'] },
+    cnaePrincipal: { type: 'string' },
+    cnaeSecundario: { type: ['string', 'null'] },
+    naturezaJuridica: { type: 'string' },
+    porteEmpresa: { type: 'string' },
+    situacaoCadastral: { type: 'string' },
+    createdAt: { type: 'string', format: 'date-time' },
+    updatedAt: { type: 'string', format: 'date-time' },
+  },
+} as const
 
-// Company Brazil schemas
-export const createCompanyBrazilSchema = {
-  body: z.object({
-    companyId: z.string().cuid('Invalid company ID format'),
-    cnpj: z.string().min(14, 'CNPJ must have 14 digits').max(18, 'CNPJ too long'),
-    razaoSocial: z.string().min(1, 'Razão social is required').max(255, 'Razão social too long'),
-    inscricaoEstadual: z.string().max(20, 'Inscrição estadual too long').optional(),
-    inscricaoMunicipal: z.string().max(20, 'Inscrição municipal too long').optional(),
-    nire: z.string().max(20, 'NIRE too long').optional(),
-    cnaePrincipal: z.string().min(1, 'CNAE principal is required').max(10, 'CNAE principal too long'),
-    cnaeSecundario: z.string().max(255, 'CNAE secundário too long').optional(),
-    naturezaJuridica: z.string().min(1, 'Natureza jurídica is required').max(100, 'Natureza jurídica too long'),
-    porteEmpresa: z.string().min(1, 'Porte da empresa is required').max(50, 'Porte da empresa too long'),
-    situacaoCadastral: z.string().min(1, 'Situação cadastral is required').max(50, 'Situação cadastral too long'),
-  }),
-}
+const userDataSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    name: { type: 'string' },
+    email: { type: 'string' },
+  },
+} as const
 
-export const updateCompanyBrazilSchema = {
-  params: z.object({
-    companyId: z.string().cuid('Invalid company ID format'),
-  }),
-  body: z.object({
-    cnpj: z.string().min(14, 'CNPJ must have 14 digits').max(18, 'CNPJ too long').optional(),
-    razaoSocial: z.string().min(1, 'Razão social is required').max(255, 'Razão social too long').optional(),
-    inscricaoEstadual: z.string().max(20, 'Inscrição estadual too long').optional(),
-    inscricaoMunicipal: z.string().max(20, 'Inscrição municipal too long').optional(),
-    nire: z.string().max(20, 'NIRE too long').optional(),
-    cnaePrincipal: z.string().min(1, 'CNAE principal is required').max(10, 'CNAE principal too long').optional(),
-    cnaeSecundario: z.string().max(255, 'CNAE secundário too long').optional(),
-    naturezaJuridica: z.string().min(1, 'Natureza jurídica is required').max(100, 'Natureza jurídica too long').optional(),
-    porteEmpresa: z.string().min(1, 'Porte da empresa is required').max(50, 'Porte da empresa too long').optional(),
-    situacaoCadastral: z.string().min(1, 'Situação cadastral is required').max(50, 'Situação cadastral too long').optional(),
-  }),
-}
+const companyContactDataSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    companyId: { type: 'string' },
+    userId: { type: 'string' },
+    role: { type: 'string' },
+    isPrimary: { type: 'boolean' },
+    user: userDataSchema,
+    createdAt: { type: 'string', format: 'date-time' },
+    updatedAt: { type: 'string', format: 'date-time' },
+  },
+} as const
 
-export const validateCNPJSchema = {
-  body: z.object({
-    cnpj: z.string().min(14, 'CNPJ must have 14 digits').max(18, 'CNPJ too long'),
-  }),
-}
+const fullCompanyDataSchema = {
+  type: 'object',
+  properties: {
+    ...companyDataSchema.properties,
+    companyBrazil: companyBrazilDataSchema,
+    contacts: {
+      type: 'array',
+      items: companyContactDataSchema,
+    },
+  },
+} as const
 
-// Company Contact schemas
-export const addCompanyContactSchema = {
-  body: z.object({
-    companyId: z.string().cuid('Invalid company ID format'),
-    userId: z.string().cuid('Invalid user ID format'),
-    role: z.string().min(1, 'Role is required').max(100, 'Role too long'),
-    isPrimary: z.boolean().optional(),
-  }),
-}
+// Request body schemas
+const createCompanyBodySchema = {
+  type: 'object',
+  required: ['name', 'domain'],
+  properties: {
+    name: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 255,
+      description: 'Company name is required',
+    },
+    domain: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 255,
+      pattern: '^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$',
+      description: 'Domain is required',
+    },
+    country: {
+      type: 'string',
+      minLength: 2,
+      maxLength: 2,
+      description: 'Country code must be 2 characters',
+    },
+    timezone: {
+      type: 'string',
+      description: 'Timezone',
+    },
+    brazilData: {
+      type: 'object',
+      properties: {
+        cnpj: {
+          type: 'string',
+          minLength: 14,
+          maxLength: 18,
+          description: 'CNPJ must have 14 digits',
+        },
+        razaoSocial: {
+          type: 'string',
+          minLength: 1,
+          maxLength: 255,
+          description: 'Razão social is required',
+        },
+        inscricaoEstadual: {
+          type: 'string',
+          maxLength: 20,
+          description: 'Inscrição estadual',
+        },
+        inscricaoMunicipal: {
+          type: 'string',
+          maxLength: 20,
+          description: 'Inscrição municipal',
+        },
+        nire: {
+          type: 'string',
+          maxLength: 20,
+          description: 'NIRE',
+        },
+        cnaePrincipal: {
+          type: 'string',
+          minLength: 1,
+          maxLength: 10,
+          description: 'CNAE principal is required',
+        },
+        cnaeSecundario: {
+          type: 'string',
+          maxLength: 255,
+          description: 'CNAE secundário',
+        },
+        naturezaJuridica: {
+          type: 'string',
+          minLength: 1,
+          maxLength: 100,
+          description: 'Natureza jurídica is required',
+        },
+        porteEmpresa: {
+          type: 'string',
+          minLength: 1,
+          maxLength: 50,
+          description: 'Porte da empresa is required',
+        },
+        situacaoCadastral: {
+          type: 'string',
+          minLength: 1,
+          maxLength: 50,
+          description: 'Situação cadastral is required',
+        },
+      },
+      required: ['cnpj', 'razaoSocial', 'cnaePrincipal', 'naturezaJuridica', 'porteEmpresa', 'situacaoCadastral'],
+    },
+  },
+  additionalProperties: false,
+} as const
 
-export const updateCompanyContactSchema = {
-  params: z.object({
-    id: z.string().cuid('Invalid contact ID format'),
-  }),
-  body: z.object({
-    role: z.string().min(1, 'Role is required').max(100, 'Role too long').optional(),
-    isPrimary: z.boolean().optional(),
-  }),
-}
+const updateCompanyBodySchema = {
+  type: 'object',
+  properties: {
+    name: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 255,
+      description: 'Company name',
+    },
+    domain: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 255,
+      pattern: '^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$',
+      description: 'Domain',
+    },
+    country: {
+      type: 'string',
+      minLength: 2,
+      maxLength: 2,
+      description: 'Country code must be 2 characters',
+    },
+    timezone: {
+      type: 'string',
+      description: 'Timezone',
+    },
+    isActive: {
+      type: 'boolean',
+      description: 'Company active status',
+    },
+  },
+  additionalProperties: false,
+} as const
 
-export const getCompanyContactsSchema = {
-  params: z.object({
-    companyId: z.string().cuid('Invalid company ID format'),
-  }),
-}
+const addCompanyContactBodySchema = {
+  type: 'object',
+  required: ['companyId', 'userId', 'role'],
+  properties: {
+    companyId: {
+      type: 'string',
+      description: 'Company ID',
+    },
+    userId: {
+      type: 'string',
+      description: 'User ID',
+    },
+    role: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 100,
+      description: 'Role is required',
+    },
+    isPrimary: {
+      type: 'boolean',
+      description: 'Is primary contact',
+    },
+  },
+  additionalProperties: false,
+} as const
 
-export const removeCompanyContactSchema = {
-  params: z.object({
-    id: z.string().cuid('Invalid contact ID format'),
-  }),
-}
+const updateCompanyContactBodySchema = {
+  type: 'object',
+  properties: {
+    role: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 100,
+      description: 'Role',
+    },
+    isPrimary: {
+      type: 'boolean',
+      description: 'Is primary contact',
+    },
+  },
+  additionalProperties: false,
+} as const
 
-export const setPrimaryContactSchema = {
-  params: z.object({
-    id: z.string().cuid('Invalid contact ID format'),
-  }),
-}
+const validateCNPJBodySchema = {
+  type: 'object',
+  required: ['cnpj'],
+  properties: {
+    cnpj: {
+      type: 'string',
+      minLength: 14,
+      maxLength: 18,
+      description: 'CNPJ must have 14 digits',
+    },
+  },
+  additionalProperties: false,
+} as const
+
+// Parameter schemas
+const idParamSchema = {
+  type: 'object',
+  required: ['id'],
+  properties: {
+    id: {
+      type: 'string',
+      description: 'ID',
+    },
+  },
+  additionalProperties: false,
+} as const
+
+const domainParamSchema = {
+  type: 'object',
+  required: ['domain'],
+  properties: {
+    domain: {
+      type: 'string',
+      minLength: 1,
+      description: 'Domain is required',
+    },
+  },
+  additionalProperties: false,
+} as const
+
+const companyIdParamSchema = {
+  type: 'object',
+  required: ['companyId'],
+  properties: {
+    companyId: {
+      type: 'string',
+      description: 'Company ID',
+    },
+  },
+  additionalProperties: false,
+} as const
 
 // Response schemas
-export const companyResponseSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  domain: z.string(),
-  country: z.string(),
-  timezone: z.string(),
-  isActive: z.boolean(),
-  companyBrazil: z.object({
-    id: z.string(),
-    cnpj: z.string(),
-    razaoSocial: z.string(),
-    inscricaoEstadual: z.string().nullable(),
-    inscricaoMunicipal: z.string().nullable(),
-    nire: z.string().nullable(),
-    cnaePrincipal: z.string(),
-    cnaeSecundario: z.string().nullable(),
-    naturezaJuridica: z.string(),
-    porteEmpresa: z.string(),
-    situacaoCadastral: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-  }).nullable(),
-  contacts: z.array(z.object({
-    id: z.string(),
-    role: z.string(),
-    isPrimary: z.boolean(),
-    user: z.object({
-      id: z.string(),
-      name: z.string(),
-      email: z.string(),
-    }),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-  })).optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
+const companyResponseSchema = {
+  type: 'object',
+  properties: {
+    ...commonSuccessResponse.properties,
+    data: fullCompanyDataSchema,
+  },
+} as const
 
-export const companiesListResponseSchema = z.array(companyResponseSchema)
+const companiesListResponseSchema = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean', default: true },
+    data: {
+      type: 'array',
+      items: companyDataSchema,
+    },
+    meta: commonListMeta,
+  },
+} as const
 
-export const companyBrazilResponseSchema = z.object({
-  id: z.string(),
-  companyId: z.string(),
-  cnpj: z.string(),
-  razaoSocial: z.string(),
-  inscricaoEstadual: z.string().nullable(),
-  inscricaoMunicipal: z.string().nullable(),
-  nire: z.string().nullable(),
-  cnaePrincipal: z.string(),
-  cnaeSecundario: z.string().nullable(),
-  naturezaJuridica: z.string(),
-  porteEmpresa: z.string(),
-  situacaoCadastral: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
+const companyContactResponseSchema = {
+  type: 'object',
+  properties: {
+    ...commonSuccessResponse.properties,
+    data: companyContactDataSchema,
+  },
+} as const
 
-export const companyContactResponseSchema = z.object({
-  id: z.string(),
-  companyId: z.string(),
-  userId: z.string(),
-  role: z.string(),
-  isPrimary: z.boolean(),
-  user: z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string(),
-  }).optional(),
-  company: z.object({
-    id: z.string(),
-    name: z.string(),
-    domain: z.string(),
-  }).optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-})
+const companyContactsListResponseSchema = {
+  type: 'object',
+  properties: {
+    success: { type: 'boolean', default: true },
+    data: {
+      type: 'array',
+      items: companyContactDataSchema,
+    },
+    meta: commonListMeta,
+  },
+} as const
 
-export const companyContactsListResponseSchema = z.array(companyContactResponseSchema)
+const cnpjValidationResponseSchema = {
+  type: 'object',
+  properties: {
+    ...commonSuccessResponse.properties,
+    data: {
+      type: 'object',
+      properties: {
+        cnpj: { type: 'string' },
+        formatted: { type: 'string' },
+        isValid: { type: 'boolean' },
+      },
+    },
+  },
+} as const
 
-// Error response schema
-export const errorResponseSchema = z.object({
-  success: z.boolean().default(false),
-  error: z.object({
-    message: z.string(),
-    code: z.string().optional(),
-    details: z.any().optional(),
-  }),
-})
+const deleteResponseSchema = {
+  type: 'object',
+  properties: {
+    ...commonSuccessResponse.properties,
+    data: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  },
+} as const
 
-// Success response schema
-export const successResponseSchema = z.object({
-  success: z.boolean().default(true),
-  data: z.any(),
-  meta: z.object({
-    timestamp: z.string(),
-  }).optional(),
-})
+// Complete endpoint schemas
+export const createCompanySchema: FastifySchema = {
+  tags: ['Companies'],
+  summary: 'Create a new company',
+  description: 'Create a new company with optional Brazil-specific data',
+  body: createCompanyBodySchema,
+  response: {
+    201: companyResponseSchema,
+    400: commonErrorResponse,
+    409: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const updateCompanySchema: FastifySchema = {
+  tags: ['Companies'],
+  summary: 'Update company',
+  description: 'Update company information',
+  params: idParamSchema,
+  body: updateCompanyBodySchema,
+  response: {
+    200: companyResponseSchema,
+    404: commonErrorResponse,
+    409: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const getCompanySchema: FastifySchema = {
+  tags: ['Companies'],
+  summary: 'Get company by ID',
+  description: 'Get detailed information about a specific company',
+  params: idParamSchema,
+  response: {
+    200: companyResponseSchema,
+    404: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const getCompanyByDomainSchema: FastifySchema = {
+  tags: ['Companies'],
+  summary: 'Get company by domain',
+  description: 'Get company information by domain name',
+  params: domainParamSchema,
+  response: {
+    200: companyResponseSchema,
+    404: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const getAllCompaniesSchema: FastifySchema = {
+  tags: ['Companies'],
+  summary: 'List all companies',
+  description: 'Get a list of all active companies',
+  response: {
+    200: companiesListResponseSchema,
+    500: commonErrorResponse,
+  },
+}
+
+export const deleteCompanySchema: FastifySchema = {
+  tags: ['Companies'],
+  summary: 'Delete company',
+  description: 'Soft delete a company (sets isActive to false)',
+  params: idParamSchema,
+  response: {
+    200: deleteResponseSchema,
+    404: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const addCompanyContactSchema: FastifySchema = {
+  tags: ['Company Contacts'],
+  summary: 'Add company contact',
+  description: 'Add a new contact to a company',
+  body: addCompanyContactBodySchema,
+  response: {
+    201: companyContactResponseSchema,
+    409: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const updateCompanyContactSchema: FastifySchema = {
+  tags: ['Company Contacts'],
+  summary: 'Update company contact',
+  description: 'Update a company contact information',
+  params: idParamSchema,
+  body: updateCompanyContactBodySchema,
+  response: {
+    200: companyContactResponseSchema,
+    404: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const getCompanyContactsSchema: FastifySchema = {
+  tags: ['Company Contacts'],
+  summary: 'Get company contacts',
+  description: 'Get all contacts for a specific company',
+  params: companyIdParamSchema,
+  response: {
+    200: companyContactsListResponseSchema,
+    500: commonErrorResponse,
+  },
+}
+
+export const removeCompanyContactSchema: FastifySchema = {
+  tags: ['Company Contacts'],
+  summary: 'Remove company contact',
+  description: 'Remove a contact from a company',
+  params: idParamSchema,
+  response: {
+    200: deleteResponseSchema,
+    404: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+export const validateCNPJSchema: FastifySchema = {
+  tags: ['Companies'],
+  summary: 'Validate CNPJ',
+  description: 'Validate a Brazilian CNPJ number',
+  body: validateCNPJBodySchema,
+  response: {
+    200: cnpjValidationResponseSchema,
+    500: commonErrorResponse,
+  },
+}
+
+// Export response schemas for direct use
+export { 
+  companiesListResponseSchema,
+  companyResponseSchema,
+  companyContactResponseSchema,
+  companyContactsListResponseSchema,
+  cnpjValidationResponseSchema,
+  deleteResponseSchema,
+  commonErrorResponse as errorResponseSchema,
+}

@@ -68,7 +68,7 @@ export class CompanyContact {
       company: this.company,
       user: this.user,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
     }
   }
 
@@ -79,12 +79,12 @@ export class CompanyContact {
         where: { id: this.id },
         data: {
           role: this.data.role,
-          isPrimary: this.data.isPrimary
+          isPrimary: this.data.isPrimary,
         },
         include: {
           company: true,
-          user: true
-        }
+          user: true,
+        },
       })
 
       this.data = updated
@@ -99,7 +99,7 @@ export class CompanyContact {
   async delete(): Promise<void> {
     try {
       await prisma.companyContact.delete({
-        where: { id: this.id }
+        where: { id: this.id },
       })
 
       logger.info('CompanyContact deleted successfully', { contactId: this.id })
@@ -115,9 +115,9 @@ export class CompanyContact {
       await prisma.companyContact.updateMany({
         where: { 
           companyId: this.companyId,
-          id: { not: this.id }
+          id: { not: this.id },
         },
-        data: { isPrimary: false }
+        data: { isPrimary: false },
       })
 
       // Depois, define este contato como primary
@@ -126,8 +126,8 @@ export class CompanyContact {
         data: { isPrimary: true },
         include: {
           company: true,
-          user: true
-        }
+          user: true,
+        },
       })
 
       this.data = updated
@@ -146,8 +146,8 @@ export class CompanyContact {
         where: { id },
         include: {
           company: true,
-          user: true
-        }
+          user: true,
+        },
       })
 
       if (!contact) {
@@ -167,12 +167,12 @@ export class CompanyContact {
         where: { companyId },
         include: {
           company: true,
-          user: true
+          user: true,
         },
         orderBy: [
           { isPrimary: 'desc' },
-          { createdAt: 'asc' }
-        ]
+          { createdAt: 'asc' },
+        ],
       })
 
       return contacts.map(contact => new CompanyContact(contact))
@@ -187,12 +187,12 @@ export class CompanyContact {
       const contact = await prisma.companyContact.findFirst({
         where: { 
           companyId,
-          isPrimary: true 
+          isPrimary: true, 
         },
         include: {
           company: true,
-          user: true
-        }
+          user: true,
+        },
       })
 
       if (!contact) {
@@ -212,9 +212,9 @@ export class CompanyContact {
         where: { userId },
         include: {
           company: true,
-          user: true
+          user: true,
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       })
 
       return contacts.map(contact => new CompanyContact(contact))
@@ -230,7 +230,7 @@ export class CompanyContact {
       if (data.isPrimary) {
         await prisma.companyContact.updateMany({
           where: { companyId: data.companyId },
-          data: { isPrimary: false }
+          data: { isPrimary: false },
         })
       }
 
@@ -239,12 +239,12 @@ export class CompanyContact {
           companyId: data.companyId,
           userId: data.userId,
           role: data.role,
-          isPrimary: data.isPrimary || false
+          isPrimary: data.isPrimary || false,
         },
         include: {
           company: true,
-          user: true
-        }
+          user: true,
+        },
       })
 
       logger.info('CompanyContact created successfully', { contactId: contact.id })
@@ -260,8 +260,8 @@ export class CompanyContact {
       const count = await prisma.companyContact.count({
         where: { 
           companyId,
-          userId 
-        }
+          userId, 
+        },
       })
 
       return count > 0
@@ -276,8 +276,8 @@ export class CompanyContact {
       await prisma.companyContact.deleteMany({
         where: { 
           companyId,
-          userId 
-        }
+          userId, 
+        },
       })
 
       logger.info('CompanyContact deleted by company and user', { companyId, userId })

@@ -7,13 +7,13 @@ import {
   updateCompanySchema,
   getCompanySchema,
   getCompanyByDomainSchema,
+  getAllCompaniesSchema,
   deleteCompanySchema,
   addCompanyContactSchema,
   updateCompanyContactSchema,
   getCompanyContactsSchema,
   removeCompanyContactSchema,
-  setPrimaryContactSchema,
-  validateCNPJSchema
+  validateCNPJSchema,
 } from './company.schemas'
 import { logger } from '@/lib/logger'
 
@@ -24,11 +24,7 @@ export default async function companyRoutes(fastify: FastifyInstance) {
    * Listar todas as empresas
    */
   fastify.get('/get-all-companies', {
-    schema: {
-      tags: ['Companies'],
-      summary: 'List all companies',
-      description: 'Get a list of all active companies'
-    },
+    schema: getAllCompaniesSchema,
     handler: async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const companies = await companyService.getAllCompanies()
@@ -38,8 +34,8 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           data: companies.map(company => company.toJSON()),
           meta: {
             total: companies.length,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
       } catch (error) {
         logger.error('Failed to get all companies', { error })
@@ -47,23 +43,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Criar nova empresa
    */
   fastify.post('/create-company', {
-    schema: {
-      tags: ['Companies'],
-      summary: 'Create a new company',
-      description: 'Create a new company with optional Brazil-specific data',
-      body: createCompanySchema.body
-    },
+    schema: createCompanySchema,
     handler: async (request: FastifyRequest<{ Body: CreateCompanyRequest }>, reply: FastifyReply) => {
       try {
         const company = await companyService.createCompany(request.body)
@@ -72,29 +63,29 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: company.toJSON(),
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to create company', { error, body: request.body })
         
-        if (error.message === 'Domain already exists') {
+        if (error instanceof Error && error.message === 'Domain already exists') {
           return reply.code(409).send({
             success: false,
             error: {
               message: 'Domain already exists',
-              code: 'DOMAIN_EXISTS'
-            }
+              code: 'DOMAIN_EXISTS',
+            },
           })
         }
 
-        if (error.message === 'Invalid CNPJ') {
+        if (error instanceof Error && error.message === 'Invalid CNPJ') {
           return reply.code(400).send({
             success: false,
             error: {
               message: 'Invalid CNPJ',
-              code: 'INVALID_CNPJ'
-            }
+              code: 'INVALID_CNPJ',
+            },
           })
         }
 
@@ -102,23 +93,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Obter empresa por ID
    */
   fastify.get('/get-company/:id', {
-    schema: {
-      tags: ['Companies'],
-      summary: 'Get company by ID',
-      description: 'Get detailed information about a specific company',
-      params: getCompanySchema.params
-    },
+    schema: getCompanySchema,
     handler: async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       try {
         const company = await companyService.getCompanyById(request.params.id)
@@ -127,19 +113,19 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: company.toJSON(),
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to get company by id', { error, companyId: request.params.id })
         
-        if (error.message === 'Company not found') {
+        if (error instanceof Error && error.message === 'Company not found') {
           return reply.code(404).send({
             success: false,
             error: {
               message: 'Company not found',
-              code: 'COMPANY_NOT_FOUND'
-            }
+              code: 'COMPANY_NOT_FOUND',
+            },
           })
         }
 
@@ -147,23 +133,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Obter empresa por domínio
    */
   fastify.get('/get-company-by-domain/:domain', {
-    schema: {
-      tags: ['Companies'],
-      summary: 'Get company by domain',
-      description: 'Get company information by domain name',
-      params: getCompanyByDomainSchema.params
-    },
+    schema: getCompanyByDomainSchema,
     handler: async (request: FastifyRequest<{ Params: { domain: string } }>, reply: FastifyReply) => {
       try {
         const company = await companyService.getCompanyByDomain(request.params.domain)
@@ -172,19 +153,19 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: company.toJSON(),
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to get company by domain', { error, domain: request.params.domain })
         
-        if (error.message === 'Company not found') {
+        if (error instanceof Error && error.message === 'Company not found') {
           return reply.code(404).send({
             success: false,
             error: {
               message: 'Company not found',
-              code: 'COMPANY_NOT_FOUND'
-            }
+              code: 'COMPANY_NOT_FOUND',
+            },
           })
         }
 
@@ -192,24 +173,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Atualizar empresa
    */
   fastify.put('/update-company/:id', {
-    schema: {
-      tags: ['Companies'],
-      summary: 'Update company',
-      description: 'Update company information',
-      params: updateCompanySchema.params,
-      body: updateCompanySchema.body
-    },
+    schema: updateCompanySchema,
     handler: async (request: FastifyRequest<{ 
       Params: { id: string }, 
       Body: { name?: string, domain?: string, country?: string, timezone?: string, isActive?: boolean } 
@@ -221,29 +196,29 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: company.toJSON(),
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to update company', { error, companyId: request.params.id, body: request.body })
         
-        if (error.message === 'Company not found') {
+        if (error instanceof Error && error.message === 'Company not found') {
           return reply.code(404).send({
             success: false,
             error: {
               message: 'Company not found',
-              code: 'COMPANY_NOT_FOUND'
-            }
+              code: 'COMPANY_NOT_FOUND',
+            },
           })
         }
 
-        if (error.message === 'Domain already exists') {
+        if (error instanceof Error && error.message === 'Domain already exists') {
           return reply.code(409).send({
             success: false,
             error: {
               message: 'Domain already exists',
-              code: 'DOMAIN_EXISTS'
-            }
+              code: 'DOMAIN_EXISTS',
+            },
           })
         }
 
@@ -251,23 +226,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Deletar empresa
    */
   fastify.delete('/delete-company/:id', {
-    schema: {
-      tags: ['Companies'],
-      summary: 'Delete company',
-      description: 'Soft delete a company (sets isActive to false)',
-      params: deleteCompanySchema.params
-    },
+    schema: deleteCompanySchema,
     handler: async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       try {
         await companyService.deleteCompany(request.params.id)
@@ -276,19 +246,19 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: { message: 'Company deleted successfully' },
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to delete company', { error, companyId: request.params.id })
         
-        if (error.message === 'Company not found') {
+        if (error instanceof Error && error.message === 'Company not found') {
           return reply.code(404).send({
             success: false,
             error: {
               message: 'Company not found',
-              code: 'COMPANY_NOT_FOUND'
-            }
+              code: 'COMPANY_NOT_FOUND',
+            },
           })
         }
 
@@ -296,11 +266,11 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   // Company Contact routes
@@ -309,12 +279,7 @@ export default async function companyRoutes(fastify: FastifyInstance) {
    * Listar contatos da empresa
    */
   fastify.get('/get-company-contacts/:companyId', {
-    schema: {
-      tags: ['Company Contacts'],
-      summary: 'Get company contacts',
-      description: 'Get all contacts for a specific company',
-      params: getCompanyContactsSchema.params
-    },
+    schema: getCompanyContactsSchema,
     handler: async (request: FastifyRequest<{ Params: { companyId: string } }>, reply: FastifyReply) => {
       try {
         const contacts = await companyContactService.getCompanyContacts(request.params.companyId)
@@ -324,8 +289,8 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           data: contacts.map(contact => contact.toJSON()),
           meta: {
             total: contacts.length,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
       } catch (error) {
         logger.error('Failed to get company contacts', { error, companyId: request.params.companyId })
@@ -333,23 +298,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Adicionar contato à empresa
    */
   fastify.post('/add-company-contact', {
-    schema: {
-      tags: ['Company Contacts'],
-      summary: 'Add company contact',
-      description: 'Add a new contact to a company',
-      body: addCompanyContactSchema.body
-    },
+    schema: addCompanyContactSchema,
     handler: async (request: FastifyRequest<{ 
       Body: { companyId: string, userId: string, role: string, isPrimary?: boolean } 
     }>, reply: FastifyReply) => {
@@ -360,19 +320,19 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: contact.toJSON(),
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to add company contact', { error, body: request.body })
         
-        if (error.message === 'User is already a contact for this company') {
+        if (error instanceof Error && error.message === 'User is already a contact for this company') {
           return reply.code(409).send({
             success: false,
             error: {
               message: 'User is already a contact for this company',
-              code: 'CONTACT_EXISTS'
-            }
+              code: 'CONTACT_EXISTS',
+            },
           })
         }
 
@@ -380,24 +340,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Atualizar contato da empresa
    */
   fastify.put('/update-company-contact/:id', {
-    schema: {
-      tags: ['Company Contacts'],
-      summary: 'Update company contact',
-      description: 'Update a company contact information',
-      params: updateCompanyContactSchema.params,
-      body: updateCompanyContactSchema.body
-    },
+    schema: updateCompanyContactSchema,
     handler: async (request: FastifyRequest<{ 
       Params: { id: string }, 
       Body: { role?: string, isPrimary?: boolean } 
@@ -409,19 +363,19 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: contact.toJSON(),
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to update company contact', { error, contactId: request.params.id, body: request.body })
         
-        if (error.message === 'Contact not found') {
+        if (error instanceof Error && error.message === 'Contact not found') {
           return reply.code(404).send({
             success: false,
             error: {
               message: 'Contact not found',
-              code: 'CONTACT_NOT_FOUND'
-            }
+              code: 'CONTACT_NOT_FOUND',
+            },
           })
         }
 
@@ -429,23 +383,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Remover contato da empresa
    */
   fastify.delete('/remove-company-contact/:id', {
-    schema: {
-      tags: ['Company Contacts'],
-      summary: 'Remove company contact',
-      description: 'Remove a contact from a company',
-      params: removeCompanyContactSchema.params
-    },
+    schema: removeCompanyContactSchema,
     handler: async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       try {
         await companyContactService.removeContact(request.params.id)
@@ -454,19 +403,19 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: true,
           data: { message: 'Contact removed successfully' },
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Failed to remove company contact', { error, contactId: request.params.id })
         
-        if (error.message === 'Contact not found') {
+        if (error instanceof Error && error.message === 'Contact not found') {
           return reply.code(404).send({
             success: false,
             error: {
               message: 'Contact not found',
-              code: 'CONTACT_NOT_FOUND'
-            }
+              code: 'CONTACT_NOT_FOUND',
+            },
           })
         }
 
@@ -474,23 +423,18 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 
   /**
    * Validar CNPJ
    */
   fastify.post('/validate-cnpj', {
-    schema: {
-      tags: ['Companies'],
-      summary: 'Validate CNPJ',
-      description: 'Validate a Brazilian CNPJ number',
-      body: validateCNPJSchema.body
-    },
+    schema: validateCNPJSchema,
     handler: async (request: FastifyRequest<{ Body: { cnpj: string } }>, reply: FastifyReply) => {
       try {
         const isValid = companyBrazilService.validateCNPJ(request.body.cnpj)
@@ -501,11 +445,11 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           data: {
             cnpj: request.body.cnpj,
             formatted,
-            isValid
+            isValid,
           },
           meta: {
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         })
       } catch (error) {
         logger.error('Failed to validate CNPJ', { error, cnpj: request.body.cnpj })
@@ -513,10 +457,10 @@ export default async function companyRoutes(fastify: FastifyInstance) {
           success: false,
           error: {
             message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
+            code: 'INTERNAL_ERROR',
+          },
         })
       }
-    }
+    },
   })
 }

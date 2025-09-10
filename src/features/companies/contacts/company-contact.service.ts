@@ -20,7 +20,7 @@ export const companyContactService = {
       logger.info('Contact added successfully', { 
         contactId: contact.id,
         companyId: data.companyId,
-        userId: data.userId 
+        userId: data.userId, 
       })
       
       return contact
@@ -132,5 +132,5 @@ export const companyContactService = {
       logger.error('Failed to get user contacts', { error, userId })
       throw error
     }
-  }
+  },
 }

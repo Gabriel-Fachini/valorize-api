@@ -36,14 +36,14 @@ export const companyService = {
         name: data.name,
         domain: data.domain,
         country: data.country,
-        timezone: data.timezone
+        timezone: data.timezone,
       })
 
       // Se há dados do Brasil, criar também
       if (data.brazilData && data.country === 'BR') {
         await CompanyBrazil.create({
           companyId: company.id,
-          ...data.brazilData
+          ...data.brazilData,
         })
 
         // Recarregar empresa com dados do Brasil
@@ -182,5 +182,5 @@ export const companyService = {
       logger.error('Failed to get companies by country', { error, country })
       throw error
     }
-  }
+  },
 }

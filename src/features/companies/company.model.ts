@@ -76,7 +76,7 @@ export class Company {
       companyBrazil: this.companyBrazil,
       contacts: this.contacts,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
     }
   }
 
@@ -90,16 +90,16 @@ export class Company {
           domain: this.data.domain,
           country: this.data.country,
           timezone: this.data.timezone,
-          isActive: this.data.isActive
+          isActive: this.data.isActive,
         },
         include: {
           companyBrazil: true,
           contacts: {
             include: {
-              user: true
-            }
-          }
-        }
+              user: true,
+            },
+          },
+        },
       })
 
       this.data = updated
@@ -115,7 +115,7 @@ export class Company {
     try {
       await prisma.company.update({
         where: { id: this.id },
-        data: { isActive: false }
+        data: { isActive: false },
       })
 
       this.data.isActive = false
@@ -135,10 +135,10 @@ export class Company {
           companyBrazil: true,
           contacts: {
             include: {
-              user: true
-            }
-          }
-        }
+              user: true,
+            },
+          },
+        },
       })
 
       if (!company) {
@@ -160,10 +160,10 @@ export class Company {
           companyBrazil: true,
           contacts: {
             include: {
-              user: true
-            }
-          }
-        }
+              user: true,
+            },
+          },
+        },
       })
 
       if (!company) {
@@ -185,11 +185,11 @@ export class Company {
           companyBrazil: true,
           contacts: {
             include: {
-              user: true
-            }
-          }
+              user: true,
+            },
+          },
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       })
 
       return companies.map(company => new Company(company))
@@ -204,17 +204,17 @@ export class Company {
       const companies = await prisma.company.findMany({
         where: { 
           country,
-          isActive: true 
+          isActive: true, 
         },
         include: {
           companyBrazil: true,
           contacts: {
             include: {
-              user: true
-            }
-          }
+              user: true,
+            },
+          },
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       })
 
       return companies.map(company => new Company(company))
@@ -231,16 +231,16 @@ export class Company {
           name: data.name,
           domain: data.domain,
           country: data.country || 'BR',
-          timezone: data.timezone || 'America/Sao_Paulo'
+          timezone: data.timezone || 'America/Sao_Paulo',
         },
         include: {
           companyBrazil: true,
           contacts: {
             include: {
-              user: true
-            }
-          }
-        }
+              user: true,
+            },
+          },
+        },
       })
 
       logger.info('Company created successfully', { companyId: company.id })
@@ -254,7 +254,7 @@ export class Company {
   static async exists(domain: string): Promise<boolean> {
     try {
       const count = await prisma.company.count({
-        where: { domain }
+        where: { domain },
       })
 
       return count > 0

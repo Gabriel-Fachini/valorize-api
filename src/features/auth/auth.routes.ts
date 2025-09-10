@@ -248,5 +248,5 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
     }
   })
 }
-
 export default authRoutes
+
