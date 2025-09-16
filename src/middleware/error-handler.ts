@@ -95,11 +95,16 @@ export const errorHandler = async (
   // Handle Fastify validation errors
   if (error.validation) {
     return reply.code(400).send({
-      error: 'Validation Error',
-      message: 'Request validation failed',
-      details: error.validation,
-      statusCode: 400,
-      requestId,
+      success: false,
+      error: {
+        message: 'Request validation failed',
+        code: 'VALIDATION_ERROR',
+        details: error.validation,
+      },
+      meta: {
+        requestId,
+        timestamp: new Date().toISOString(),
+      },
     })
   }
 
@@ -121,14 +126,77 @@ export const errorHandler = async (
     })
   }
 
+  // Handle business logic errors
+  if (error instanceof Error) {
+    if (error.message === 'Domain already exists') {
+      return reply.code(409).send({
+        success: false,
+        error: {
+          message: 'Domain already exists',
+          code: 'DOMAIN_EXISTS',
+        },
+        meta: {
+          requestId,
+          timestamp: new Date().toISOString(),
+        },
+      })
+    }
+
+    if (error.message === 'Invalid CNPJ') {
+      return reply.code(400).send({
+        success: false,
+        error: {
+          message: 'Invalid CNPJ',
+          code: 'INVALID_CNPJ',
+        },
+        meta: {
+          requestId,
+          timestamp: new Date().toISOString(),
+        },
+      })
+    }
+
+    if (error.message === 'CNPJ already exists') {
+      return reply.code(409).send({
+        success: false,
+        error: {
+          message: 'CNPJ already exists',
+          code: 'CNPJ_EXISTS',
+        },
+        meta: {
+          requestId,
+          timestamp: new Date().toISOString(),
+        },
+      })
+    }
+
+    if (error.message === 'Company not found') {
+      return reply.code(404).send({
+        success: false,
+        error: {
+          message: 'Company not found',
+          code: 'COMPANY_NOT_FOUND',
+        },
+        meta: {
+          requestId,
+          timestamp: new Date().toISOString(),
+        },
+      })
+    }
+  }
+
   // Handle custom API errors
   if (error.statusCode && error.statusCode < 500) {
     return reply.code(error.statusCode).send({
-      error: error.name || 'Client Error',
-      message: error.message,
-      statusCode: error.statusCode,
-      code: (error as ApiError).code,
-      requestId,
+      success: false,
+      error: {
+        message: error.message,
+        code: (error as ApiError).code ?? 'CLIENT_ERROR',
+      },
+      meta: {
+        requestId,
+        timestamp: new Date().toISOString(),
+      },
     })
   }
 
@@ -189,13 +257,17 @@ export const errorHandler = async (
   const isDevelopment = process.env.NODE_ENV === 'development'
   
   return reply.code(500).send({
-    error: 'Internal Server Error',
-    message: isDevelopment 
-      ? error.message 
-      : 'An unexpected error occurred. Please try again later.',
-    statusCode: 500,
-    code: 'INTERNAL_ERROR',
-    requestId,
-    ...(isDevelopment && { stack: error.stack }),
+    success: false,
+    error: {
+      message: isDevelopment 
+        ? error.message 
+        : 'An unexpected error occurred. Please try again later.',
+      code: 'INTERNAL_ERROR',
+      ...(isDevelopment && { stack: error.stack }),
+    },
+    meta: {
+      requestId,
+      timestamp: new Date().toISOString(),
+    },
   })
 } 

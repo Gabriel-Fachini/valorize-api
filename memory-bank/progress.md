@@ -31,30 +31,50 @@
 - **Performance**: Navegação 5x mais rápida
 - **Maintainability**: Estrutura simplificada e clara
 
+#### 5. Sistema de Empresas (100%)
+- **Company Model**: Entidade genérica para todos os países
+- **CompanyBrazil Model**: Dados específicos brasileiros (CNPJ, razão social, etc.)
+- **CompanyContact Model**: Sistema de contatos empresariais
+- **Validação CNPJ**: Algoritmo completo com dígitos verificadores
+- **API REST**: 10 endpoints com validação Zod e documentação Swagger
+- **Integração**: Relacionamentos com User e Role via companyId
+- **Extensibilidade**: Estrutura preparada para outros países
+
+#### 6. Sistema RBAC (100%)
+- **Role & Permission Models**: Entidades com validações completas
+- **RBAC Service**: Verificação granular de permissões
+- **Middleware requirePermission**: Proteção automática de rotas
+- **Admin Endpoints**: 3 endpoints para gestão de roles e permissões
+- **Padrão feature:objective**: Validação de formato de permissões
+- **Error Handling**: InsufficientPermissionError customizado
+- **Testing**: Testes unitários do middleware
+- **Integration**: Completa com User, Company e sistema de auth
+
 ### 🔄 Em Desenvolvimento
 
-#### Sistema RBAC (0% - Próxima Prioridade)
-**Objetivo**: Controle de acesso granular com interface administrativa
+#### Sistema de Elogios (0% - Próxima Prioridade)
+**Objetivo**: Primeira funcionalidade core - reconhecimento peer-to-peer baseado em valores
 
 **Escopo Planejado**:
-- Roles por empresa (super_admin, company_admin, hr_manager, team_lead, employee)
-- Permissões granulares (users:read, users:write, admin:access_panel, etc.)
-- Middleware de autorização automático
-- Admin panel para gestão de usuários e permissões
+- Sistema de elogios com moedas virtuais (máximo 100 por elogio)
+- Valores da empresa configuráveis
+- Feed de reconhecimentos públicos
+- Sistema duplo de moedas (elogios semanais + resgate acumulativo)
+- Histórico e analytics de elogios
 
-**Estimativa**: 4-5 semanas (tempo livre)
+**Estimativa**: 3-4 semanas (tempo livre)
 
 ### 📋 Funcionalidades Planejadas
 
 #### Sistema de Elogios (Funcionalidade Core)
-**Status**: Não iniciado
-**Prioridade**: Alta (após RBAC)
+**Status**: Em planejamento
+**Prioridade**: Alta (próxima implementação)
 
 **Funcionalidades**:
 - Seleção de valores da empresa
 - Sistema de moedas (máximo 100 por elogio)
 - Mensagens de reconhecimento
-- Notificações em tempo real
+- Feed público de elogios
 - Histórico e analytics
 
 #### Sistema de Moedas Virtuais
@@ -93,10 +113,10 @@
 ## Métricas de Desenvolvimento
 
 ### Arquivos e Código
-- **Total de Arquivos**: ~15 arquivos principais
-- **Linhas de Código**: ~1,140 linhas (após migração)
-- **Redução**: 17% menos código que Clean Architecture
-- **Cobertura de Testes**: 0% (planejado para RBAC)
+- **Total de Arquivos**: ~30 arquivos principais (incluindo RBAC completo)
+- **Linhas de Código**: ~2,800 linhas (após implementação RBAC)
+- **Features Implementadas**: 6 (Auth, Users, Companies, RBAC, Infrastructure, Migrations)
+- **Cobertura de Testes**: 15% (testes RBAC implementados)
 
 ### Performance
 - **Build Time**: <5 segundos
@@ -228,15 +248,16 @@
 ### Critérios para Produção
 1. ✅ Autenticação funcional
 2. ✅ Gestão de usuários
-3. 🔄 RBAC implementado
-4. 📋 Sistema de elogios MVP
-5. 📋 Testes automatizados
-6. 📋 Monitoramento configurado
+3. ✅ Sistema de empresas
+4. ✅ RBAC implementado
+5. 📋 Sistema de elogios MVP
+6. 🔄 Testes automatizados (15% completo)
+7. 📋 Monitoramento configurado
 
 ## Conclusão
 
 O projeto Valorize API está em **desenvolvimento ativo** com fundações sólidas estabelecidas. A migração arquitetural foi um sucesso, resultando em maior produtividade e manutenibilidade. 
 
-**Próximo Marco**: Implementação completa do sistema RBAC para habilitar funcionalidades administrativas e preparar terreno para as features core de elogios e moedas.
+**Próximo Marco**: Implementação do sistema de elogios, primeira funcionalidade core da plataforma, com reconhecimento peer-to-peer baseado em valores da empresa.
 
 **Momentum**: Positivo, com estrutura otimizada para desenvolvimento solo e iteração rápida.

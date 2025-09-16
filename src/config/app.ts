@@ -183,6 +183,15 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/admin' },
   )
 
+  // Companies module routes
+  await app.register(
+    async function (fastify) {
+      const { default: companyRoutes } = await import('@/features/companies/company.routes')
+      await fastify.register(companyRoutes)
+    },
+    { prefix: '/companies' },
+  )
+
   // 404 handler
   app.setNotFoundHandler({
     preHandler: app.rateLimit(),
