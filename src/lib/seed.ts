@@ -91,11 +91,9 @@ const DEMO_COMPANIES = [
     domain: 'globalsolutions.com',
     country: 'US',
     timezone: 'America/New_York',
-    // Sem dados do Brasil para empresa internacional
+    // No data for international company
   },
 ]
-
-// Removed DEMO_COMPANY_ID as it's no longer needed - using company IDs directly from DEMO_COMPANIES
 
 const ROLES_CONFIG = [
   {
