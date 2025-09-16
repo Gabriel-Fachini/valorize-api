@@ -1,4 +1,4 @@
-import { Company, type CreateCompanyData, type UpdateCompanyData } from './company.model'
+import { Company, type CreateCompanyData } from './company.model'
 import { CompanyBrazil } from './brazil/company-brazil.model'
 import { logger } from '@/lib/logger'
 
@@ -31,6 +31,20 @@ export const companyService = {
         throw new Error('Domain already exists')
       }
 
+      // Se há dados do Brasil, validar CNPJ antes de criar a empresa
+      if (data.brazilData && data.country === 'BR') {
+        // Validar CNPJ
+        if (!CompanyBrazil.validateCNPJStatic(data.brazilData.cnpj)) {
+          throw new Error('Invalid CNPJ')
+        }
+
+        // Verificar se CNPJ já existe
+        const existingCompanyBrazil = await CompanyBrazil.findByCNPJ(data.brazilData.cnpj)
+        if (existingCompanyBrazil) {
+          throw new Error('CNPJ already exists')
+        }
+      }
+
       // Criar empresa
       const company = await Company.create({
         name: data.name,
@@ -41,16 +55,35 @@ export const companyService = {
 
       // Se há dados do Brasil, criar também
       if (data.brazilData && data.country === 'BR') {
-        await CompanyBrazil.create({
-          companyId: company.id,
-          ...data.brazilData,
-        })
+        try {
+          await CompanyBrazil.create({
+            companyId: company.id,
+            ...data.brazilData,
+          })
 
-        // Recarregar empresa com dados do Brasil
-        const updatedCompany = await Company.findById(company.id)
-        if (updatedCompany) {
-          logger.info('Company created successfully with Brazil data', { companyId: company.id })
-          return updatedCompany
+          // Recarregar empresa com dados do Brasil
+          const updatedCompany = await Company.findById(company.id)
+          if (updatedCompany) {
+            logger.info('Company created successfully with Brazil data', { companyId: company.id })
+            return updatedCompany
+          }
+        } catch (brazilError) {
+          // Se falhar ao criar dados do Brasil, deletar a empresa criada
+          logger.error('Failed to create Brazil data, rolling back company creation', { 
+            error: brazilError, 
+            companyId: company.id,
+          })
+          
+          try {
+            await company.delete()
+          } catch (deleteError) {
+            logger.error('Failed to rollback company creation', { 
+              error: deleteError, 
+              companyId: company.id,
+            })
+          }
+          
+          throw brazilError
         }
       }
 
@@ -58,42 +91,6 @@ export const companyService = {
       return company
     } catch (error) {
       logger.error('Failed to create company', { error, data })
-      throw error
-    }
-  },
-
-  /**
-   * Obter empresa por ID
-   */
-  async getCompanyById(id: string): Promise<Company> {
-    try {
-      const company = await Company.findById(id)
-      
-      if (!company) {
-        throw new Error('Company not found')
-      }
-
-      return company
-    } catch (error) {
-      logger.error('Failed to get company by id', { error, companyId: id })
-      throw error
-    }
-  },
-
-  /**
-   * Obter empresa por domínio
-   */
-  async getCompanyByDomain(domain: string): Promise<Company> {
-    try {
-      const company = await Company.findByDomain(domain)
-      
-      if (!company) {
-        throw new Error('Company not found')
-      }
-
-      return company
-    } catch (error) {
-      logger.error('Failed to get company by domain', { error, domain })
       throw error
     }
   },
@@ -111,56 +108,6 @@ export const companyService = {
   },
 
   /**
-   * Atualizar empresa
-   */
-  async updateCompany(id: string, data: UpdateCompanyData): Promise<Company> {
-    try {
-      const company = await Company.findById(id)
-      
-      if (!company) {
-        throw new Error('Company not found')
-      }
-
-      // Verificar se novo domínio já existe (se fornecido)
-      if (data.domain && data.domain !== company.domain) {
-        const existingCompany = await Company.findByDomain(data.domain)
-        if (existingCompany) {
-          throw new Error('Domain already exists')
-        }
-      }
-
-      // Atualizar dados
-      Object.assign(company['data'], data)
-      await company.save()
-
-      logger.info('Company updated successfully', { companyId: id })
-      return company
-    } catch (error) {
-      logger.error('Failed to update company', { error, companyId: id, data })
-      throw error
-    }
-  },
-
-  /**
-   * Deletar empresa (soft delete)
-   */
-  async deleteCompany(id: string): Promise<void> {
-    try {
-      const company = await Company.findById(id)
-      
-      if (!company) {
-        throw new Error('Company not found')
-      }
-
-      await company.delete()
-      logger.info('Company deleted successfully', { companyId: id })
-    } catch (error) {
-      logger.error('Failed to delete company', { error, companyId: id })
-      throw error
-    }
-  },
-
-  /**
    * Verificar se domínio existe
    */
   async validateDomain(domain: string): Promise<boolean> {
@@ -168,18 +115,6 @@ export const companyService = {
       return await Company.exists(domain)
     } catch (error) {
       logger.error('Failed to validate domain', { error, domain })
-      throw error
-    }
-  },
-
-  /**
-   * Obter empresas por país
-   */
-  async getCompaniesByCountry(country: string): Promise<Company[]> {
-    try {
-      return await Company.findByCountry(country)
-    } catch (error) {
-      logger.error('Failed to get companies by country', { error, country })
       throw error
     }
   },

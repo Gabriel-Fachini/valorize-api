@@ -201,83 +201,6 @@ const createCompanyBodySchema = {
   additionalProperties: false,
 } as const
 
-const updateCompanyBodySchema = {
-  type: 'object',
-  properties: {
-    name: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 255,
-      description: 'Company name',
-    },
-    domain: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 255,
-      pattern: '^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$',
-      description: 'Domain',
-    },
-    country: {
-      type: 'string',
-      minLength: 2,
-      maxLength: 2,
-      description: 'Country code must be 2 characters',
-    },
-    timezone: {
-      type: 'string',
-      description: 'Timezone',
-    },
-    isActive: {
-      type: 'boolean',
-      description: 'Company active status',
-    },
-  },
-  additionalProperties: false,
-} as const
-
-const addCompanyContactBodySchema = {
-  type: 'object',
-  required: ['companyId', 'userId', 'role'],
-  properties: {
-    companyId: {
-      type: 'string',
-      description: 'Company ID',
-    },
-    userId: {
-      type: 'string',
-      description: 'User ID',
-    },
-    role: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 100,
-      description: 'Role is required',
-    },
-    isPrimary: {
-      type: 'boolean',
-      description: 'Is primary contact',
-    },
-  },
-  additionalProperties: false,
-} as const
-
-const updateCompanyContactBodySchema = {
-  type: 'object',
-  properties: {
-    role: {
-      type: 'string',
-      minLength: 1,
-      maxLength: 100,
-      description: 'Role',
-    },
-    isPrimary: {
-      type: 'boolean',
-      description: 'Is primary contact',
-    },
-  },
-  additionalProperties: false,
-} as const
-
 const validateCNPJBodySchema = {
   type: 'object',
   required: ['cnpj'],
@@ -287,44 +210,6 @@ const validateCNPJBodySchema = {
       minLength: 14,
       maxLength: 18,
       description: 'CNPJ must have 14 digits',
-    },
-  },
-  additionalProperties: false,
-} as const
-
-// Parameter schemas
-const idParamSchema = {
-  type: 'object',
-  required: ['id'],
-  properties: {
-    id: {
-      type: 'string',
-      description: 'ID',
-    },
-  },
-  additionalProperties: false,
-} as const
-
-const domainParamSchema = {
-  type: 'object',
-  required: ['domain'],
-  properties: {
-    domain: {
-      type: 'string',
-      minLength: 1,
-      description: 'Domain is required',
-    },
-  },
-  additionalProperties: false,
-} as const
-
-const companyIdParamSchema = {
-  type: 'object',
-  required: ['companyId'],
-  properties: {
-    companyId: {
-      type: 'string',
-      description: 'Company ID',
     },
   },
   additionalProperties: false,
@@ -413,110 +298,12 @@ export const createCompanySchema: FastifySchema = {
   },
 }
 
-export const updateCompanySchema: FastifySchema = {
-  tags: ['Companies'],
-  summary: 'Update company',
-  description: 'Update company information',
-  params: idParamSchema,
-  body: updateCompanyBodySchema,
-  response: {
-    200: companyResponseSchema,
-    404: commonErrorResponse,
-    409: commonErrorResponse,
-    500: commonErrorResponse,
-  },
-}
-
-export const getCompanySchema: FastifySchema = {
-  tags: ['Companies'],
-  summary: 'Get company by ID',
-  description: 'Get detailed information about a specific company',
-  params: idParamSchema,
-  response: {
-    200: companyResponseSchema,
-    404: commonErrorResponse,
-    500: commonErrorResponse,
-  },
-}
-
-export const getCompanyByDomainSchema: FastifySchema = {
-  tags: ['Companies'],
-  summary: 'Get company by domain',
-  description: 'Get company information by domain name',
-  params: domainParamSchema,
-  response: {
-    200: companyResponseSchema,
-    404: commonErrorResponse,
-    500: commonErrorResponse,
-  },
-}
-
 export const getAllCompaniesSchema: FastifySchema = {
   tags: ['Companies'],
   summary: 'List all companies',
   description: 'Get a list of all active companies',
   response: {
     200: companiesListResponseSchema,
-    500: commonErrorResponse,
-  },
-}
-
-export const deleteCompanySchema: FastifySchema = {
-  tags: ['Companies'],
-  summary: 'Delete company',
-  description: 'Soft delete a company (sets isActive to false)',
-  params: idParamSchema,
-  response: {
-    200: deleteResponseSchema,
-    404: commonErrorResponse,
-    500: commonErrorResponse,
-  },
-}
-
-export const addCompanyContactSchema: FastifySchema = {
-  tags: ['Company Contacts'],
-  summary: 'Add company contact',
-  description: 'Add a new contact to a company',
-  body: addCompanyContactBodySchema,
-  response: {
-    201: companyContactResponseSchema,
-    409: commonErrorResponse,
-    500: commonErrorResponse,
-  },
-}
-
-export const updateCompanyContactSchema: FastifySchema = {
-  tags: ['Company Contacts'],
-  summary: 'Update company contact',
-  description: 'Update a company contact information',
-  params: idParamSchema,
-  body: updateCompanyContactBodySchema,
-  response: {
-    200: companyContactResponseSchema,
-    404: commonErrorResponse,
-    500: commonErrorResponse,
-  },
-}
-
-export const getCompanyContactsSchema: FastifySchema = {
-  tags: ['Company Contacts'],
-  summary: 'Get company contacts',
-  description: 'Get all contacts for a specific company',
-  params: companyIdParamSchema,
-  response: {
-    200: companyContactsListResponseSchema,
-    500: commonErrorResponse,
-  },
-}
-
-export const removeCompanyContactSchema: FastifySchema = {
-  tags: ['Company Contacts'],
-  summary: 'Remove company contact',
-  description: 'Remove a contact from a company',
-  params: idParamSchema,
-  response: {
-    200: deleteResponseSchema,
-    404: commonErrorResponse,
     500: commonErrorResponse,
   },
 }

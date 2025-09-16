@@ -14,14 +14,6 @@ export interface CreateCompanyData {
   timezone?: string
 }
 
-export interface UpdateCompanyData {
-  name?: string
-  domain?: string
-  country?: string
-  timezone?: string
-  isActive?: boolean
-}
-
 export class Company {
   constructor(private data: CompanyData) {}
 
@@ -230,8 +222,8 @@ export class Company {
         data: {
           name: data.name,
           domain: data.domain,
-          country: data.country || 'BR',
-          timezone: data.timezone || 'America/Sao_Paulo',
+          country: data.country ?? 'BR',
+          timezone: data.timezone ?? 'America/Sao_Paulo',
         },
         include: {
           companyBrazil: true,

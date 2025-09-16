@@ -162,35 +162,7 @@ export class CompanyBrazil {
 
   // Validation methods
   validateCNPJ(): boolean {
-    const cnpj = this.cnpj.replace(/[^\d]/g, '')
-    
-    if (cnpj.length !== 14) return false
-    if (/^(\d)\1{13}$/.test(cnpj)) return false
-
-    // Validação dos dígitos verificadores
-    let sum = 0
-    let weight = 2
-
-    // Primeiro dígito verificador
-    for (let i = 11; i >= 0; i--) {
-      sum += parseInt(cnpj[i]) * weight
-      weight = weight === 9 ? 2 : weight + 1
-    }
-
-    const firstDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    if (parseInt(cnpj[12]) !== firstDigit) return false
-
-    // Segundo dígito verificador
-    sum = 0
-    weight = 2
-
-    for (let i = 12; i >= 0; i--) {
-      sum += parseInt(cnpj[i]) * weight
-      weight = weight === 9 ? 2 : weight + 1
-    }
-
-    const secondDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    return parseInt(cnpj[13]) === secondDigit
+    return CompanyBrazil.validateCNPJStatic(this.cnpj)
   }
 
   // Static methods (Repository pattern)
@@ -294,34 +266,48 @@ export class CompanyBrazil {
   }
 
   static validateCNPJStatic(cnpj: string): boolean {
-    const cleanCNPJ = cnpj.replace(/[^\d]/g, '')
-    
-    if (cleanCNPJ.length !== 14) return false
-    if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false
+    try {
+      if (!cnpj || typeof cnpj !== 'string') return false
+      
+      const cleanCNPJ = cnpj.replace(/[^\d]/g, '')
+      
+      if (cleanCNPJ.length !== 14) return false
+      if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false
 
-    // Validação dos dígitos verificadores
-    let sum = 0
-    let weight = 2
+      // Validação dos dígitos verificadores
+      let sum = 0
+      let weight = 2
 
-    // Primeiro dígito verificador
-    for (let i = 11; i >= 0; i--) {
-      sum += parseInt(cleanCNPJ[i]) * weight
-      weight = weight === 9 ? 2 : weight + 1
+      // Primeiro dígito verificador
+      for (let i = 11; i >= 0; i--) {
+        const digit = parseInt(cleanCNPJ[i])
+        if (isNaN(digit)) return false
+        sum += digit * weight
+        weight = weight === 9 ? 2 : weight + 1
+      }
+
+      const firstDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11)
+      const firstCheck = parseInt(cleanCNPJ[12])
+      if (isNaN(firstCheck) || firstCheck !== firstDigit) return false
+
+      // Segundo dígito verificador
+      sum = 0
+      weight = 2
+
+      for (let i = 12; i >= 0; i--) {
+        const digit = parseInt(cleanCNPJ[i])
+        if (isNaN(digit)) return false
+        sum += digit * weight
+        weight = weight === 9 ? 2 : weight + 1
+      }
+
+      const secondDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11)
+      const secondCheck = parseInt(cleanCNPJ[13])
+      if (isNaN(secondCheck) || secondCheck !== secondDigit) return false
+
+      return true
+    } catch (error) {
+      return false
     }
-
-    const firstDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    if (parseInt(cleanCNPJ[12]) !== firstDigit) return false
-
-    // Segundo dígito verificador
-    sum = 0
-    weight = 2
-
-    for (let i = 12; i >= 0; i--) {
-      sum += parseInt(cleanCNPJ[i]) * weight
-      weight = weight === 9 ? 2 : weight + 1
-    }
-
-    const secondDigit = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    return parseInt(cleanCNPJ[13]) === secondDigit
   }
 }
