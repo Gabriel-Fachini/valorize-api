@@ -8,7 +8,7 @@ import { companyValuesService } from './values.service'
 import { requirePermission } from '@/middleware/rbac'
 
 export default async function companyValuesRoutes(fastify: FastifyInstance) {
-  fastify.post('/companies/:companyId/values', {
+  fastify.post('/companies/:companyId/create-value', {
     schema: createCompanyValueSchema,
     preHandler: [requirePermission('company:manage_settings')],
   }, async (

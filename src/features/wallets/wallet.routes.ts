@@ -92,12 +92,10 @@ export default async function walletRoutes(fastify: FastifyInstance) {
   })
 
   // Manual reset for all wallets (admin only)
-  fastify.post(
-    '/reset-weekly-balance',
+  fastify.post('/reset-weekly-balance',
     {
       preHandler: [requirePermission('admin:manage_system')],
-    },
-    async (request, reply) => {
+    }, async (request, reply) => {
       try {
         const currentUser = getCurrentUser(request)
         const admin = await User.findByAuth0Id(currentUser.sub)
@@ -123,98 +121,4 @@ export default async function walletRoutes(fastify: FastifyInstance) {
       }
     },
   )
-
-  // Admin: Get any user's transaction history
-  fastify.get('/admin/transactions/:userId', {
-    preHandler: [requirePermission('admin:manage_system')],
-    schema: {
-      params: {
-        type: 'object',
-        required: ['userId'],
-        properties: {
-          userId: { type: 'string' },
-        },
-      },
-      querystring: {
-        type: 'object',
-        properties: {
-          limit: { type: 'integer', minimum: 1, maximum: 100, default: 50 },
-          offset: { type: 'integer', minimum: 0, default: 0 },
-          balanceType: { type: 'string', enum: ['COMPLIMENT', 'REDEEMABLE'] },
-          transactionType: { type: 'string', enum: ['DEBIT', 'CREDIT', 'RESET'] },
-          fromDate: { type: 'string', format: 'date-time' },
-          toDate: { type: 'string', format: 'date-time' },
-        },
-      },
-    },
-  }, async (request, reply) => {
-    try {
-      const { userId } = request.params as any
-      const query = request.query as any
-
-      // Verify user exists
-      const targetUser = await User.findById(userId)
-      if (!targetUser) {
-        return reply.code(404).send({ message: 'Target user not found.' })
-      }
-
-      const { WalletTransactionModel } = await import('./wallet-transaction.model')
-
-      const options = {
-        limit: query.limit || 50,
-        offset: query.offset || 0,
-        ...(query.balanceType && { balanceType: query.balanceType }),
-        ...(query.transactionType && { transactionType: query.transactionType }),
-        ...(query.fromDate && { fromDate: new Date(query.fromDate) }),
-        ...(query.toDate && { toDate: new Date(query.toDate) }),
-      }
-
-      const [transactions, total] = await Promise.all([
-        WalletTransactionModel.findByUserId(userId, options),
-        WalletTransactionModel.countByUserId(userId, {
-          balanceType: options.balanceType,
-          transactionType: options.transactionType,
-          fromDate: options.fromDate,
-          toDate: options.toDate,
-        }),
-      ])
-
-      const currentUser = getCurrentUser(request)
-      const admin = await User.findByAuth0Id(currentUser.sub)
-
-      return reply.send({
-        targetUser: {
-          id: targetUser.id,
-          name: targetUser.name,
-          email: targetUser.email,
-        },
-        transactions: transactions.map(t => ({
-          id: t.id,
-          transactionType: t.transactionType,
-          balanceType: t.balanceType,
-          amount: t.amount,
-          previousBalance: t.previousBalance,
-          newBalance: t.newBalance,
-          reason: t.reason,
-          metadata: t.metadata,
-          createdAt: t.createdAt,
-        })),
-        pagination: {
-          total,
-          limit: options.limit,
-          offset: options.offset,
-          hasMore: options.offset + options.limit < total,
-        },
-        auditInfo: {
-          requestedBy: admin?.name,
-          requestedAt: new Date().toISOString(),
-        },
-      })
-    } catch (error) {
-      return reply.code(500).send({
-        message: 'Failed to retrieve user transaction history',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      })
-    }
-  })
 }
