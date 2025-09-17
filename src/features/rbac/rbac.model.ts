@@ -57,7 +57,7 @@ export class Role {
 
   static async findById(id: string): Promise<Role | null> {
     const role = await prisma.role.findUnique({ where: { id } })
-    return role ? Role.create(role) : null
+    return role ? Role.create(role as RoleProps) : null
   }
 }
 
@@ -110,6 +110,6 @@ export class Permission {
 
   static async findByName(name: string): Promise<Permission | null> {
     const permission = await prisma.permission.findUnique({ where: { name } })
-    return permission ? Permission.create(permission) : null
+    return permission ? Permission.create(permission as PermissionProps) : null
   }
 }
