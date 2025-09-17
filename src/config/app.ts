@@ -1,11 +1,16 @@
-import fastify, { FastifyInstance } from 'fastify'
+import fastify, { FastifyInstance, FastifyRequest } from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
-import jwt from '@fastify/jwt'
+import jwt, { FastifyJWTOptions } from '@fastify/jwt'
 import jwksClient from 'jwks-rsa'
+// import {
+//   serializerCompiler,
+//   validatorCompiler,
+//   ZodTypeProvider,
+// } from 'fastify-type-provider-zod'
 
 import { logger } from '@/lib/logger'
 import { errorHandler } from '@/middleware/error-handler'
@@ -17,6 +22,11 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       level: process.env.LOG_LEVEL ?? 'info',
     },
   })
+
+  // TODO: Re-enable ZodTypeProvider after converting all schemas to Zod
+  // .withTypeProvider<ZodTypeProvider>()
+  // app.setValidatorCompiler(validatorCompiler)
+  // app.setSerializerCompiler(serializerCompiler)
 
   // Register CORS
   await app.register(cors, {
@@ -37,7 +47,11 @@ export const buildApp = async (): Promise<FastifyInstance> => {
 
   // Register JWT for Auth0 token verification
   await app.register(jwt, {
-    secret: async function (request: any, token: any) {
+    secret: (request, token, done) => {
+      if (!token?.header?.kid) {
+        return done(new Error('Invalid token header - missing kid'), undefined)
+      }
+
       const client = jwksClient({
         jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
         cache: true,
@@ -45,39 +59,21 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         cacheMaxAge: 600000, // 10 minutes
       })
 
-      // Handle different possible parameter structures
-      let tokenString: string
-      let kid: string | undefined
-
-      // Check if token is a string (direct token) or if we need to extract from request
-      if (typeof token === 'string') {
-        tokenString = token
-      } else if (request?.headers?.authorization) {
-        tokenString = request.headers.authorization.replace('Bearer ', '')
-      } else {
-        throw new Error('Unable to extract JWT token')
-      }
-
-      // Extract kid from JWT header
-      try {
-        const parts = tokenString.split('.')
-        if (parts.length >= 1) {
-          const headerBase64 = parts[0]
-          const headerDecoded = JSON.parse(Buffer.from(headerBase64, 'base64url').toString())
-          kid = headerDecoded.kid
+      client.getSigningKey(token.header.kid, (err, key) => {
+        if (err) {
+          return done(err, undefined)
         }
-      } catch {
-        throw new Error('Failed to parse JWT header')
-      }
-      
-      if (!kid) {
-        throw new Error('Invalid token header - missing kid')
-      }
-
-      const key = await client.getSigningKey(kid)
-      return key.getPublicKey()
+        if (key) {
+          const signingKey = key.getPublicKey()
+          done(null, signingKey)
+        } else {
+          done(new Error('signing key not found'), undefined)
+        }
+      })
     },
-  })
+    decode: { complete: true },
+    algorithms: ['RS256'],
+  } as FastifyJWTOptions)
 
   // Register Swagger
   await app.register(swagger, {
@@ -190,6 +186,44 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       await fastify.register(companyRoutes)
     },
     { prefix: '/companies' },
+  )
+
+  // Company Settings module routes
+  await app.register(async function (fastify) {
+    const { default: companySettingsRoutes } = await import(
+      '@/features/company-settings/settings/settings.routes'
+    )
+    await fastify.register(companySettingsRoutes)
+  })
+
+  // Company Values module routes
+  await app.register(async function (fastify) {
+    const { default: companyValuesRoutes } = await import(
+      '@/features/company-settings/values/values.routes'
+    )
+    await fastify.register(companyValuesRoutes)
+  })
+
+  // Compliments module routes
+  await app.register(
+    async function (fastify) {
+      const { default: complimentRoutes } = await import(
+        '@/features/compliments/compliment.routes'
+      )
+      await fastify.register(complimentRoutes)
+    },
+    { prefix: '/compliments' },
+  )
+
+  // Wallets module routes
+  await app.register(
+    async function (fastify) {
+      const { default: walletRoutes } = await import(
+        '@/features/wallets/wallet.routes'
+      )
+      await fastify.register(walletRoutes)
+    },
+    { prefix: '/wallets' },
   )
 
   // 404 handler

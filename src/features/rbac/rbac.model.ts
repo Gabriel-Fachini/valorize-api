@@ -4,7 +4,7 @@ import { prisma } from '@/lib/database'
 export interface RoleProps {
   id?: string
   name: string
-  description?: string
+  description?: string | null
   companyId: string
   createdAt?: Date
   updatedAt?: Date
@@ -18,7 +18,7 @@ export class Role {
   private constructor(
     private _name: string,
     private _companyId: string,
-    private _description?: string,
+    private _description?: string | null,
     id?: string,
     createdAt?: Date,
     updatedAt?: Date,
@@ -42,7 +42,7 @@ export class Role {
   get id(): string { return this._id }
   get name(): string { return this._name }
   get companyId(): string { return this._companyId }
-  get description(): string | undefined { return this._description }
+  get description(): string | null | undefined { return this._description }
 
   toJSON() {
     return {
@@ -64,7 +64,7 @@ export class Role {
 export interface PermissionProps {
   id?: string
   name: string
-  description?: string
+  description?: string | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -76,7 +76,7 @@ export class Permission {
 
   private constructor(
     private _name: string,
-    private _description?: string,
+    private _description?: string | null,
     id?: string,
     createdAt?: Date,
     updatedAt?: Date,
@@ -96,7 +96,7 @@ export class Permission {
 
   get id(): string { return this._id }
   get name(): string { return this._name }
-  get description(): string | undefined { return this._description }
+  get description(): string | null | undefined { return this._description }
 
   toJSON() {
     return {

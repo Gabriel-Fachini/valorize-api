@@ -1,8 +1,12 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
 import { userService } from './user.service'
+import { walletService } from '../wallets/wallet.service'
 
-const userRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptions) => {
+const userRoutes = async (
+  fastify: FastifyInstance,
+  _options: FastifyPluginOptions,
+) => {
   // Get current user profile
   fastify.get('/profile', {
     schema: {
@@ -238,6 +242,43 @@ const userRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       })
     }
   })
+
+  // Get user balance
+  fastify.get(
+    '/me/get-my-balance',
+    {
+      schema: {
+        tags: ['Users'],
+        description: 'Get current user\'s coin balance',
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              complimentBalance: { type: 'number' },
+              redeemableBalance: { type: 'number' },
+            },
+          },
+          404: {
+            type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const currentUser = getCurrentUser(request)
+      const user = await userService.getUserProfile(currentUser.sub)
+      if (!user) {
+        return reply.code(404).send({ message: 'User not found' })
+      }
+
+      const balance = await walletService.getUserBalance(user.id)
+      return reply.send(balance)
+    },
+  )
 
   // Health check for users module
   fastify.get('/health', {

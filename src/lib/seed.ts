@@ -23,7 +23,8 @@ const PERMISSIONS = [
   { name: 'admin:access_panel', description: 'Access administrative panel' },
   { name: 'admin:view_analytics', description: 'View system analytics and reports' },
   { name: 'admin:manage_company', description: 'Manage company settings' },
-  
+  { name: 'company:manage_settings', description: 'Manage company-specific settings like values and compliments configuration' },
+
   // Future features - Praise system
   { name: 'praise:send', description: 'Send praise to colleagues' },
   { name: 'praise:view_all', description: 'View all praise in company' },
@@ -107,7 +108,7 @@ const ROLES_CONFIG = [
     permissions: [
       'users:read', 'users:create', 'users:update', 'users:manage_roles',
       'roles:read', 'roles:create', 'roles:update', 'roles:manage_permissions',
-      'admin:access_panel', 'admin:view_analytics', 'admin:manage_company',
+      'admin:access_panel', 'admin:view_analytics', 'admin:manage_company', 'company:manage_settings',
       'praise:view_all', 'praise:moderate',
       'coins:manage_system',
       'store:manage_catalog',
@@ -328,6 +329,10 @@ async function clearDatabase() {
   await prisma.companyContact.deleteMany()
   await prisma.userRole.deleteMany()
   await prisma.rolePermission.deleteMany()
+  await prisma.compliment.deleteMany()
+  await prisma.wallet.deleteMany()
+  await prisma.companyValue.deleteMany()
+  await prisma.companySettings.deleteMany()
   await prisma.user.deleteMany()
   await prisma.role.deleteMany()
   await prisma.permission.deleteMany()
@@ -559,6 +564,10 @@ async function verifySeeding() {
     users: await prisma.user.count(),
     userRoles: await prisma.userRole.count(),
     rolePermissions: await prisma.rolePermission.count(),
+    wallets: await prisma.wallet.count(),
+    compliments: await prisma.compliment.count(),
+    companyValues: await prisma.companyValue.count(),
+    companySettings: await prisma.companySettings.count(),
   }
   
   logger.info('📊 Database summary:', counts)
