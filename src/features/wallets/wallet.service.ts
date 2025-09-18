@@ -24,10 +24,6 @@ export async function resetWeeklyBalances(adminUserId?: string) {
       where: { isActive: true },
       include: {
         settings: true,
-        users: {
-          where: { isActive: true },
-          include: { wallet: true },
-        },
       },
     })
 
@@ -38,24 +34,43 @@ export async function resetWeeklyBalances(adminUserId?: string) {
       for (const company of companies) {
         const weeklyLimit = company.settings?.weeklyComplimentCoinLimit ?? 100
         
-        // Reset each wallet individually to record transactions
-        for (const user of company.users) {
-          if (user.wallet) {
-            const previousBalance = user.wallet.complimentBalance
-            
-            // Update wallet balance
-            await tx.wallet.update({
-              where: { id: user.wallet.id },
-              data: { complimentBalance: weeklyLimit },
-            })
+        // First, get all wallets that will be updated to record their previous balances
+        const walletsToUpdate = await tx.wallet.findMany({
+          where: {
+            user: {
+              companyId: company.id,
+              isActive: true,
+            },
+          },
+          include: {
+            user: true,
+          },
+        })
 
-            // Record the transaction
+        // Bulk update all wallets for this company
+        const updateResult = await tx.wallet.updateMany({
+          where: {
+            user: {
+              companyId: company.id,
+              isActive: true,
+            },
+          },
+          data: { complimentBalance: weeklyLimit },
+        })
+
+        // Record transactions for each wallet that was updated
+        for (const wallet of walletsToUpdate) {
+          const previousBalance = wallet.complimentBalance
+          const amount = weeklyLimit - previousBalance
+
+          // Only create transaction if there was actually a change
+          if (amount !== 0) {
             await WalletTransactionModel.create({
-              walletId: user.wallet.id,
-              userId: user.id,
+              walletId: wallet.id,
+              userId: wallet.userId,
               transactionType: TransactionType.RESET,
               balanceType: BalanceType.COMPLIMENT,
-              amount: weeklyLimit - previousBalance,
+              amount,
               previousBalance,
               newBalance: weeklyLimit,
               reason: 'Weekly balance reset',
@@ -65,13 +80,12 @@ export async function resetWeeklyBalances(adminUserId?: string) {
                 weeklyLimit,
               },
             }, tx)
-
-            totalWalletsUpdated++
           }
         }
         
+        totalWalletsUpdated += updateResult.count
         companiesProcessed++
-        logger.info(`Reset compliment balance for company ${company.id}: ${company.users.length} wallets updated to ${weeklyLimit} coins`)
+        logger.info(`Reset compliment balance for company ${company.id}: ${updateResult.count} wallets updated to ${weeklyLimit} coins`)
       }
     })
 
@@ -83,6 +97,94 @@ export async function resetWeeklyBalances(adminUserId?: string) {
     }
   } catch (error) {
     logger.error('Error during weekly compliment balance reset:', error)
+    throw error
+  }
+}
+
+export async function resetWeeklyBalancesForCompany(companyId: string, adminUserId?: string) {
+  logger.info(`Starting manual weekly compliment balance reset for company ${companyId}`)
+  
+  try {
+    // Get the specific company with its settings
+    const company = await prisma.company.findUnique({
+      where: { 
+        id: companyId,
+        isActive: true,
+      },
+      include: {
+        settings: true,
+      },
+    })
+
+    if (!company) {
+      throw new Error(`Company with ID ${companyId} not found or is inactive`)
+    }
+
+    const weeklyLimit = company.settings?.weeklyComplimentCoinLimit ?? 100
+
+    const result = await prisma.$transaction(async (tx) => {
+      // First, get all wallets that will be updated to record their previous balances
+      const walletsToUpdate = await tx.wallet.findMany({
+        where: {
+          user: {
+            companyId: companyId,
+            isActive: true,
+          },
+        },
+        include: {
+          user: true,
+        },
+      })
+
+      // Bulk update all wallets for the company
+      const updateResult = await tx.wallet.updateMany({
+        where: {
+          user: {
+            companyId: companyId,
+            isActive: true,
+          },
+        },
+        data: { complimentBalance: weeklyLimit },
+      })
+
+      // Record transactions for each wallet that was updated
+      for (const wallet of walletsToUpdate) {
+        const previousBalance = wallet.complimentBalance
+        const amount = weeklyLimit - previousBalance
+
+        // Only create transaction if there was actually a change
+        if (amount !== 0) {
+          await WalletTransactionModel.create({
+            walletId: wallet.id,
+            userId: wallet.userId,
+            transactionType: TransactionType.RESET,
+            balanceType: BalanceType.COMPLIMENT,
+            amount,
+            previousBalance,
+            newBalance: weeklyLimit,
+            reason: 'Weekly balance reset for specific company',
+            metadata: {
+              adminUserId,
+              companyId: company.id,
+              weeklyLimit,
+            },
+          }, tx)
+        }
+      }
+
+      logger.info(`Weekly compliment balance reset completed for company ${company.id}: ${updateResult.count} wallets updated to ${weeklyLimit} coins`)
+      
+      return {
+        companyId: company.id,
+        companyName: company.name,
+        totalWalletsUpdated: updateResult.count,
+        weeklyLimit,
+      }
+    })
+
+    return result
+  } catch (error) {
+    logger.error(`Error during weekly compliment balance reset for company ${companyId}:`, error)
     throw error
   }
 }

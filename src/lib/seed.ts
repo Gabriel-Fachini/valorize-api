@@ -23,6 +23,7 @@ const PERMISSIONS = [
   { name: 'admin:access_panel', description: 'Access administrative panel' },
   { name: 'admin:view_analytics', description: 'View system analytics and reports' },
   { name: 'admin:manage_company', description: 'Manage company settings' },
+  { name: 'admin:manage_system', description: 'Manage system-wide settings and operations' },
   { name: 'company:manage_settings', description: 'Manage company-specific settings like values and compliments configuration' },
 
   // Future features - Praise system

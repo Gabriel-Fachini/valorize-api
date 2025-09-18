@@ -7,6 +7,7 @@ export interface UserProps {
   email: string
   name: string
   companyId: string
+  avatar?: string
   isActive?: boolean
   createdAt?: Date
   updatedAt?: Date
@@ -22,6 +23,7 @@ export class User {
     private readonly _email: string,
     private _name: string,
     private _companyId: string,
+    private _avatar?: string,
     private _isActive: boolean = true,
     id?: string,
     createdAt?: Date,
@@ -34,7 +36,7 @@ export class User {
 
   // Factory method to create a new user
   public static create(props: UserProps): User {
-    const { auth0Id, email, name, companyId, isActive = true, id, createdAt, updatedAt } = props
+    const { auth0Id, email, name, companyId, avatar, isActive = true, id, createdAt, updatedAt } = props
 
     if (!auth0Id?.trim()) {
       throw new Error('Auth0 ID is required')
@@ -65,6 +67,7 @@ export class User {
       email.trim().toLowerCase(),
       name.trim(),
       companyId.trim(),
+      avatar,
       isActive,
       id,
       createdAt,
@@ -91,6 +94,10 @@ export class User {
 
   public get name(): string {
     return this._name
+  }
+
+  public get avatar(): string | undefined {
+    return this._avatar
   }
 
   public get isActive(): boolean {
@@ -157,6 +164,7 @@ export class User {
       auth0Id: this._auth0Id,
       email: this._email,
       name: this._name,
+      avatar: this._avatar,
       isActive: this._isActive,
       companyId: this._companyId,
       createdAt: this.createdAt,
@@ -283,6 +291,7 @@ export class User {
       email: prismaUser.email,
       name: prismaUser.name,
       companyId: prismaUser.companyId,
+      avatar: prismaUser.avatar,
       isActive: prismaUser.isActive,
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,

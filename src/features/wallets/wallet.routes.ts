@@ -3,6 +3,7 @@ import { requirePermission } from '@/middleware/rbac'
 import { getCurrentUser } from '@/middleware/auth'
 import { User } from '../users/user.model'
 import { walletService } from './wallet.service'
+import { BalanceType, TransactionType } from './wallet-transaction.model'
 
 export default async function walletRoutes(fastify: FastifyInstance) {
   // Get user's wallet balance
@@ -43,13 +44,20 @@ export default async function walletRoutes(fastify: FastifyInstance) {
 
     try {
       const { WalletTransactionModel } = await import('./wallet-transaction.model')
-      const query = request.query as any
+      const query = request.query as {
+        limit?: number
+        offset?: number
+        balanceType?: string
+        transactionType?: string
+        fromDate?: string
+        toDate?: string
+      }
 
       const options = {
         limit: query.limit ?? 50,
         offset: query.offset ?? 0,
-        ...(query.balanceType && { balanceType: query.balanceType }),
-        ...(query.transactionType && { transactionType: query.transactionType }),
+        ...(query.balanceType && { balanceType: query.balanceType as BalanceType }),
+        ...(query.transactionType && { transactionType: query.transactionType as TransactionType }),
         ...(query.fromDate && { fromDate: new Date(query.fromDate) }),
         ...(query.toDate && { toDate: new Date(query.toDate) }),
       }
@@ -91,10 +99,20 @@ export default async function walletRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // Manual reset for all wallets (admin only)
+  // Manual reset for wallets (admin only) - hybrid approach
+  // If companyId is provided in query params, resets only that company
+  // If no companyId, resets all companies
   fastify.post('/reset-weekly-balance',
     {
       preHandler: [requirePermission('admin:manage_system')],
+      schema: {
+        querystring: {
+          type: 'object',
+          properties: {
+            companyId: { type: 'string' },
+          },
+        },
+      },
     }, async (request, reply) => {
       try {
         const currentUser = getCurrentUser(request)
@@ -104,15 +122,34 @@ export default async function walletRoutes(fastify: FastifyInstance) {
           return reply.code(404).send({ message: 'Admin user not found.' })
         }
 
-        const { resetWeeklyBalances } = await import('./wallet.service')
-        const result = await resetWeeklyBalances(admin.id)
-        
-        return reply.send({
-          message: 'Weekly balance reset completed successfully',
-          companiesUpdated: result.companiesProcessed,
-          walletsUpdated: result.totalWalletsUpdated,
-          resetBy: admin.name,
-        })
+        const query = request.query as { companyId?: string }
+        const { companyId } = query
+
+        if (companyId) {
+          // Reset specific company
+          const { resetWeeklyBalancesForCompany } = await import('./wallet.service')
+          const result = await resetWeeklyBalancesForCompany(companyId, admin.id)
+          
+          return reply.send({
+            message: 'Weekly balance reset completed successfully for company',
+            companyId: result.companyId,
+            companyName: result.companyName,
+            walletsUpdated: result.totalWalletsUpdated,
+            weeklyLimit: result.weeklyLimit,
+            resetBy: admin.name,
+          })
+        } else {
+          // Reset all companies
+          const { resetWeeklyBalances } = await import('./wallet.service')
+          const result = await resetWeeklyBalances(admin.id)
+          
+          return reply.send({
+            message: 'Weekly balance reset completed successfully for all companies',
+            companiesUpdated: result.companiesProcessed,
+            walletsUpdated: result.totalWalletsUpdated,
+            resetBy: admin.name,
+          })
+        }
       } catch (error) {
         return reply.code(500).send({
           message: 'Failed to reset weekly balances',

@@ -5,10 +5,9 @@ import { sendComplimentSchema, SendComplimentInput } from './compliment.schemas'
 import { User } from '../users/user.model'
 
 export default async function complimentRoutes(fastify: FastifyInstance) {
-  fastify.post(
-    '/send-compliment',
-    { schema: sendComplimentSchema },
-    async (
+  fastify.post('/send-compliment', {
+    schema: sendComplimentSchema,
+  }, async (
       request: FastifyRequest<{ Body: SendComplimentInput }>,
       reply,
     ) => {

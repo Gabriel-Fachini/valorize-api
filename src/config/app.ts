@@ -1,4 +1,4 @@
-import fastify, { FastifyInstance, FastifyRequest } from 'fastify'
+import fastify, { FastifyInstance } from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'

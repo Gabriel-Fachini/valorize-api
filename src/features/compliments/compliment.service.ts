@@ -26,22 +26,13 @@ export const complimentService = {
       throw new Error('Sender and receiver must belong to the same company.')
     }
 
-    // Check if company has at least 2 active values configured
-    const activeValuesCount = await prisma.companyValue.count({
-      where: { companyId: sender.companyId, isActive: true },
-    })
-
-    if (activeValuesCount < 2) {
-      throw new Error('Company must have at least 2 active values configured to enable compliments.')
+    // Verify if sender has enough coins
+    const senderWallet = await WalletModel.getOrCreateByUserId(sender.id)
+    if (senderWallet.complimentBalance < coins) {
+      throw new Error('Insufficient compliment balance.')
     }
 
     return prisma.$transaction(async tx => {
-      const senderWallet = await WalletModel.getOrCreateByUserId(sender.id, tx)
-
-      if (senderWallet.complimentBalance < coins) {
-        throw new Error('Insufficient compliment balance.')
-      }
-
       const companyValue = await tx.companyValue.findFirst({
         where: { id: valueId, companyId: sender.companyId, isActive: true },
       })
@@ -112,6 +103,7 @@ export const complimentService = {
       },
       select: {
         id: true,
+        avatar: true,
         name: true,
         email: true,
       },
