@@ -1,8 +1,9 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
-import { getCurrentUser } from '@/middleware/auth'
+import { getAuth0Id } from '@/middleware/auth'
 import { authService } from './auth.service'
 import { UnauthorizedError } from '@/middleware/error-handler'
 import { loginSchema, refreshTokenSchema, verifySessionSchema } from './auth.schemas'
+import { logger } from '@/lib/logger'
 
 const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptions) => {
   // Login endpoint
@@ -148,8 +149,9 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       }
 
       // Full mode - get complete session info
-      const currentUser = getCurrentUser(request)
-      const sessionInfo = await authService.getSessionInfo(currentUser, token)
+      const auth0Id = getAuth0Id(request)
+      const sessionInfo = await authService.getSessionInfo(auth0Id, token)
+      logger.debug('sessionInfo', sessionInfo)
       
       return reply.code(200).send({
         success: true,
@@ -160,11 +162,12 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
           timeRemainingFormatted: authService.formatTimeRemaining(sessionInfo.timeRemaining),
           needsRefresh: sessionInfo.needsRefresh,
           user: {
-            sub: sessionInfo.user.sub,
+            id: sessionInfo.user.id,
             email: sessionInfo.user.email,
-            email_verified: sessionInfo.user.email_verified,
             name: sessionInfo.user.name,
-            picture: sessionInfo.user.picture,
+            avatar: sessionInfo.user.avatar,
+            companyId: sessionInfo.user.companyId,
+            isActive: sessionInfo.user.isActive,
           },
           message: sessionInfo.needsRefresh 
             ? 'Token should be refreshed soon'

@@ -14,10 +14,17 @@ const commonErrorResponse = {
 const userInfoSchema = {
   type: 'object',
   properties: {
-    sub: { type: 'string' },
+    // Database user fields (preferred)
+    id: { type: 'string' },
     email: { type: 'string', format: 'email' },
-    email_verified: { type: 'boolean' },
     name: { type: 'string' },
+    avatar: { type: 'string' },
+    companyId: { type: 'string' },
+    isActive: { type: 'boolean' },
+    auth0Sub: { type: 'string' },
+    email_verified: { type: 'boolean' },
+    // Auth0 fallback fields
+    sub: { type: 'string' },
     picture: { type: 'string' },
   },
 } as const
