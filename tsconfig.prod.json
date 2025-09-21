@@ -8,7 +8,7 @@
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,
     "noUncheckedIndexedAccess": false,
-    "exactOptionalPropertyTypes": false
+    "exactOptionalPropertyTypes": true
   },
   "exclude": [
     "node_modules",
