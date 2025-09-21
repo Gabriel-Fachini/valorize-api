@@ -48,12 +48,15 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Register JWT for Auth0 token verification
   await app.register(jwt, {
     secret: (_request, token, done) => {
-      if ( !token || typeof token !== 'object' ||  
-        !token.header ||  
-        typeof token.header !== 'object' ||  
-        !token.header.kid ||  
-        typeof token.header.kid !== 'string'  
-      ) {
+      if (!token || typeof token !== 'object') {
+        return done(new Error('Invalid token header - missing kid'), undefined)
+      }
+      
+      if (!token.header || typeof token.header !== 'object') {
+        return done(new Error('Invalid token header - missing kid'), undefined)
+      }
+      
+      if (!token.header.kid || typeof token.header.kid !== 'string') {
         return done(new Error('Invalid token header - missing kid'), undefined)
       }
 
