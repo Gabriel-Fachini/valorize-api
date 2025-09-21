@@ -40,9 +40,7 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
     ) => {
       const { companyId } = request.params
       const values = await companyValuesService.listCompanyValues(companyId)
-      return reply.send({
-        values,
-      })
+      return reply.send(values)
     },
   )
 }

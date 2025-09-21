@@ -10,12 +10,12 @@ export class CompanyValueModel {
 
   static async findActiveByCompanyId(
     companyId: string,
-  ): Promise<CompanyValueModel[]> {
+  ): Promise<CompanyValueData[]> {
     try {
       const values = await prisma.companyValue.findMany({
         where: { companyId, isActive: true },
       })
-      return values.map(value => new CompanyValueModel(value))
+      return values
     } catch (error) {
       logger.error('Error finding active company values by companyId', {
         error,

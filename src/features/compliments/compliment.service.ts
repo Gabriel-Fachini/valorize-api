@@ -111,4 +111,75 @@ export const complimentService = {
 
     return users
   },
+
+  async getComplimentHistory(
+    currentUserId: string,
+    type: 'sent' | 'received',
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    const currentUser = await User.findById(currentUserId)
+    if (!currentUser) {
+      throw new Error('Current user not found.')
+    }
+
+    const skip = (page - 1) * limit
+
+    const whereClause = type === 'sent' 
+      ? { senderId: currentUserId }
+      : { receiverId: currentUserId }
+
+    const [compliments, totalCount] = await Promise.all([
+      prisma.compliment.findMany({
+        where: whereClause,
+        include: {
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
+          },
+          receiver: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
+          },
+          companyValue: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              icon: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.compliment.count({
+        where: whereClause,
+      }),
+    ])
+
+    const totalPages = Math.ceil(totalCount / limit)
+
+    return {
+      compliments,
+      metainfo: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    }
+  },
 }
