@@ -198,4 +198,12 @@ export const getCurrentUser = (request: FastifyRequest): AuthenticatedUser => {
 // Helper function to check if user is authenticated
 export const isAuthenticated = (request: FastifyRequest): boolean => {
   return !!request.authenticatedUser
-} 
+}
+
+// Helper function to get auth0 id
+export const getAuth0Id = (request: FastifyRequest): string => {
+  if (!request.authenticatedUser) {
+    throw new UnauthorizedError('User not authenticated')
+  }
+  return request.authenticatedUser.sub
+}

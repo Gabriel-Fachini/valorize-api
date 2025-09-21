@@ -2,6 +2,7 @@ import axios from 'axios'
 import jwt from 'jsonwebtoken'
 import { logger } from '@/lib/logger'
 import { AuthenticatedUser } from '@/middleware/auth'
+import { User } from '../users/user.model'
 
 export interface LoginRequest {
   email: string
@@ -32,7 +33,7 @@ export interface AuthError {
 
 export interface SessionInfo {
   isValid: boolean
-  user: AuthenticatedUser
+  user: User
   expiresAt: Date
   timeRemaining: number // in seconds
   needsRefresh: boolean
@@ -109,7 +110,7 @@ export const authService = {
       })
 
       // Get user info using the access token
-      const userInfo = await this.getUserInfo(tokenData.access_token)
+      const userInfo = await this.getUserFromAuth0(tokenData.access_token)
 
       return {
         access_token: tokenData.access_token,
@@ -142,9 +143,9 @@ export const authService = {
   },
 
   /**
-   * Get user information from Auth0 userinfo endpoint
+   * Get user information from Auth0 using access token
    */
-  async getUserInfo(accessToken: string): Promise<LoginResponse['user_info']> {
+  async getUserFromAuth0(accessToken: string): Promise<LoginResponse['user_info']> {
     try {
       const auth0Domain = process.env.AUTH0_DOMAIN!
       
@@ -172,9 +173,10 @@ export const authService = {
         error: error instanceof Error ? error.message : String(error),
       })
 
-      throw new Error('Failed to retrieve user information')
+      throw new Error('Failed to retrieve user information from Auth0')
     }
   },
+
 
   /**
    * Refresh an access token using a refresh token
@@ -242,9 +244,31 @@ export const authService = {
   },
 
   /**
+   * Get user information from database by Auth0 ID
+   */
+  async getUserByAuth0Id(auth0Id: string): Promise<User | null> {
+    try {
+      const user = await User.findByAuth0Id(auth0Id)
+      
+      if (!user) {
+        logger.warn('User not found in database', { auth0Id })
+        return null
+      }
+
+      return user
+    } catch (error) {
+      logger.error('Failed to get user from database', {
+        auth0Id,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      return null
+    }
+  },
+
+  /**
    * Get detailed session information
    */
-  async getSessionInfo(user: AuthenticatedUser, token: string): Promise<SessionInfo> {
+  async getSessionInfo(auth0Id: string, token: string): Promise<SessionInfo> {
     try {
       // Decode the token to get expiration time
       const decoded = jwt.decode(token) as Record<string, unknown>
@@ -259,12 +283,20 @@ export const authService = {
       const isValid = timeRemaining > 0
       const needsRefresh = timeRemaining <= this.REFRESH_THRESHOLD
 
+      // Get user data from database
+      const user = await this.getUserByAuth0Id(auth0Id)
+
+      if (!user) {
+        throw new Error('User not found in database')
+      }
+
       logger.info('Session info retrieved', {
-        userId: user.sub,
+        userId: auth0Id,
         email: user.email,
         expiresAt: expiresAt.toISOString(),
         timeRemaining,
         needsRefresh,
+        hasDatabaseUser: !!user,
       })
 
       return {
@@ -276,7 +308,7 @@ export const authService = {
       }
     } catch (error) {
       logger.error('Error getting session info', {
-        userId: user.sub,
+        userId: auth0Id,
         error: error instanceof Error ? error.message : String(error),
       })
       
@@ -290,7 +322,7 @@ export const authService = {
   validateToken(token: string): TokenValidationResult {
     try {
       // Decode without verification (just to check structure and expiration)
-      const decoded = jwt.decode(token) as any
+      const decoded = jwt.decode(token) as Record<string, unknown>
       
       if (!decoded) {
         return {
@@ -308,17 +340,17 @@ export const authService = {
         }
       }
 
-      const expiresAt = new Date(decoded.exp * 1000)
+      const expiresAt = new Date((decoded.exp as number) * 1000)
       const now = new Date()
       const timeRemaining = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000))
       const expired = timeRemaining <= 0
 
       const user: AuthenticatedUser = {
-        sub: decoded.sub,
-        email: decoded.email,
-        email_verified: decoded.email_verified,
-        name: decoded.name,
-        picture: decoded.picture,
+        sub: decoded.sub as string,
+        email: decoded.email as string,
+        email_verified: decoded.email_verified as boolean,
+        name: decoded.name as string,
+        picture: decoded.picture as string,
         ...decoded,
       }
 

@@ -12,6 +12,7 @@ model User {
   auth0Id   String   @unique @map("auth0_id")
   email     String   @unique
   name      String
+  avatar    String?
   companyId String   @map("company_id")
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
@@ -20,6 +21,11 @@ model User {
   roles           UserRole[]
   company         Company @relation(fields: [companyId], references: [id])
   companyContacts CompanyContact[]
+  wallet             Wallet?
+  walletTransactions WalletTransaction[]
+
+  complimentsSent     Compliment[] @relation("ComplimentSender")
+  complimentsReceived Compliment[] @relation("ComplimentReceiver")
 
   @@index([companyId])
   @@map("users")
@@ -94,6 +100,9 @@ model Company {
   roles         Role[]
   companyBrazil CompanyBrazil?
   contacts      CompanyContact[]
+  settings      CompanySettings?
+  values        CompanyValue[]
+  compliments   Compliment[]
 
   @@index([domain])
   @@index([country])
@@ -141,4 +150,98 @@ model CompanyContact {
   @@index([userId])
   @@index([isPrimary])
   @@map("company_contacts")
+}
+
+model CompanySettings {
+  id                        Int      @id @default(autoincrement())
+  companyId                 String   @unique @map("company_id")
+  weeklyComplimentCoinLimit Int      @default(100) @map("weekly_compliment_coin_limit")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("company_settings")
+}
+
+model CompanyValue {
+  id          Int      @id @default(autoincrement())
+  companyId   String   @map("company_id")
+  title       String
+  description String
+  icon        String
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  company    Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  compliments Compliment[]
+
+  @@index([companyId])
+  @@index([isActive])
+  @@map("company_values")
+}
+
+model Wallet {
+  id                  String   @id @default(cuid())
+  userId              String   @unique @map("user_id")
+  complimentBalance   Int      @default(100) @map("compliment_balance")
+  redeemableBalance   Int      @default(0) @map("redeemable_balance")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@index([complimentBalance])
+  @@map("wallets")
+}
+
+model Compliment {
+  id           String   @id @default(cuid())
+  senderId     String   @map("sender_id")
+  receiverId   String   @map("receiver_id")
+  companyId    String   @map("company_id")
+  valueId      Int      @map("value_id")
+  message      String
+  coins        Int
+  isPublic     Boolean  @default(true) @map("is_public")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  sender     User         @relation("ComplimentSender", fields: [senderId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  receiver   User         @relation("ComplimentReceiver", fields: [receiverId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  company    Company      @relation(fields: [companyId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  companyValue CompanyValue @relation(fields: [valueId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([companyId])
+  @@index([valueId])
+  @@index([createdAt])
+  @@index([companyId, createdAt])
+  @@map("compliments")
+}
+
+model WalletTransaction {
+  id              String   @id @default(cuid())
+  walletId        String   @map("wallet_id")
+  userId          String   @map("user_id")
+  transactionType String   @map("transaction_type") // DEBIT, CREDIT, RESET
+  balanceType     String   @map("balance_type")     // COMPLIMENT, REDEEMABLE
+  amount          Int
+  previousBalance Int      @map("previous_balance")
+  newBalance      Int      @map("new_balance")
+  reason          String   // Reason for the transaction
+  metadata        Json?    // Additional data (compliment ID, admin ID, etc.)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([transactionType])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("wallet_transactions")
 }
