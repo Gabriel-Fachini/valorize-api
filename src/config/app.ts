@@ -234,6 +234,28 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/wallets' },
   )
 
+  // Prizes module routes
+  await app.register(
+    async function (fastify) {
+      const { default: prizeRoutes } = await import(
+        '@/features/prizes/prize.routes'
+      )
+      await fastify.register(prizeRoutes)
+    },
+    { prefix: '/prizes' },
+  )
+
+  // Redemptions module routes
+  await app.register(
+    async function (fastify) {
+      const { default: redemptionRoutes } = await import(
+        '@/features/prizes/redemptions/redemption.routes'
+      )
+      await fastify.register(redemptionRoutes)
+    },
+    { prefix: '/redemptions' },
+  )
+
   // 404 handler
   app.setNotFoundHandler({
     preHandler: app.rateLimit(),
