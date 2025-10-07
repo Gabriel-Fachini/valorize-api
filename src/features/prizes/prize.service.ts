@@ -1,9 +1,8 @@
 import { logger } from '@/lib/logger'
-import { PrizeModel, CreatePrizeData } from './prize.model'
-import {
-  PrizeVariantModel,
-  CreatePrizeVariantData,
-} from './prize-variant.model'
+import { CreatePrizeData } from './prize.model'
+import { CreatePrizeVariantData, CreatePrizeVariantInput } from './prize-variant.model'
+import { prizeRepository } from './prize.repository'
+import { prizeVariantRepository } from './prize-variant.repository'
 
 export const prizeService = {
   async listAvailablePrizes(
@@ -15,7 +14,7 @@ export const prizeService = {
     },
   ) {
     try {
-      const prizes = await PrizeModel.findAvailable(companyId, filters)
+      const prizes = await prizeRepository.findAvailable(companyId, filters)
 
       logger.info('Available prizes listed', {
         companyId,
@@ -32,7 +31,7 @@ export const prizeService = {
 
   async getPrizeDetails(prizeId: string, companyId: string) {
     try {
-      const prize = await PrizeModel.findById(prizeId)
+      const prize = await prizeRepository.getPrizeWithVariants(prizeId)
 
       if (!prize) {
         throw new Error('Prize not found')
@@ -54,7 +53,7 @@ export const prizeService = {
 
   async getAvailableCategories(companyId: string) {
     try {
-      const categories = await PrizeModel.getAvailableCategories(companyId)
+      const categories = await prizeRepository.getAvailableCategories(companyId)
 
       logger.info('Available categories retrieved', {
         companyId,
@@ -71,15 +70,15 @@ export const prizeService = {
   async createPrize(companyId: string | null, data: CreatePrizeData) {
     try {
       // Validações de negócio
-      if (data.coinPrice <= 0) {
+      if (!data.coinPrice || data.coinPrice <= 0) {
         throw new Error('Coin price must be greater than 0')
       }
 
-      if (data.stock < 0) {
+      if (data.stock === undefined || data.stock < 0) {
         throw new Error('Stock cannot be negative')
       }
 
-      if (!data.images || data.images.length === 0) {
+      if (!Array.isArray(data.images) || data.images.length === 0) {
         throw new Error('At least one image is required')
       }
 
@@ -88,7 +87,7 @@ export const prizeService = {
         companyId,
       }
 
-      const prize = await PrizeModel.create(prizeData)
+      const prize = await prizeRepository.create(prizeData)
 
       logger.info('Prize created successfully', {
         prizeId: prize.id,
@@ -103,10 +102,10 @@ export const prizeService = {
     }
   },
 
-  async addVariant(prizeId: string, companyId: string, data: CreatePrizeVariantData) {
+  async addVariant(prizeId: string, companyId: string, data: CreatePrizeVariantInput) {
     try {
       // Verificar se o prêmio existe e pertence à empresa
-      const prize = await PrizeModel.findById(prizeId)
+      const prize = await prizeRepository.findById(prizeId)
 
       if (!prize) {
         throw new Error('Prize not found')
@@ -117,7 +116,7 @@ export const prizeService = {
       }
 
       // Validações de negócio
-      if (data.stock < 0) {
+      if (data.stock === undefined || data.stock < 0) {
         throw new Error('Stock cannot be negative')
       }
 
@@ -126,7 +125,7 @@ export const prizeService = {
         prizeId,
       }
 
-      const variant = await PrizeVariantModel.create(variantData)
+      const variant = await prizeVariantRepository.create(variantData)
 
       logger.info('Prize variant added successfully', {
         variantId: variant.id,

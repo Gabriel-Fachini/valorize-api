@@ -12,50 +12,12 @@ export const redeemPrizeSchema = {
         type: 'string',
         description: 'Prize variant ID (optional if prize has no variants)',
       },
-      deliveryInfo: {
-        type: 'object',
-        properties: {
-          address: {
-            type: 'string',
-            minLength: 5,
-            maxLength: 500,
-            description: 'Delivery address',
-          },
-          city: {
-            type: 'string',
-            minLength: 2,
-            maxLength: 100,
-            description: 'City',
-          },
-          state: {
-            type: 'string',
-            minLength: 2,
-            maxLength: 100,
-            description: 'State',
-          },
-          zipCode: {
-            type: 'string',
-            minLength: 5,
-            maxLength: 20,
-            description: 'ZIP/Postal code',
-          },
-          phone: {
-            type: 'string',
-            minLength: 8,
-            maxLength: 20,
-            description: 'Contact phone number',
-          },
-          additionalInfo: {
-            type: 'string',
-            maxLength: 500,
-            description: 'Additional delivery information (optional)',
-          },
-        },
-        required: ['address', 'city', 'state', 'zipCode', 'phone'],
-        additionalProperties: false,
+      addressId: {
+        type: 'string',
+        description: 'Address ID for delivery (must be owned by the user)',
       },
     },
-    required: ['prizeId', 'deliveryInfo'],
+    required: ['prizeId', 'addressId'],
     additionalProperties: false,
   },
 }

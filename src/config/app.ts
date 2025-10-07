@@ -169,6 +169,15 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/users' },
   )
 
+  // Addresses module routes
+  await app.register(
+    async function (fastify) {
+      const { default: addressRoutes } = await import('@/features/addresses/address.routes')
+      await fastify.register(addressRoutes)
+    },
+    { prefix: '/addresses' },
+  )
+
   // Auth module routes
   await app.register(
     async function (fastify) {

@@ -21,14 +21,7 @@ export default async function redemptionRoutes(fastify: FastifyInstance) {
         Body: {
           prizeId: string
           variantId?: string
-          deliveryInfo: {
-            address: string
-            city: string
-            state: string
-            zipCode: string
-            phone: string
-            additionalInfo?: string
-          }
+          addressId: string
         }
       }>,
       reply,
@@ -46,7 +39,7 @@ export default async function redemptionRoutes(fastify: FastifyInstance) {
           companyId: user.companyId,
           prizeId: request.body.prizeId,
           variantId: request.body.variantId,
-          deliveryInfo: request.body.deliveryInfo,
+          addressId: request.body.addressId,
         })
 
         return reply.code(201).send({
@@ -61,6 +54,9 @@ export default async function redemptionRoutes(fastify: FastifyInstance) {
           }
           if (error.name === 'InsufficientStockError') {
             return reply.code(409).send({ message: error.message })
+          }
+          if (error.name === 'VariantRequiredError') {
+            return reply.code(400).send({ message: error.message })
           }
         }
 

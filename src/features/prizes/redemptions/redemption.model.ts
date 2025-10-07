@@ -59,8 +59,8 @@ export class RedemptionModel {
     return this.data.status
   }
 
-  get deliveryInfo() {
-    return this.data.deliveryInfo
+  get addressId() {
+    return this.data.addressId
   }
 
   get trackingCode() {
@@ -80,7 +80,7 @@ export class RedemptionModel {
       companyId: this.data.companyId,
       coinsSpent: this.data.coinsSpent,
       status: this.data.status,
-      deliveryInfo: this.data.deliveryInfo,
+      addressId: this.data.addressId,
       trackingCode: this.data.trackingCode,
       redeemedAt: this.data.redeemedAt,
     }
@@ -95,7 +95,6 @@ export class RedemptionModel {
         data: {
           ...data,
           status: 'pending',
-          deliveryInfo: data.deliveryInfo as Prisma.InputJsonValue,
         },
       })
 

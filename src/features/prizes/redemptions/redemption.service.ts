@@ -3,20 +3,14 @@ import { prisma } from '@/lib/database'
 import { RedemptionModel } from './redemption.model'
 import { RedemptionTrackingModel } from './redemption-tracking.model'
 import { WalletModel } from '@/features/wallets/wallet.model'
+import { AddressModel } from '@/features/addresses/address.model'
 
 interface RedeemPrizeInput {
   userId: string
   prizeId: string
   variantId?: string
   companyId: string
-  deliveryInfo: {
-    address: string
-    city: string
-    state: string
-    zipCode: string
-    phone: string
-    additionalInfo?: string
-  }
+  addressId: string
 }
 
 export class InsufficientBalanceError extends Error {
@@ -47,12 +41,29 @@ export class CancellationPeriodExpiredError extends Error {
   }
 }
 
+export class VariantRequiredError extends Error {
+  constructor() {
+    super('This prize has variants. You must select a variant to redeem')
+    this.name = 'VariantRequiredError'
+  }
+}
+
 export const redemptionService = {
   async redeemPrize(input: RedeemPrizeInput) {
-    const { userId, prizeId, variantId, companyId, deliveryInfo } = input
+    const { userId, prizeId, variantId, companyId, addressId } = input
 
     return prisma.$transaction(async (tx) => {
-      // 1. Buscar prêmio com lock
+      // 1. Validate address belongs to user
+      const address = await AddressModel.findById(addressId)
+      if (!address) {
+        throw new Error('Address not found')
+      }
+
+      if (address.userId !== userId) {
+        throw new Error('Address does not belong to this user')
+      }
+
+      // 2. Buscar prêmio com lock
       const prize = await tx.prize.findFirst({
         where: { id: prizeId, isActive: true },
         include: { variants: true },
@@ -67,10 +78,21 @@ export const redemptionService = {
         throw new Error('Prize does not belong to this company')
       }
 
-      // 2. Calcular preço final (fixo do prêmio, sem ajuste de variante)
+      // Validar regra de negócio: se o prêmio tem variantes, uma deve ser selecionada
+      const hasVariants = prize.variants && prize.variants.length > 0
+      if (hasVariants && !variantId) {
+        throw new VariantRequiredError()
+      }
+
+      // Se não tem variantes, não deve ter variantId
+      if (!hasVariants && variantId) {
+        throw new Error('This prize does not have variants')
+      }
+
+      // 3. Calcular preço final (fixo do prêmio, sem ajuste de variante)
       const finalPrice = prize.coinPrice
 
-      // 3. Verificar saldo do usuário
+      // 4. Verificar saldo do usuário
       const wallet = await tx.wallet.findUnique({
         where: { userId },
       })
@@ -83,7 +105,7 @@ export const redemptionService = {
         throw new InsufficientBalanceError()
       }
 
-      // 4. Atualização atômica de estoque (SOLUÇÃO RACE CONDITION)
+      // 5. Atualização atômica de estoque (SOLUÇÃO RACE CONDITION)
       // Usa updateMany com WHERE condicional - só atualiza se tiver estoque
       let stockUpdate
 
@@ -127,7 +149,7 @@ export const redemptionService = {
         throw new InsufficientStockError()
       }
 
-      // 5. Debitar moedas da carteira
+      // 6. Debitar moedas da carteira
       await WalletModel.debitRedeemableBalance(
         userId,
         finalPrice,
@@ -140,7 +162,7 @@ export const redemptionService = {
         },
       )
 
-      // 6. Criar redemption
+      // 7. Criar redemption
       const redemption = await RedemptionModel.create(
         {
           userId,
@@ -148,12 +170,12 @@ export const redemptionService = {
           variantId: variantId ?? null,
           companyId,
           coinsSpent: finalPrice,
-          deliveryInfo,
+          addressId,
         },
         tx,
       )
 
-      // 7. Criar primeiro tracking (pending)
+      // 8. Criar primeiro tracking (pending)
       await RedemptionTrackingModel.create(
         {
           redemptionId: redemption.id,
