@@ -5,7 +5,7 @@ export type ComplimentData = Omit<Compliment, 'createdAt'>
 export type CreateComplimentData = Omit<ComplimentData, 'id' | 'isPublic'>
 
 export class ComplimentModel {
-  constructor(private data: ComplimentData) {}
+  constructor(public data: ComplimentData) {}
 
   static async create(
     data: CreateComplimentData,

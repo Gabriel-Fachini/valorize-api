@@ -159,4 +159,60 @@ export class WalletModel {
       throw new Error('Failed to credit redeemable balance.')
     }
   }
+
+  static async debitRedeemableBalance(
+    userId: string,
+    amount: number,
+    tx: Prisma.TransactionClient,
+    reason = 'Prize redemption',
+    metadata?: Prisma.JsonObject,
+  ): Promise<WalletModel> {
+    try {
+      // Get current balance first
+      const currentWallet = await tx.wallet.findUnique({
+        where: { userId },
+      })
+      
+      if (!currentWallet) {
+        throw new Error('Wallet not found')
+      }
+
+      const previousBalance = currentWallet.redeemableBalance
+      const newBalance = previousBalance - amount
+
+      if (newBalance < 0) {
+        throw new Error('Insufficient redeemable balance')
+      }
+
+      // Update wallet balance
+      const updatedWallet = await tx.wallet.update({
+        where: { userId },
+        data: {
+          redeemableBalance: newBalance,
+        },
+      })
+
+      // Record the transaction
+      await WalletTransactionModel.create({
+        walletId: updatedWallet.id,
+        userId,
+        transactionType: TransactionType.DEBIT,
+        balanceType: BalanceType.REDEEMABLE,
+        amount,
+        previousBalance,
+        newBalance,
+        reason,
+        metadata: metadata ?? null,
+      }, tx)
+
+      return new WalletModel(updatedWallet)
+    } catch (error) {
+      logger.error('Error debiting redeemable balance', {
+        error,
+        userId,
+        amount,
+      })
+      throw new Error('Failed to debit redeemable balance.')
+    }
+  }
 }

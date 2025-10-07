@@ -26,6 +26,9 @@ model User {
 
   complimentsSent     Compliment[] @relation("ComplimentSender")
   complimentsReceived Compliment[] @relation("ComplimentReceiver")
+  
+  redemptions Redemption[]
+  addresses   Address[]
 
   @@index([companyId])
   @@map("users")
@@ -103,6 +106,8 @@ model Company {
   settings      CompanySettings?
   values        CompanyValue[]
   compliments   Compliment[]
+  prizes        Prize[]
+  redemptions   Redemption[]
 
   @@index([domain])
   @@index([country])
@@ -244,4 +249,108 @@ model WalletTransaction {
   @@index([createdAt])
   @@index([userId, createdAt])
   @@map("wallet_transactions")
+}
+
+model Prize {
+  id              String   @id @default(cuid())
+  companyId       String?  @map("company_id")
+  name            String
+  description     String
+  category        String
+  images          String[]
+  coinPrice       Int      @map("coin_price")
+  brand           String?
+  specifications  Json?
+  stock           Int      @default(0)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  company     Company?        @relation(fields: [companyId], references: [id])
+  variants    PrizeVariant[]
+  redemptions Redemption[]
+
+  @@index([companyId, isActive, stock])
+  @@index([category])
+  @@map("prizes")
+}
+
+model PrizeVariant {
+  id        String  @id @default(cuid())
+  prizeId   String  @map("prize_id")
+  name      String
+  value     String
+  stock     Int     @default(0)
+  isActive  Boolean @default(true) @map("is_active")
+
+  prize       Prize        @relation(fields: [prizeId], references: [id], onDelete: Cascade)
+  redemptions Redemption[]
+
+  @@index([prizeId])
+  @@map("prize_variants")
+}
+
+model Address {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  name           String
+  street         String
+  number         String
+  complement     String?
+  neighborhood   String
+  city           String
+  state          String
+  zipCode        String   @map("zip_code")
+  country        String   @default("BR")
+  phone          String
+  isDefault      Boolean  @default(false) @map("is_default")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  redemptions Redemption[]
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@map("addresses")
+}
+
+model Redemption {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  prizeId      String   @map("prize_id")
+  variantId    String?  @map("variant_id")
+  companyId    String   @map("company_id")
+  addressId    String   @map("address_id")
+  coinsSpent   Int      @map("coins_spent")
+  status       String   @default("pending")
+  trackingCode String?  @map("tracking_code")
+  redeemedAt   DateTime @default(now()) @map("redeemed_at")
+
+  user     User                 @relation(fields: [userId], references: [id])
+  prize    Prize                @relation(fields: [prizeId], references: [id])
+  variant  PrizeVariant?        @relation(fields: [variantId], references: [id])
+  company  Company              @relation(fields: [companyId], references: [id])
+  address  Address              @relation(fields: [addressId], references: [id])
+  tracking RedemptionTracking[]
+
+  @@index([userId, redeemedAt])
+  @@index([companyId, status])
+  @@index([prizeId])
+  @@index([addressId])
+  @@map("redemptions")
+}
+
+model RedemptionTracking {
+  id           String   @id @default(cuid())
+  redemptionId String   @map("redemption_id")
+  status       String
+  notes        String?
+  createdBy    String?  @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  redemption Redemption @relation(fields: [redemptionId], references: [id], onDelete: Cascade)
+
+  @@index([redemptionId, createdAt])
+  @@map("redemption_tracking")
 }

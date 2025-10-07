@@ -169,6 +169,15 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/users' },
   )
 
+  // Addresses module routes
+  await app.register(
+    async function (fastify) {
+      const { default: addressRoutes } = await import('@/features/addresses/address.routes')
+      await fastify.register(addressRoutes)
+    },
+    { prefix: '/addresses' },
+  )
+
   // Auth module routes
   await app.register(
     async function (fastify) {
@@ -232,6 +241,28 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       await fastify.register(walletRoutes)
     },
     { prefix: '/wallets' },
+  )
+
+  // Prizes module routes
+  await app.register(
+    async function (fastify) {
+      const { default: prizeRoutes } = await import(
+        '@/features/prizes/prize.routes'
+      )
+      await fastify.register(prizeRoutes)
+    },
+    { prefix: '/prizes' },
+  )
+
+  // Redemptions module routes
+  await app.register(
+    async function (fastify) {
+      const { default: redemptionRoutes } = await import(
+        '@/features/prizes/redemptions/redemption.routes'
+      )
+      await fastify.register(redemptionRoutes)
+    },
+    { prefix: '/redemptions' },
   )
 
   // 404 handler

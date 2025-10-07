@@ -15,47 +15,19 @@ export interface CreateCompanyData {
 }
 
 export class Company {
-  constructor(private data: CompanyData) {}
-
-  get id(): string {
-    return this.data.id
-  }
-
-  get name(): string {
-    return this.data.name
-  }
-
-  get domain(): string {
-    return this.data.domain
-  }
-
-  get country(): string {
-    return this.data.country
-  }
-
-  get timezone(): string {
-    return this.data.timezone
-  }
-
-  get isActive(): boolean {
-    return this.data.isActive
-  }
-
-  get companyBrazil(): CompanyBrazil | null | undefined {
-    return this.data.companyBrazil
-  }
-
-  get contacts(): CompanyContact[] | undefined {
-    return this.data.contacts
-  }
-
-  get createdAt(): Date {
-    return this.data.createdAt
-  }
-
-  get updatedAt(): Date {
-    return this.data.updatedAt
-  }
+  constructor(public data: CompanyData) {}
+  
+  // Simple getters (proxy only, no logic) for commonly accessed properties
+  get id() { return this.data.id }
+  get name() { return this.data.name }
+  get domain() { return this.data.domain }
+  get country() { return this.data.country }
+  get timezone() { return this.data.timezone }
+  get isActive() { return this.data.isActive }
+  get createdAt() { return this.data.createdAt }
+  get updatedAt() { return this.data.updatedAt }
+  get companyBrazil() { return this.data.companyBrazil }
+  get contacts() { return this.data.contacts }
 
   toJSON() {
     return {
@@ -65,24 +37,20 @@ export class Company {
       country: this.country,
       timezone: this.timezone,
       isActive: this.isActive,
-      companyBrazil: this.companyBrazil,
-      contacts: this.contacts,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
     }
   }
-
+  
   // Instance methods
   async save(): Promise<Company> {
     try {
       const updated = await prisma.company.update({
         where: { id: this.id },
         data: {
-          name: this.data.name,
-          domain: this.data.domain,
-          country: this.data.country,
-          timezone: this.data.timezone,
-          isActive: this.data.isActive,
+          name: this.name,
+          domain: this.domain,
+          country: this.country,
+          timezone: this.timezone,
+          isActive: this.isActive,
         },
         include: {
           companyBrazil: true,
