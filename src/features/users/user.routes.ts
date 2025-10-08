@@ -25,6 +25,7 @@ const userRoutes = async (
                 auth0Id: { type: 'string' },
                 email: { type: 'string', format: 'email' },
                 name: { type: 'string' },
+                avatar: { type: 'string', format: 'uri', nullable: true },
                 isActive: { type: 'boolean' },
                 createdAt: { type: 'string', format: 'date-time' },
                 updatedAt: { type: 'string', format: 'date-time' },
@@ -90,12 +91,13 @@ const userRoutes = async (
   fastify.put('/profile', {
     schema: {
       tags: ['Users'],
-      description: 'Update current user profile',
+      description: 'Update current user profile (name and/or avatar)',
       security: [{ bearerAuth: [] }],
       body: {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 2, maxLength: 100 },
+          avatar: { type: 'string', format: 'uri' },
         },
         additionalProperties: false,
       },
@@ -111,6 +113,7 @@ const userRoutes = async (
                 auth0Id: { type: 'string' },
                 email: { type: 'string', format: 'email' },
                 name: { type: 'string' },
+                avatar: { type: 'string', format: 'uri', nullable: true },
                 isActive: { type: 'boolean' },
                 createdAt: { type: 'string', format: 'date-time' },
                 updatedAt: { type: 'string', format: 'date-time' },
@@ -147,9 +150,9 @@ const userRoutes = async (
   }, async (request, reply) => {
     try {
       const currentUser = getCurrentUser(request)
-      const { name } = request.body as { name?: string }
+      const { name, avatar } = request.body as { name?: string; avatar?: string }
       
-      const updatedUser = await userService.updateUserProfile(currentUser.sub, { name })
+      const updatedUser = await userService.updateUserProfile(currentUser.sub, { name, avatar })
       
       return reply.code(200).send({
         success: true,

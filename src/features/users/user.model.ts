@@ -126,6 +126,35 @@ export class User {
     this.touch()
   }
 
+  public updateAvatar(avatarUrl?: string): void {
+    // Avatar is optional, so empty string or undefined is valid
+    if (avatarUrl === null) {
+      throw new Error('Avatar cannot be null, use undefined or empty string to remove')
+    }
+
+    // If avatar is provided, validate it's a valid URL format
+    if (avatarUrl?.trim()) {
+      const trimmedUrl = avatarUrl.trim()
+      
+      // Basic URL validation
+      if (!this.isValidUrl(trimmedUrl)) {
+        throw new Error('Invalid URL format for avatar')
+      }
+
+      // Check if it's an http or https URL
+      if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+        throw new Error('Avatar URL must start with http:// or https://')
+      }
+
+      this._avatar = trimmedUrl
+    } else {
+      // Remove avatar if empty string or undefined
+      this._avatar = undefined
+    }
+    
+    this.touch()
+  }
+
   public deactivate(): void {
     if (!this._isActive) {
       throw new Error('User is already inactive')
@@ -152,6 +181,15 @@ export class User {
   private static isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
+  }
+
+  private isValidUrl(url: string): boolean {
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
   }
 
   public equals(other: User): boolean {
@@ -253,6 +291,7 @@ export class User {
         email: this._email,
         name: this._name,
         companyId: this._companyId,
+        avatar: this._avatar,
         isActive: this._isActive,
         updatedAt: new Date(),
       }
