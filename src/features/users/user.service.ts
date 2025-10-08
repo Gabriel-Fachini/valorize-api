@@ -165,7 +165,7 @@ export const userService = {
     }
   },
 
-  async updateUserProfile(auth0Id: string, updates: { name?: string }): Promise<User> {
+  async updateUserProfile(auth0Id: string, updates: { name?: string; avatar?: string }): Promise<User> {
     try {
       const user = await User.findByAuth0Id(auth0Id)
       
@@ -179,6 +179,10 @@ export const userService = {
 
       if (updates.name) {
         user.updateName(updates.name)
+      }
+
+      if (updates.avatar !== undefined) {
+        user.updateAvatar(updates.avatar)
       }
 
       const updatedUser = await user.save()

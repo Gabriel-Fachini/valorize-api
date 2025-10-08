@@ -32,6 +32,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   await app.register(cors, {
     origin: process.env.CORS_ORIGIN ?? true,
     credentials: process.env.CORS_CREDENTIALS === 'true',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   })
 
   // Register Helmet for security
