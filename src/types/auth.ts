@@ -17,7 +17,7 @@ export interface UserInfo {
   email: string
   email_verified: boolean
   name?: string
-  picture?: string
+  avatar?: string
   [key: string]: unknown
 }
 
@@ -55,7 +55,7 @@ export interface AuthenticatedUser {
   email: string
   email_verified: boolean
   name?: string
-  picture?: string
+  avatar?: string
   [key: string]: unknown
 }
 

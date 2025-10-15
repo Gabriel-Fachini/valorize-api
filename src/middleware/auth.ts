@@ -24,7 +24,7 @@ export interface AuthenticatedUser {
   email?: string
   email_verified?: boolean
   name?: string
-  picture?: string
+  avatar?: string
   [key: string]: unknown
 }
 
@@ -124,7 +124,7 @@ export const auth0Middleware = async (
         email: decodedPayload.email as string,
         email_verified: decodedPayload.email_verified as boolean,
         name: decodedPayload.name as string,
-        picture: decodedPayload.picture as string,
+        avatar: decodedPayload.avatar as string,
         ...decodedPayload,
       }
 

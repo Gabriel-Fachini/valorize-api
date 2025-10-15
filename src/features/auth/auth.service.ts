@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { logger } from '@/lib/logger'
 import { AuthenticatedUser } from '@/middleware/auth'
 import { User } from '../users/user.model'
+import { prisma } from '@/lib/database'
 
 export interface LoginRequest {
   email: string
@@ -20,7 +21,7 @@ export interface LoginResponse {
     email: string
     email_verified: boolean
     name?: string
-    picture?: string
+    avatar?: string
     [key: string]: unknown
   }
 }
@@ -109,8 +110,7 @@ export const authService = {
         hasRefreshToken: !!tokenData.refresh_token,
       })
 
-      // Get user info using the access token
-      const userInfo = await this.getUserFromAuth0(tokenData.access_token)
+      const userInfo = await this.getUser(credentials.email)
 
       return {
         access_token: tokenData.access_token,
@@ -165,7 +165,7 @@ export const authService = {
         email: userInfo.email,
         email_verified: userInfo.email_verified ?? false,
         name: userInfo.name,
-        picture: userInfo.picture,
+        avatar: userInfo.avatar,
         ...userInfo, // Include any additional claims
       }
     } catch (error) {
@@ -350,7 +350,7 @@ export const authService = {
         email: decoded.email as string,
         email_verified: decoded.email_verified as boolean,
         name: decoded.name as string,
-        picture: decoded.picture as string,
+        avatar: decoded.avatar as string,
         ...decoded,
       }
 
@@ -442,6 +442,31 @@ export const authService = {
         'client_secret: "seu_client_secret" (se aplicável)',
         'refresh_token: "seu_refresh_token"',
       ],
+    }
+  },
+
+  /**
+   * Get user information from database by user auth0Id
+   */
+  async getUser(email: string): Promise<User | null> {
+    try {
+      const user = await prisma.user.findFirst({
+        where: {
+          email,
+          isActive: true,
+        },
+        select: {
+          email: true,
+          name: true,
+          avatar: true,
+        },
+      })
+      return user
+    } catch (error) {
+      logger.error('Error fetching user from database', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+      return null
     }
   },
 }

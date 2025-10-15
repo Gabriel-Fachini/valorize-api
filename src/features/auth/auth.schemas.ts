@@ -25,7 +25,6 @@ const userInfoSchema = {
     email_verified: { type: 'boolean' },
     // Auth0 fallback fields
     sub: { type: 'string' },
-    picture: { type: 'string' },
   },
 } as const
 

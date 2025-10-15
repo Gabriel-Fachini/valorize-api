@@ -140,7 +140,7 @@ const userInfo = await axios.get(
       "email": "user@example.com",
       "email_verified": true,
       "name": "John Doe",
-      "picture": "https://s.gravatar.com/avatar/..."
+      "avatar": "https://s.gravatar.com/avatar/..."
     }
   }
 }
@@ -156,7 +156,7 @@ export interface AuthenticatedUser {
   email?: string           // Email do usuário
   email_verified?: boolean // Status de verificação do email
   name?: string           // Nome completo
-  picture?: string        // URL da foto de perfil
+  avatar?: string        // URL da foto de perfil
   [key: string]: unknown  // Outros campos do JWT payload
 }
 ```
@@ -473,7 +473,7 @@ app.get('/users/profile', async (request, reply) => {
       id: user.sub,
       email: user.email,
       name: user.name,
-      picture: user.picture
+      avatar: user.avatar
     }
   }
 })
