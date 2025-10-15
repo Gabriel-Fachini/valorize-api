@@ -24,6 +24,12 @@ export class SeedVerifier {
       compliments: await this.prisma.compliment.count(),
       companyValues: await this.prisma.companyValue.count(),
       companySettings: await this.prisma.companySettings.count(),
+      walletTransactions: await this.prisma.walletTransaction.count(),
+      prizes: await this.prisma.prize.count(),
+      prizeVariants: await this.prisma.prizeVariant.count(),
+      addresses: await this.prisma.address.count(),
+      redemptions: await this.prisma.redemption.count(),
+      redemptionTrackings: await this.prisma.redemptionTracking.count(),
     }
     
     logger.info('📊 Database summary:', counts)
@@ -31,6 +37,9 @@ export class SeedVerifier {
     await this.showCompanySummary()
     await this.showRolePermissionMapping()
     await this.showUserRoleMapping()
+    await this.showTransactionSummary()
+    await this.showPrizeSummary()
+    await this.showRedemptionSummary()
   }
 
   private async showCompanySummary(): Promise<void> {
@@ -86,6 +95,124 @@ export class SeedVerifier {
     for (const user of usersWithRoles) {
       const roleNames = user.roles.map(ur => ur.role.name).join(', ')
       logger.info(`  ${user.name} (${user.email}): ${roleNames}`)
+    }
+  }
+
+  private async showTransactionSummary(): Promise<void> {
+    const transactionStats = await this.prisma.walletTransaction.groupBy({
+      by: ['transactionType', 'balanceType'],
+      _count: true,
+      _sum: {
+        amount: true,
+      },
+    })
+    
+    logger.info('💰 Transaction summary:')
+    for (const stat of transactionStats) {
+      logger.info(`  ${stat.transactionType} - ${stat.balanceType}: ${stat._count} transactions, ${stat._sum.amount ?? 0} total coins`)
+    }
+    
+    const usersWithTransactions = await this.prisma.user.findMany({
+      include: {
+        _count: {
+          select: {
+            walletTransactions: true,
+          },
+        },
+      },
+      where: {
+        walletTransactions: {
+          some: {},
+        },
+      },
+      orderBy: {
+        walletTransactions: {
+          _count: 'desc',
+        },
+      },
+      take: 5,
+    })
+    
+    if (usersWithTransactions.length > 0) {
+      logger.info('  Top users by transaction count:')
+      for (const user of usersWithTransactions) {
+        logger.info(`    ${user.name}: ${user._count.walletTransactions} transactions`)
+      }
+    }
+  }
+
+  private async showPrizeSummary(): Promise<void> {
+    const prizeStats = await this.prisma.prize.groupBy({
+      by: ['category'],
+      _count: true,
+      _sum: {
+        stock: true,
+      },
+    })
+    
+    logger.info('🎁 Prize summary:')
+    for (const stat of prizeStats) {
+      logger.info(`  ${stat.category}: ${stat._count} prizes, ${stat._sum.stock ?? 0} total stock`)
+    }
+    
+    const globalPrizes = await this.prisma.prize.count({
+      where: { companyId: null },
+    })
+    
+    const companyPrizes = await this.prisma.prize.count({
+      where: { companyId: { not: null } },
+    })
+    
+    logger.info(`  Global prizes: ${globalPrizes}`)
+    logger.info(`  Company-specific prizes: ${companyPrizes}`)
+    
+    const totalVariants = await this.prisma.prizeVariant.count()
+    logger.info(`  Total prize variants: ${totalVariants}`)
+  }
+
+  private async showRedemptionSummary(): Promise<void> {
+    const redemptionStats = await this.prisma.redemption.groupBy({
+      by: ['status'],
+      _count: true,
+      _sum: {
+        coinsSpent: true,
+      },
+    })
+    
+    logger.info('🎉 Redemption summary:')
+    for (const stat of redemptionStats) {
+      logger.info(`  ${stat.status}: ${stat._count} redemptions, ${stat._sum.coinsSpent ?? 0} total coins spent`)
+    }
+    
+    const totalTrackingEntries = await this.prisma.redemptionTracking.count()
+    logger.info(`  Total tracking entries: ${totalTrackingEntries}`)
+    
+    const usersWithRedemptions = await this.prisma.user.findMany({
+      include: {
+        _count: {
+          select: {
+            redemptions: true,
+          },
+        },
+      },
+      where: {
+        redemptions: {
+          some: {},
+        },
+      },
+      orderBy: {
+        redemptions: {
+          _count: 'desc',
+        },
+      },
+      take: 5,
+    })
+    
+    if (usersWithRedemptions.length > 0) {
+      logger.info('  Top users by redemption count:')
+      for (const user of usersWithRedemptions) {
+        logger.info(`    ${user.name}: ${user._count.redemptions} redemptions`)
+      }
     }
   }
 }

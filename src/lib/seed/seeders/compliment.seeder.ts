@@ -1,7 +1,8 @@
 /**
- * Compliment seeder - creates sample compliments and updates wallet balances
+ * Compliment seeder - creates sample compliments with wallet transactions
  */
 
+import { Prisma } from '@prisma/client'
 import { BaseSeeder } from './base.seeder'
 import {
   COMPLIMENTS_FROM_GABRIEL,
@@ -21,10 +22,11 @@ export class ComplimentSeeder extends BaseSeeder {
     // Get Gabriel's user
     const gabriel = await this.prisma.user.findUnique({
       where: { auth0Id: GABRIEL_AUTH0_ID },
+      include: { wallet: true },
     })
     
-    if (!gabriel) {
-      this.logWarning('Gabriel user not found, skipping compliment seeding')
+    if (!gabriel || !gabriel.wallet) {
+      this.logWarning('Gabriel user or wallet not found, skipping compliment seeding')
       return
     }
     
@@ -34,6 +36,7 @@ export class ComplimentSeeder extends BaseSeeder {
         companyId: VALORIZE_COMPANY_ID,
         id: { not: gabriel.id }, // Exclude Gabriel
       },
+      include: { wallet: true },
     })
     
     // Get company values for Valorize Corp
@@ -49,11 +52,14 @@ export class ComplimentSeeder extends BaseSeeder {
     let createdCount = 0
     let totalCoinsFromGabriel = 0
     let totalCoinsToGabriel = 0
+    let currentGabrielComplimentBalance = gabriel.wallet.complimentBalance
+    let currentGabrielRedeemableBalance = gabriel.wallet.redeemableBalance
     
     // Create compliments from Gabriel
     for (const complimentData of COMPLIMENTS_FROM_GABRIEL) {
       const receiver = valorizeUsers.find(u => u.auth0Id === complimentData.receiverAuth0Id)
-      if (receiver && valorizeValues[complimentData.valueIndex]) {
+      if (receiver && receiver.wallet && valorizeValues[complimentData.valueIndex]) {
+        // Create compliment
         await this.prisma.compliment.create({
           data: {
             senderId: gabriel.id,
@@ -65,6 +71,58 @@ export class ComplimentSeeder extends BaseSeeder {
             isPublic: complimentData.isPublic,
           },
         })
+        
+        // Create debit transaction for Gabriel
+        const previousBalance = currentGabrielComplimentBalance
+        const newBalance = previousBalance - complimentData.coins
+        await this.prisma.walletTransaction.create({
+          data: {
+            walletId: gabriel.wallet.id,
+            userId: gabriel.id,
+            transactionType: 'DEBIT',
+            balanceType: 'COMPLIMENT',
+            amount: complimentData.coins,
+            previousBalance,
+            newBalance,
+            reason: `Compliment sent to ${receiver.name}`,
+            metadata: {
+              receiverId: receiver.id,
+              receiverName: receiver.name,
+              valueId: valorizeValues[complimentData.valueIndex].id,
+              message: complimentData.message.substring(0, 100),
+            } as Prisma.JsonObject,
+          },
+        })
+        currentGabrielComplimentBalance = newBalance
+        
+        // Create credit transaction for receiver
+        const receiverPreviousBalance = receiver.wallet.redeemableBalance
+        const receiverNewBalance = receiverPreviousBalance + complimentData.coins
+        await this.prisma.walletTransaction.create({
+          data: {
+            walletId: receiver.wallet.id,
+            userId: receiver.id,
+            transactionType: 'CREDIT',
+            balanceType: 'REDEEMABLE',
+            amount: complimentData.coins,
+            previousBalance: receiverPreviousBalance,
+            newBalance: receiverNewBalance,
+            reason: `Compliment received from ${gabriel.name}`,
+            metadata: {
+              senderId: gabriel.id,
+              senderName: gabriel.name,
+              valueId: valorizeValues[complimentData.valueIndex].id,
+              message: complimentData.message.substring(0, 100),
+            } as Prisma.JsonObject,
+          },
+        })
+        
+        // Update receiver wallet balance
+        await this.prisma.wallet.update({
+          where: { userId: receiver.id },
+          data: { redeemableBalance: receiverNewBalance },
+        })
+        
         totalCoinsFromGabriel += complimentData.coins
         createdCount++
       }
@@ -73,7 +131,8 @@ export class ComplimentSeeder extends BaseSeeder {
     // Create compliments to Gabriel
     for (const complimentData of COMPLIMENTS_TO_GABRIEL) {
       const sender = valorizeUsers.find(u => u.auth0Id === complimentData.senderAuth0Id)
-      if (sender && valorizeValues[complimentData.valueIndex]) {
+      if (sender && sender.wallet && valorizeValues[complimentData.valueIndex]) {
+        // Create compliment
         await this.prisma.compliment.create({
           data: {
             senderId: sender.id,
@@ -85,6 +144,58 @@ export class ComplimentSeeder extends BaseSeeder {
             isPublic: complimentData.isPublic,
           },
         })
+        
+        // Create debit transaction for sender
+        const senderPreviousBalance = sender.wallet.complimentBalance
+        const senderNewBalance = senderPreviousBalance - complimentData.coins
+        await this.prisma.walletTransaction.create({
+          data: {
+            walletId: sender.wallet.id,
+            userId: sender.id,
+            transactionType: 'DEBIT',
+            balanceType: 'COMPLIMENT',
+            amount: complimentData.coins,
+            previousBalance: senderPreviousBalance,
+            newBalance: senderNewBalance,
+            reason: `Compliment sent to ${gabriel.name}`,
+            metadata: {
+              receiverId: gabriel.id,
+              receiverName: gabriel.name,
+              valueId: valorizeValues[complimentData.valueIndex].id,
+              message: complimentData.message.substring(0, 100),
+            } as Prisma.JsonObject,
+          },
+        })
+        
+        // Update sender wallet balance
+        await this.prisma.wallet.update({
+          where: { userId: sender.id },
+          data: { complimentBalance: senderNewBalance },
+        })
+        
+        // Create credit transaction for Gabriel
+        const previousBalance = currentGabrielRedeemableBalance
+        const newBalance = previousBalance + complimentData.coins
+        await this.prisma.walletTransaction.create({
+          data: {
+            walletId: gabriel.wallet.id,
+            userId: gabriel.id,
+            transactionType: 'CREDIT',
+            balanceType: 'REDEEMABLE',
+            amount: complimentData.coins,
+            previousBalance,
+            newBalance,
+            reason: `Compliment received from ${sender.name}`,
+            metadata: {
+              senderId: sender.id,
+              senderName: sender.name,
+              valueId: valorizeValues[complimentData.valueIndex].id,
+              message: complimentData.message.substring(0, 100),
+            } as Prisma.JsonObject,
+          },
+        })
+        currentGabrielRedeemableBalance = newBalance
+        
         totalCoinsToGabriel += complimentData.coins
         createdCount++
       }
@@ -94,38 +205,13 @@ export class ComplimentSeeder extends BaseSeeder {
     await this.prisma.wallet.update({
       where: { userId: gabriel.id },
       data: {
-        complimentBalance: 100 - totalCoinsFromGabriel,
-        redeemableBalance: totalCoinsToGabriel,
+        complimentBalance: currentGabrielComplimentBalance,
+        redeemableBalance: currentGabrielRedeemableBalance,
       },
     })
     
-    // Update other users' balances for compliments from Gabriel
-    for (const complimentData of COMPLIMENTS_FROM_GABRIEL) {
-      const receiver = valorizeUsers.find(u => u.auth0Id === complimentData.receiverAuth0Id)
-      if (receiver) {
-        await this.prisma.wallet.update({
-          where: { userId: receiver.id },
-          data: {
-            redeemableBalance: { increment: complimentData.coins },
-          },
-        })
-      }
-    }
-    
-    // Update other users' balances for compliments to Gabriel
-    for (const complimentData of COMPLIMENTS_TO_GABRIEL) {
-      const sender = valorizeUsers.find(u => u.auth0Id === complimentData.senderAuth0Id)
-      if (sender) {
-        await this.prisma.wallet.update({
-          where: { userId: sender.id },
-          data: {
-            complimentBalance: { decrement: complimentData.coins },
-          },
-        })
-      }
-    }
-    
     this.logComplete(createdCount, 'compliments')
     this.logInfo(`Gabriel sent ${totalCoinsFromGabriel} coins and received ${totalCoinsToGabriel} coins`)
+    this.logInfo(`Created ${createdCount * 2} wallet transactions`)
   }
 }

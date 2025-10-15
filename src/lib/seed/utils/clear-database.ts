@@ -12,10 +12,16 @@ export class DatabaseCleaner {
     logger.info('🧹 Clearing existing data...')
     
     // Delete in correct order to respect foreign key constraints
+    await this.prisma.walletTransaction.deleteMany()
+    await this.prisma.redemptionTracking.deleteMany()
+    await this.prisma.redemption.deleteMany()
+    await this.prisma.address.deleteMany()
     await this.prisma.companyContact.deleteMany()
     await this.prisma.userRole.deleteMany()
     await this.prisma.rolePermission.deleteMany()
     await this.prisma.compliment.deleteMany()
+    await this.prisma.prizeVariant.deleteMany()
+    await this.prisma.prize.deleteMany()
     await this.prisma.wallet.deleteMany()
     await this.prisma.companyValue.deleteMany()
     await this.prisma.companySettings.deleteMany()

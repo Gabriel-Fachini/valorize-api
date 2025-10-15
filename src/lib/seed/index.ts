@@ -15,6 +15,9 @@ import { WalletSeeder } from './seeders/wallet.seeder'
 import { ValueSeeder } from './seeders/value.seeder'
 import { ContactSeeder } from './seeders/contact.seeder'
 import { ComplimentSeeder } from './seeders/compliment.seeder'
+import { TransactionSeeder } from './seeders/transaction.seeder'
+import { PrizeSeeder } from './seeders/prize.seeder'
+import { RedemptionSeeder } from './seeders/redemption.seeder'
 
 const prisma = new PrismaClient()
 
@@ -38,7 +41,10 @@ export async function seed(): Promise<void> {
     await new WalletSeeder(prisma).seed()
     await new ValueSeeder(prisma).seed()
     await new ContactSeeder(prisma).seed()
+    await new PrizeSeeder(prisma).seed()
     await new ComplimentSeeder(prisma).seed()
+    await new TransactionSeeder(prisma).seed()
+    await new RedemptionSeeder(prisma).seed()
     
     // Step 3: Verify seeded data
     const verifier = new SeedVerifier(prisma)
