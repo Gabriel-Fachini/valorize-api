@@ -1,0 +1,62 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist
+*.tsbuildinfo
+
+# Testing
+tests
+coverage
+*.test.ts
+*.spec.ts
+vitest.config.ts
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Memory bank and planning
+memory-bank
+*.plan.md
+
+# Database files
+*.db
+*.sqlite
+
+# Misc
+.eslintrc*
+.prettierrc*
+eslint.config.ts
+.editorconfig
+LICENSE
+

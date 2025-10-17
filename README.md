@@ -85,14 +85,33 @@ npm start
 npm run db:migrate:deploy
 ```
 
+### Deploy to Google Cloud Run
+
+For detailed instructions on deploying to Google Cloud Platform using Cloud Run:
+- 📖 [GCP Cloud Run Deployment Guide](docs/GCP_CLOUD_RUN_DEPLOYMENT.md) - Complete step-by-step guide
+- ⚡ [Quick Reference](docs/DEPLOY_QUICK_REFERENCE.md) - Essential commands
+- ✅ [Deploy Checklist](docs/DEPLOY_CHECKLIST.md) - Pre/post-deploy verification
+- 🔧 [Troubleshooting](docs/TROUBLESHOOTING_CLOUD_RUN.md) - Common issues and solutions
+- 🐛 [Deploy Errors & Lessons Learned](docs/DEPLOY_ERRORS_LESSONS_LEARNED.md) - Real errors faced and how they were solved
+
 ## 📚 Documentation
 
+### API & Features
 - [API Routes](docs/API_ROUTES_DOCUMENTATION.md)
 - [Authentication Guide](docs/AUTHENTICATION_GUIDE.md)
+- [Prize System](docs/prizes-api.md)
+
+### Database
 - [Database Commands](docs/DATABASE_COMMANDS.md)
 - [Transaction Seeding](docs/TRANSACTION_SEEDING.md)
 - [Prize Seeding](docs/PRIZE_SEEDING.md)
-- [Prize System](docs/prizes-api.md)
+
+### Deployment (GCP Cloud Run)
+- [📖 Deployment Guide](docs/GCP_CLOUD_RUN_DEPLOYMENT.md) - Complete step-by-step guide
+- [⚡ Quick Reference](docs/DEPLOY_QUICK_REFERENCE.md) - Essential commands
+- [✅ Deploy Checklist](docs/DEPLOY_CHECKLIST.md) - Pre/post-deploy verification
+- [🔧 Troubleshooting](docs/TROUBLESHOOTING_CLOUD_RUN.md) - Common issues and solutions
+- [🐛 Deploy Errors & Lessons Learned](docs/DEPLOY_ERRORS_LESSONS_LEARNED.md) - Real errors faced and how they were solved
 
 ## 🔧 Tech Stack
 
