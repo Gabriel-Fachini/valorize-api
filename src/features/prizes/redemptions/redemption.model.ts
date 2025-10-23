@@ -29,7 +29,7 @@ export type RedemptionWithDetails = Redemption & {
 }
 
 export class RedemptionModel {
-  constructor(private data: Redemption) {}
+  constructor(private data: Redemption | RedemptionWithDetails) {}
 
   get id() {
     return this.data.id
@@ -72,7 +72,7 @@ export class RedemptionModel {
   }
 
   toJSON() {
-    return {
+    const baseData = {
       id: this.data.id,
       userId: this.data.userId,
       prizeId: this.data.prizeId,
@@ -84,6 +84,23 @@ export class RedemptionModel {
       trackingCode: this.data.trackingCode,
       redeemedAt: this.data.redeemedAt,
     }
+
+    const dataWithDetails = this.data as RedemptionWithDetails
+    if (dataWithDetails.prize) {
+      return {
+        ...baseData,
+        prize: {
+          ...dataWithDetails.prize,
+          image: dataWithDetails.prize.images && dataWithDetails.prize.images.length > 0 
+            ? dataWithDetails.prize.images[0] 
+            : null,
+        },
+        variant: dataWithDetails.variant,
+        tracking: dataWithDetails.tracking,
+      }
+    }
+
+    return baseData
   }
 
   static async create(
