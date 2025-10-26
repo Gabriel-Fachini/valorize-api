@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { getAuth0Id } from '@/middleware/auth'
 import { authService } from './auth.service'
 import { UnauthorizedError } from '@/middleware/error-handler'
-import { loginSchema, adminLoginSchema, refreshTokenSchema, verifySessionSchema } from './auth.schemas'
+import { loginSchema, adminLoginSchema, refreshTokenSchema, verifySessionSchema, signupSchema } from './auth.schemas'
 import { logger } from '@/lib/logger'
 
 const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptions) => {
@@ -60,6 +60,63 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
         success: false,
         error: 'Internal Server Error',
         message: 'Authentication service temporarily unavailable',
+        statusCode: 500,
+      })
+    }
+  })
+
+  // Signup endpoint
+  fastify.post('/signup', {
+    schema: signupSchema,
+  }, async (request, reply) => {
+    try {
+      const { email, name } = request.body as { email: string; name: string }
+
+      if (!email || !name) {
+        return reply.code(400).send({
+          success: false,
+          error: 'Bad Request',
+          message: 'Email and name are required',
+          statusCode: 400,
+        })
+      }
+
+      const { message } = await authService.signup({ email, name })
+
+      return reply.code(201).send({
+        success: true,
+        message,
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Signup failed'
+
+      // Check if it's a user already exists error
+      if (errorMessage.toLowerCase().includes('already exists')) {
+        return reply.code(409).send({
+          success: false,
+          error: 'Conflict',
+          message: 'User with this email already exists',
+          statusCode: 409,
+        })
+      }
+
+      // Check if it's a validation error
+      if (errorMessage.toLowerCase().includes('invalid') || 
+          errorMessage.toLowerCase().includes('required') ||
+          errorMessage.toLowerCase().includes('validation')) {
+        return reply.code(400).send({
+          success: false,
+          error: 'Bad Request',
+          message: errorMessage,
+          statusCode: 400,
+        })
+      }
+
+      // Server or Auth0 service error
+      return reply.code(500).send({
+        success: false,
+        error: 'Internal Server Error',
+        message: 'Signup service temporarily unavailable',
         statusCode: 500,
       })
     }

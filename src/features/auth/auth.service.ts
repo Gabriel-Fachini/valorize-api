@@ -11,6 +11,11 @@ export interface LoginRequest {
   password: string
 }
 
+export interface SignupRequest {
+  email: string
+  name: string
+}
+
 export interface LoginResponse {
   access_token: string
   token_type: string
@@ -557,6 +562,226 @@ export const authService = {
         error: error instanceof Error ? error.message : String(error),
       })
       return null
+    }
+  },
+
+  /**
+   * Create a new user account in Auth0 and local database
+   */
+  async signup(signupData: SignupRequest): Promise<{ user: User; message: string }> {
+    try {
+      const auth0Domain = process.env.AUTH0_DOMAIN!
+      const clientId = process.env.AUTH0_M2M_CLIENT_ID!
+      const clientSecret = process.env.AUTH0_M2M_CLIENT_SECRET!
+      const audience = process.env.AUTH0_AUDIENCE!
+
+      // Validate required environment variables
+      if (!auth0Domain || !clientId || !clientSecret || !audience) {
+        throw new Error('Missing required Auth0 environment variables')
+      }
+
+
+      // Check if user already exists in our database
+      const existingUser = await prisma.user.findUnique({
+        where: { email: signupData.email.toLowerCase() },
+      })
+
+      if (existingUser) {
+        throw new Error('User with this email already exists')
+      }
+
+      // Create user in Auth0
+      const auth0UserData = {
+        email: signupData.email.toLowerCase(),
+        name: signupData.name,
+        password: 'V@alorize', // Default password as specified
+        email_verified: true,
+        connection: 'Username-Password-Authentication', // Default Auth0 connection
+      }
+
+      const managementToken = await this.getManagementToken()
+
+      const auth0Response = await axios.post(
+        `https://${auth0Domain}/api/v2/users`,
+        auth0UserData,
+        {
+          headers: {
+            'Authorization': `Bearer ${managementToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      const auth0User = auth0Response.data
+
+      if (!auth0User.user_id) {
+        throw new Error('Failed to create user in Auth0')
+      }
+
+      logger.info('User created in Auth0', {
+        auth0Id: auth0User.user_id,
+        email: signupData.email,
+      })
+
+      // Create user in local database
+      const newUser = User.create({
+        auth0Id: auth0User.user_id,
+        email: signupData.email.toLowerCase(),
+        name: signupData.name,
+        companyId: 'demo-company-001', // Default company as specified
+        isActive: true,
+      })
+
+      const savedUser = await newUser.save()
+
+      // Create wallet with initial balance of 10000 coins
+      await this.createWalletWithInitialBalance(savedUser.id)
+
+      // Assign default employee role
+      await this.assignDefaultRole(savedUser.id, 'demo-company-001')
+
+      logger.info('User created successfully', {
+        userId: savedUser.id,
+        auth0Id: auth0User.user_id,
+        email: savedUser.email,
+        companyId: savedUser.companyId,
+      })
+
+      return {
+        user: savedUser,
+        message: 'User account created successfully. You can now login with the default password.',
+      }
+
+    } catch (error) {
+      logger.error('Error during user signup', {
+        email: signupData.email,
+        name: signupData.name,
+        error: error instanceof Error ? error.message : String(error),
+      })
+
+      // Handle specific Auth0 errors
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          throw new Error('Auth0 Management API authentication failed. Check your client credentials and scopes.')
+        }
+        if (error.response?.status === 403) {
+          throw new Error('Auth0 Management API access denied. Ensure your application has the required scopes: create:users, read:users')
+        }
+        if (error.response?.status === 409) {
+          throw new Error('User with this email already exists in Auth0')
+        }
+        if (error.response?.status === 400) {
+          const errorMessage = error.response.data?.message ?? 'Invalid user data'
+          throw new Error(`Auth0 validation error: ${errorMessage}`)
+        }
+        if (error.response?.status === 422) {
+          const errorMessage = error.response.data?.message ?? 'Invalid user data format'
+          throw new Error(`Auth0 data validation error: ${errorMessage}`)
+        }
+      }
+
+      throw error
+    }
+  },
+
+  /**
+   * Get Auth0 Management API token
+   */
+  async getManagementToken(): Promise<string> {
+    const auth0Domain = process.env.AUTH0_DOMAIN!
+    const clientId = process.env.AUTH0_M2M_CLIENT_ID!
+    const clientSecret = process.env.AUTH0_M2M_CLIENT_SECRET!
+
+    try {
+      const tokenResponse = await axios.post(
+        `https://${auth0Domain}/oauth/token`,
+        {
+          client_id: clientId,
+          client_secret: clientSecret,
+          audience: `https://${auth0Domain}/api/v2/`,
+          grant_type: 'client_credentials',
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      return tokenResponse.data.access_token
+    } catch (error) {
+      logger.error('Failed to get Auth0 Management API token', {
+        error: axios.isAxiosError(error) ? {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+        } : error instanceof Error ? error.message : String(error),
+      })
+      throw new Error('Failed to obtain Auth0 Management API token. Check your Auth0 configuration.')
+    }
+  },
+
+  /**
+   * Assign default role to new user
+   */
+  async assignDefaultRole(userId: string, companyId: string): Promise<void> {
+    try {
+      // Find the employee role for the company
+      const employeeRole = await prisma.role.findFirst({
+        where: {
+          name: 'employee',
+          companyId: companyId,
+        },
+      })
+
+      if (!employeeRole) {
+        logger.warn('Employee role not found for company', {
+          companyId,
+          userId,
+        })
+        return
+      }
+
+      // Assign the role to the user
+      await prisma.userRole.create({
+        data: {
+          userId: userId,
+          roleId: employeeRole.id,
+        },
+      })
+
+
+    } catch (error) {
+      logger.error('Error assigning default role', {
+        userId,
+        companyId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      // Don't throw error here as user creation should still succeed
+    }
+  },
+
+  /**
+   * Create wallet with initial balance for new user
+   */
+  async createWalletWithInitialBalance(userId: string): Promise<void> {
+    try {
+      // Create wallet with initial redeemable balance of 10000 coins
+      await prisma.wallet.create({
+        data: {
+          userId: userId,
+          complimentBalance: 500, // Default weekly balance
+          redeemableBalance: 10000, // Initial bonus balance
+        },
+      })
+
+
+    } catch (error) {
+      logger.error('Error creating wallet with initial balance', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      // Don't throw error here as user creation should still succeed
     }
   },
 }

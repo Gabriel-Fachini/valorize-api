@@ -164,6 +164,59 @@ export const adminLoginSchema: FastifySchema = {
   },
 }
 
+// Signup endpoint schema
+export const signupSchema: FastifySchema = {
+  tags: ['Authentication'],
+  description: 'Create a new user account with email and name. Password is set automatically.',
+  body: {
+    type: 'object',
+    required: ['email', 'name'],
+    properties: {
+      email: {
+        type: 'string',
+        format: 'email',
+        description: 'User email address',
+      },
+      name: {
+        type: 'string',
+        minLength: 2,
+        maxLength: 100,
+        description: 'User full name',
+      },
+    },
+    additionalProperties: false,
+  },
+  response: {
+    201: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: {
+          type: 'object',
+          properties: {
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                auth0Id: { type: 'string' },
+                email: { type: 'string', format: 'email' },
+                name: { type: 'string' },
+                companyId: { type: 'string' },
+                isActive: { type: 'boolean' },
+                createdAt: { type: 'string', format: 'date-time' },
+              },
+            },
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+    400: commonErrorResponse,
+    409: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
 // Verify session endpoint schema
 export const verifySessionSchema: FastifySchema = {
   tags: ['Session'],

@@ -13,6 +13,7 @@ const PUBLIC_ROUTES = [
   '/auth/refresh',         // Token refresh route
   '/auth/refresh-info',
   '/auth/admin/login',
+  '/auth/signup',
 ]
 
 // Check if a route should be public
