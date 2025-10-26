@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { getAuth0Id } from '@/middleware/auth'
 import { authService } from './auth.service'
 import { UnauthorizedError } from '@/middleware/error-handler'
-import { loginSchema, refreshTokenSchema, verifySessionSchema } from './auth.schemas'
+import { loginSchema, adminLoginSchema, refreshTokenSchema, verifySessionSchema } from './auth.schemas'
 import { logger } from '@/lib/logger'
 
 const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptions) => {
@@ -60,6 +60,76 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
         success: false,
         error: 'Internal Server Error',
         message: 'Authentication service temporarily unavailable',
+        statusCode: 500,
+      })
+    }
+  })
+
+  // Admin login endpoint
+  fastify.post('/admin/login', {
+    schema: adminLoginSchema,
+  }, async (request, reply) => {
+    try {
+      const { email, password } = request.body as { email: string; password: string }
+
+      if (!email || !password) {
+        return reply.code(400).send({
+          success: false,
+          error: 'Bad Request',
+          message: 'Email and password are required',
+          statusCode: 400,
+        })
+      }
+
+      const adminLoginResult = await authService.adminLogin({ email, password })
+
+      return reply.code(200).send({
+        success: true,
+        data: adminLoginResult,
+      })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Admin authentication failed'
+
+      // Check if it's an access denied error (insufficient permissions)
+      if (errorMessage.toLowerCase().includes('access denied') || 
+          errorMessage.toLowerCase().includes('admin permissions required')) {
+        return reply.code(403).send({
+          success: false,
+          error: 'Forbidden',
+          message: 'Access denied: Admin permissions required',
+          statusCode: 403,
+        })
+      }
+
+      // Check if it's an authentication error (wrong credentials)
+      if (errorMessage.toLowerCase().includes('authentication failed') || 
+          errorMessage.toLowerCase().includes('invalid credentials') ||
+          errorMessage.toLowerCase().includes('wrong email or password') ||
+          errorMessage.toLowerCase().includes('access_denied')) {
+        return reply.code(401).send({
+          success: false,
+          error: 'Unauthorized',
+          message: 'Invalid email or password',
+          statusCode: 401,
+        })
+      }
+
+      // Check if it's a validation error
+      if (errorMessage.toLowerCase().includes('invalid') || 
+          errorMessage.toLowerCase().includes('required')) {
+        return reply.code(400).send({
+          success: false,
+          error: 'Bad Request',
+          message: errorMessage,
+          statusCode: 400,
+        })
+      }
+
+      // Server or Auth0 service error
+      return reply.code(500).send({
+        success: false,
+        error: 'Internal Server Error',
+        message: 'Admin authentication service temporarily unavailable',
         statusCode: 500,
       })
     }

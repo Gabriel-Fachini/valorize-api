@@ -109,6 +109,61 @@ export const refreshTokenSchema: FastifySchema = {
   },
 }
 
+// Admin login endpoint schema
+export const adminLoginSchema: FastifySchema = {
+  tags: ['Authentication'],
+  description: 'Admin login with email and password - validates admin permissions',
+  body: {
+    type: 'object',
+    required: ['email', 'password'],
+    properties: {
+      email: {
+        type: 'string',
+        format: 'email',
+        description: 'Admin user email address',
+      },
+      password: {
+        type: 'string',
+        minLength: 1,
+        description: 'Admin user password',
+      },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: {
+          type: 'object',
+          properties: {
+            access_token: { type: 'string' },
+            token_type: { type: 'string' },
+            expires_in: { type: 'number' },
+            refresh_token: { type: 'string' },
+            scope: { type: 'string' },
+            user_info: userInfoSchema,
+            admin_permissions: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'List of admin permissions the user has',
+            },
+            roles: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'List of admin roles the user has',
+            },
+          },
+        },
+      },
+    },
+    400: commonErrorResponse,
+    401: commonErrorResponse,
+    403: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
 // Verify session endpoint schema
 export const verifySessionSchema: FastifySchema = {
   tags: ['Session'],

@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger'
 import { AuthenticatedUser } from '@/middleware/auth'
 import { User } from '../users/user.model'
 import { prisma } from '@/lib/database'
+import { rbacService } from '../rbac/rbac.service'
 
 export interface LoginRequest {
   email: string
@@ -52,6 +53,79 @@ export interface TokenValidationResult {
 export const authService = {
   // Threshold in seconds - when token has less than this time remaining, suggest refresh
   REFRESH_THRESHOLD: 5 * 60, // 5 minutes
+
+  /**
+   * Admin login with permission validation
+   */
+  async adminLogin(credentials: LoginRequest): Promise<LoginResponse> {
+    try {
+      // First, authenticate with Auth0
+      const loginResult = await this.login(credentials)
+      
+      logger.info('Admin login attempt', {
+        email: credentials.email,
+        auth0Id: loginResult.user_info.sub,
+      })
+
+      // Get user from database to check permissions
+      const user = await this.getUserByAuth0Id(loginResult.user_info.sub)
+      
+      if (!user) {
+        throw new Error('User not found in database')
+      }
+
+      // Get user permissions and roles
+      const userPermissions = await rbacService.getUserPermissions(loginResult.user_info.sub)
+      
+      // Define admin permissions
+      const adminPermissions = [
+        'admin:access_panel',
+        'admin:view_analytics',
+        'admin:manage_company',
+        'admin:manage_system',
+        'users:manage_roles',
+        'roles:manage_permissions',
+        'company:manage_settings',
+      ]
+
+      // Check if user has any admin permissions
+      const hasAdminPermissions = userPermissions.permissions.some(permission =>
+        adminPermissions.includes(permission),
+      )
+
+      if (!hasAdminPermissions) {
+        logger.warn('Admin login denied - insufficient permissions', {
+          email: credentials.email,
+          auth0Id: loginResult.user_info.sub,
+          userPermissions: userPermissions.permissions,
+        })
+
+        throw new Error('Access denied: Admin permissions required')
+      }
+
+      // Filter admin permissions from user's permissions
+      const userAdminPermissions = userPermissions.permissions.filter(permission =>
+        adminPermissions.includes(permission),
+      )
+
+      logger.info('Admin login successful', {
+        email: credentials.email,
+        auth0Id: loginResult.user_info.sub,
+        adminPermissions: userAdminPermissions,
+        roles: userPermissions.roles.map(role => role.name),
+      })
+
+      return { ...loginResult }
+    } catch (error) {
+      logger.error('Admin login failed', {
+        email: credentials.email,
+        error: error instanceof Error ? error.message : String(error),
+      })
+
+      // Re-throw the error to be handled by the route
+      throw error
+    }
+  },
 
   /**
    * Authenticate user using Resource Owner Password Grant
@@ -111,6 +185,10 @@ export const authService = {
       })
 
       const userInfo = await this.getUser(credentials.email)
+
+      if (!userInfo) {
+        throw new Error('User not found in database')
+      }
 
       return {
         access_token: tokenData.access_token,
@@ -446,9 +524,9 @@ export const authService = {
   },
 
   /**
-   * Get user information from database by user auth0Id
+   * Get user information from database by email
    */
-  async getUser(email: string): Promise<User | null> {
+  async getUser(email: string): Promise<LoginResponse['user_info'] | null> {
     try {
       const user = await prisma.user.findFirst({
         where: {
@@ -456,12 +534,24 @@ export const authService = {
           isActive: true,
         },
         select: {
+          auth0Id: true,
           email: true,
           name: true,
           avatar: true,
         },
       })
-      return user
+      
+      if (!user) {
+        return null
+      }
+
+      return {
+        sub: user.auth0Id,
+        email: user.email,
+        email_verified: true,
+        name: user.name,
+        avatar: user.avatar ?? undefined,
+      }
     } catch (error) {
       logger.error('Error fetching user from database', {
         error: error instanceof Error ? error.message : String(error),

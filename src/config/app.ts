@@ -6,11 +6,6 @@ import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
 import jwt, { FastifyJWTOptions } from '@fastify/jwt'
 import jwksClient from 'jwks-rsa'
-// import {
-//   serializerCompiler,
-//   validatorCompiler,
-//   ZodTypeProvider,
-// } from 'fastify-type-provider-zod'
 
 import { logger } from '@/lib/logger'
 import { errorHandler } from '@/middleware/error-handler'
@@ -23,14 +18,11 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     },
   })
 
-  // TODO: Re-enable ZodTypeProvider after converting all schemas to Zod
-  // .withTypeProvider<ZodTypeProvider>()
-  // app.setValidatorCompiler(validatorCompiler)
-  // app.setSerializerCompiler(serializerCompiler)
-
   // Register CORS
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN ?? true,
+    origin: process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: process.env.CORS_CREDENTIALS === 'true',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   })
