@@ -1,113 +1,113 @@
 /**
- * Redemption seed data
- * Sample prize redemptions with various statuses
+ * Dados de seed para resgates
+ * Resgates de prêmios de exemplo com vários status
  */
 
 /**
- * Redemption statuses
+ * Status de resgate
  */
 export const REDEMPTION_STATUS = {
-  PENDING: 'pending',           // Just redeemed, awaiting processing
-  PROCESSING: 'processing',     // Being prepared/ordered
-  SHIPPED: 'shipped',           // In transit
-  DELIVERED: 'delivered',       // Successfully delivered
-  CANCELLED: 'cancelled',       // User or admin cancelled
-  REFUNDED: 'refunded',         // Coins returned to user
+  PENDING: 'pending',           // Apenas resgatado, aguardando processamento
+  PROCESSING: 'processing',     // Sendo preparado/pedido
+  SHIPPED: 'shipped',           // Em trânsito
+  DELIVERED: 'delivered',       // Entregue com sucesso
+  CANCELLED: 'cancelled',       // Cancelado pelo usuário ou admin
+  REFUNDED: 'refunded',         // Moedas devolvidas ao usuário
 }
 
 /**
- * Sample redemptions for Gabriel
- * These will be created with realistic statuses and tracking
+ * Resgates de exemplo para Gabriel
+ * Estes serão criados com status realistas e rastreamento
  */
 export const GABRIEL_REDEMPTIONS = [
   {
-    // Recent redemption - still pending
-    prizeName: 'Amazon Gift Card $25',
-    variantValue: '$25',
+    // Resgate recente - ainda pendente
+    prizeName: 'Cartão Presente Amazon R$ 50',
+    variantValue: 'R$ 50',
     coinsSpent: 250,
     status: REDEMPTION_STATUS.PENDING,
     trackingCode: null,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
-        notes: 'Redemption request received. Processing will begin shortly.',
+        notes: 'Solicitação de resgate recebida. O processamento começará em breve.',
         createdBy: 'system',
       },
     ],
   },
   {
-    // In progress - being processed
-    prizeName: 'Wireless Bluetooth Headphones',
-    variantValue: 'Black',
+    // Em andamento - sendo processado
+    prizeName: 'Fones Bluetooth Sem Fio',
+    variantValue: 'Preto',
     coinsSpent: 800,
     status: REDEMPTION_STATUS.PROCESSING,
     trackingCode: null,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
-        notes: 'Redemption request received.',
+        notes: 'Solicitação de resgate recebida.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Order placed with supplier. Waiting for shipment preparation.',
+        notes: 'Pedido realizado com fornecedor. Aguardando preparação para envio.',
         createdBy: 'admin',
       },
     ],
   },
   {
-    // Shipped - on the way
-    prizeName: 'Yoga Mat Premium',
-    variantValue: 'Purple',
+    // Enviado - a caminho
+    prizeName: 'Tapete de Yoga Premium',
+    variantValue: 'Roxo',
     coinsSpent: 350,
     status: REDEMPTION_STATUS.SHIPPED,
     trackingCode: 'YM2025101234',
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
-        notes: 'Redemption request received.',
+        notes: 'Solicitação de resgate recebida.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Order confirmed and being prepared.',
+        notes: 'Pedido confirmado e sendo preparado.',
         createdBy: 'admin',
       },
       {
         status: REDEMPTION_STATUS.SHIPPED,
-        notes: 'Package shipped via FedEx. Tracking number: YM2025101234',
+        notes: 'Pacote enviado via Correios. Código de rastreamento: YM2025101234',
         createdBy: 'admin',
       },
     ],
   },
   {
-    // Delivered - completed successfully
-    prizeName: 'Spotify Premium - 3 Months',
-    variantValue: '3 months',
+    // Entregue - concluído com sucesso
+    prizeName: 'Spotify Premium - 3 Meses',
+    variantValue: '3 meses',
     coinsSpent: 300,
     status: REDEMPTION_STATUS.DELIVERED,
     trackingCode: 'SPOT-CODE-ABC123',
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
-        notes: 'Redemption request received.',
+        notes: 'Solicitação de resgate recebida.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Generating digital code.',
+        notes: 'Gerando código digital.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Digital code delivered via email. Code: SPOT-CODE-ABC123',
+        notes: 'Código digital entregue por email. Código: SPOT-CODE-ABC123',
         createdBy: 'system',
       },
     ],
   },
   {
-    // Delivered - another completed order
-    prizeName: 'Starbucks Gift Card $25',
+    // Entregue - outro pedido concluído
+    prizeName: 'Cartão Presente Starbucks R$ 50',
     variantValue: 'Digital',
     coinsSpent: 250,
     status: REDEMPTION_STATUS.DELIVERED,
@@ -115,17 +115,17 @@ export const GABRIEL_REDEMPTIONS = [
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
-        notes: 'Redemption request received.',
+        notes: 'Solicitação de resgate recebida.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Processing digital gift card.',
+        notes: 'Processando cartão presente digital.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Digital gift card sent to registered email.',
+        notes: 'Cartão presente digital enviado para o email cadastrado.',
         createdBy: 'system',
       },
     ],
@@ -133,13 +133,13 @@ export const GABRIEL_REDEMPTIONS = [
 ]
 
 /**
- * Sample redemptions for other users (company-specific prizes)
+ * Resgates de exemplo para outros usuários (prêmios específicos da empresa)
  */
 export const COMPANY_REDEMPTIONS = [
   {
-    // Ana Costa - company prize
+    // Ana Costa - prêmio da empresa
     userAuth0Id: 'auth0|demo-employee-valorize-1',
-    prizeName: 'Valorize Branded Hoodie',
+    prizeName: 'Moletom Valorize',
     variantValue: 'M',
     coinsSpent: 600,
     status: REDEMPTION_STATUS.DELIVERED,
@@ -147,30 +147,30 @@ export const COMPANY_REDEMPTIONS = [
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
-        notes: 'Redemption request received.',
+        notes: 'Solicitação de resgate recebida.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Preparing merchandise order.',
+        notes: 'Preparando pedido de produtos.',
         createdBy: 'admin',
       },
       {
         status: REDEMPTION_STATUS.SHIPPED,
-        notes: 'Shipped via UPS. Tracking: MERCH-2025-001',
+        notes: 'Enviado via Correios. Rastreamento: MERCH-2025-001',
         createdBy: 'admin',
       },
       {
         status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Package delivered and confirmed by recipient.',
+        notes: 'Pacote entregue e confirmado pelo destinatário.',
         createdBy: 'system',
       },
     ],
   },
   {
-    // Pedro Lima - global prize
+    // Pedro Lima - prêmio global
     userAuth0Id: 'auth0|demo-employee-valorize-2',
-    prizeName: 'Kindle Paperwhite E-Reader',
+    prizeName: 'Kindle Paperwhite',
     variantValue: '8GB',
     coinsSpent: 1200,
     status: REDEMPTION_STATUS.SHIPPED,
@@ -178,17 +178,17 @@ export const COMPANY_REDEMPTIONS = [
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
-        notes: 'Redemption request received.',
+        notes: 'Solicitação de resgate recebida.',
         createdBy: 'system',
       },
       {
         status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Order placed with Amazon.',
+        notes: 'Pedido realizado na Amazon.',
         createdBy: 'admin',
       },
       {
         status: REDEMPTION_STATUS.SHIPPED,
-        notes: 'In transit. Expected delivery in 3-5 business days.',
+        notes: 'Em trânsito. Entrega esperada em 3-5 dias úteis.',
         createdBy: 'admin',
       },
     ],
@@ -196,25 +196,25 @@ export const COMPANY_REDEMPTIONS = [
 ]
 
 /**
- * Sample address data for Gabriel
- * This will be used to create addresses for redemptions
+ * Dados de endereço de exemplo para Gabriel
+ * Este será usado para criar endereços para resgates
  */
 export const GABRIEL_ADDRESS = {
   name: 'Gabriel Fachini',
-  street: '123 Main Street',
-  number: '456',
-  complement: 'Apt 789',
-  neighborhood: 'Downtown',
-  city: 'San Francisco',
-  state: 'CA',
-  zipCode: '94102',
-  country: 'US',
-  phone: '+1-555-0123',
+  street: 'Rua das Flores',
+  number: '123',
+  complement: 'Apto 456',
+  neighborhood: 'Centro',
+  city: 'São Paulo',
+  state: 'SP',
+  zipCode: '01234-567',
+  country: 'BR',
+  phone: '+55 11 99999-9999',
   isDefault: true,
 }
 
 /**
- * Sample addresses for other users
+ * Endereços de exemplo para outros usuários
  */
 export const SAMPLE_ADDRESSES = [
   {
@@ -228,7 +228,7 @@ export const SAMPLE_ADDRESSES = [
       city: 'São Paulo',
       state: 'SP',
       zipCode: '01305-000',
-      country: 'Brazil',
+      country: 'BR',
       phone: '+55 11 91234-5678',
       isDefault: true,
     },
@@ -244,7 +244,7 @@ export const SAMPLE_ADDRESSES = [
       city: 'São Paulo',
       state: 'SP',
       zipCode: '01310-200',
-      country: 'Brazil',
+      country: 'BR',
       phone: '+55 11 98765-4321',
       isDefault: true,
     },
@@ -252,7 +252,7 @@ export const SAMPLE_ADDRESSES = [
 ]
 
 /**
- * Helper to calculate days ago from current date
+ * Helper para calcular dias atrás a partir da data atual
  */
 export function daysAgo(days: number): Date {
   const date = new Date()

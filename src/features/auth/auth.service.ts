@@ -5,6 +5,7 @@ import { AuthenticatedUser } from '@/middleware/auth'
 import { User } from '../users/user.model'
 import { prisma } from '@/lib/database'
 import { rbacService } from '../rbac/rbac.service'
+import { demoDataService } from '@/lib/seed/demo-data.service'
 
 export interface LoginRequest {
   email: string
@@ -639,6 +640,16 @@ export const authService = {
 
       // Assign default employee role
       await this.assignDefaultRole(savedUser.id, 'demo-company-001')
+
+      // Create demo data for testing (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        await demoDataService.createDemoDataForUser({
+          userId: savedUser.id,
+          companyId: savedUser.companyId,
+          userName: savedUser.name,
+          userEmail: savedUser.email,
+        })
+      }
 
       logger.info('User created successfully', {
         userId: savedUser.id,
