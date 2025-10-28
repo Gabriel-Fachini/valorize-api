@@ -29,7 +29,7 @@ export const demoDataService = {
       const companyValues = await prisma.companyValue.findMany({
         where: { 
           companyId: config.companyId,
-          isActive: true 
+          isActive: true,
         },
         take: 3,
       })
@@ -46,7 +46,7 @@ export const demoDataService = {
         where: { 
           companyId: config.companyId,
           id: { not: config.userId },
-          isActive: true 
+          isActive: true,
         },
         take: 5,
       })
