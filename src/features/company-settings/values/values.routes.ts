@@ -6,11 +6,12 @@ import {
 } from './values.schemas'
 import { companyValuesService } from './values.service'
 import { requirePermission } from '@/middleware/rbac'
+import { PERMISSION } from '@/features/rbac/permissions.constants'
 
 export default async function companyValuesRoutes(fastify: FastifyInstance) {
   fastify.post('/companies/:companyId/create-value', {
     schema: createCompanyValueSchema,
-    preHandler: [requirePermission('company:manage_settings')],
+    preHandler: [requirePermission(PERMISSION.COMPANY_MANAGE_SETTINGS)],
   }, async (
       request: FastifyRequest<{
         Params: { companyId: string }

@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/middleware/auth'
 import { User } from '../users/user.model'
 import { walletService } from './wallet.service'
 import { BalanceType, TransactionType } from './wallet-transaction.model'
+import { PERMISSION } from '@/features/rbac/permissions.constants'
 
 export default async function walletRoutes(fastify: FastifyInstance) {
   // Get user's wallet balance
@@ -104,7 +105,7 @@ export default async function walletRoutes(fastify: FastifyInstance) {
   // If no companyId, resets all companies
   fastify.post('/reset-weekly-balance',
     {
-      preHandler: [requirePermission('admin:manage_system')],
+      preHandler: [requirePermission(PERMISSION.ADMIN_MANAGE_SYSTEM)],
       schema: {
         querystring: {
           type: 'object',

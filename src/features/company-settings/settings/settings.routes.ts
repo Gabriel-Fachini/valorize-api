@@ -5,6 +5,7 @@ import {
 } from './settings.schemas'
 import { companySettingsService } from './settings.service'
 import { requirePermission } from '@/middleware/rbac'
+import { PERMISSION } from '@/features/rbac/permissions.constants'
 
 export default async function companySettingsRoutes(fastify: FastifyInstance) {
   // Get company settings
@@ -31,7 +32,7 @@ export default async function companySettingsRoutes(fastify: FastifyInstance) {
   // Update company settings
   fastify.put('/companies/:companyId/settings', {
     schema: updateCompanySettingsSchema,
-    preHandler: [requirePermission('company:manage_settings')],
+    preHandler: [requirePermission(PERMISSION.COMPANY_MANAGE_SETTINGS)],
   }, async (
       request: FastifyRequest<{
         Params: { companyId: string }

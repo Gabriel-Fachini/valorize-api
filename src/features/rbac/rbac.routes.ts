@@ -4,10 +4,11 @@ import { requirePermission } from '../../middleware/rbac'
 import { User } from '@/features/users/user.model'
 import { getCurrentUser } from '@/middleware/auth'
 import { createRoleSchema, assignRoleToUserSchema, getUserPermissionsSchema } from './rbac.schemas'
+import { PERMISSION } from '@/features/rbac/permissions.constants'
 
 export default async function rbacRoutes(fastify: FastifyInstance) {
   fastify.post('/create-role', {
-    preHandler: [requirePermission('users:manage_roles')],
+    preHandler: [requirePermission(PERMISSION.USERS_MANAGE_ROLES)],
     schema: createRoleSchema,
   }, async (request, reply) => {
       const user = getCurrentUser(request)
@@ -39,7 +40,7 @@ export default async function rbacRoutes(fastify: FastifyInstance) {
   )
 
   fastify.put('/users/:id/assign-role', {
-    preHandler: [requirePermission('users:manage_roles')],
+    preHandler: [requirePermission(PERMISSION.USERS_MANAGE_ROLES)],
     schema: assignRoleToUserSchema,
   }, async (request, reply) => {
       const { id } = request.params as { id: string }

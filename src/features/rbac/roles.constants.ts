@@ -1,0 +1,191 @@
+/**
+ * @fileoverview Centralized role definitions for the RBAC system
+ *
+ * This file serves as the single source of truth for all roles in the application.
+ * All roles and their permission mappings are defined here and used across:
+ * - Application code (services, business logic)
+ * - Database seeding
+ * - Type checking and validation
+ *
+ * @module features/rbac/roles.constants
+ */
+
+import { PERMISSION, Permission } from './permissions.constants'
+
+/**
+ * Role definition structure
+ */
+export interface RoleDefinition {
+  name: string
+  description: string
+  permissions: Permission[]
+}
+
+/**
+ * Strongly-typed role names
+ * Use these constants instead of string literals throughout the application
+ */
+export const ROLE = {
+  SUPER_ADMIN: 'super_admin',
+  COMPANY_ADMIN: 'company_admin',
+  HR_MANAGER: 'hr_manager',
+  TEAM_LEAD: 'team_lead',
+  EMPLOYEE: 'employee',
+} as const
+
+/**
+ * Type for valid role strings
+ */
+export type Role = typeof ROLE[keyof typeof ROLE]
+
+/**
+ * Complete list of all roles with their permission mappings
+ * This array is used for database seeding and role management
+ */
+export const ALL_ROLES: RoleDefinition[] = [
+  {
+    name: ROLE.SUPER_ADMIN,
+    description: 'Super administrator with full system access',
+    permissions: [
+      // User management
+      PERMISSION.USERS_READ,
+      PERMISSION.USERS_CREATE,
+      PERMISSION.USERS_UPDATE,
+      PERMISSION.USERS_DELETE,
+      PERMISSION.USERS_MANAGE_ROLES,
+      // Role management
+      PERMISSION.ROLES_READ,
+      PERMISSION.ROLES_CREATE,
+      PERMISSION.ROLES_UPDATE,
+      PERMISSION.ROLES_DELETE,
+      PERMISSION.ROLES_MANAGE_PERMISSIONS,
+      // Admin panel
+      PERMISSION.ADMIN_ACCESS_PANEL,
+      PERMISSION.ADMIN_VIEW_ANALYTICS,
+      PERMISSION.ADMIN_MANAGE_COMPANY,
+      PERMISSION.ADMIN_MANAGE_SYSTEM,
+      PERMISSION.COMPANY_MANAGE_SETTINGS,
+      // Praise system
+      PERMISSION.PRAISE_SEND,
+      PERMISSION.PRAISE_VIEW_ALL,
+      PERMISSION.PRAISE_MODERATE,
+      // Coins system
+      PERMISSION.COINS_VIEW_BALANCE,
+      PERMISSION.COINS_TRANSFER,
+      PERMISSION.COINS_MANAGE_SYSTEM,
+      // Store system
+      PERMISSION.STORE_VIEW_CATALOG,
+      PERMISSION.STORE_REDEEM_PRIZES,
+      PERMISSION.STORE_MANAGE_CATALOG,
+      // Library system
+      PERMISSION.LIBRARY_VIEW_BOOKS,
+      PERMISSION.LIBRARY_RATE_BOOKS,
+      PERMISSION.LIBRARY_MANAGE_CATALOG,
+    ],
+  },
+  {
+    name: ROLE.COMPANY_ADMIN,
+    description: 'Company administrator with full company access',
+    permissions: [
+      PERMISSION.USERS_READ,
+      PERMISSION.USERS_CREATE,
+      PERMISSION.USERS_UPDATE,
+      PERMISSION.USERS_MANAGE_ROLES,
+      PERMISSION.ROLES_READ,
+      PERMISSION.ROLES_CREATE,
+      PERMISSION.ROLES_UPDATE,
+      PERMISSION.ROLES_MANAGE_PERMISSIONS,
+      PERMISSION.ADMIN_ACCESS_PANEL,
+      PERMISSION.ADMIN_VIEW_ANALYTICS,
+      PERMISSION.ADMIN_MANAGE_COMPANY,
+      PERMISSION.COMPANY_MANAGE_SETTINGS,
+      PERMISSION.PRAISE_VIEW_ALL,
+      PERMISSION.PRAISE_MODERATE,
+      PERMISSION.COINS_MANAGE_SYSTEM,
+      PERMISSION.STORE_MANAGE_CATALOG,
+      PERMISSION.LIBRARY_MANAGE_CATALOG,
+    ],
+  },
+  {
+    name: ROLE.HR_MANAGER,
+    description: 'HR manager with user and analytics access',
+    permissions: [
+      PERMISSION.USERS_READ,
+      PERMISSION.USERS_UPDATE,
+      PERMISSION.USERS_MANAGE_ROLES,
+      PERMISSION.ROLES_READ,
+      PERMISSION.ADMIN_ACCESS_PANEL,
+      PERMISSION.ADMIN_VIEW_ANALYTICS,
+      PERMISSION.PRAISE_VIEW_ALL,
+      PERMISSION.PRAISE_MODERATE,
+      PERMISSION.COINS_VIEW_BALANCE,
+      PERMISSION.STORE_VIEW_CATALOG,
+      PERMISSION.LIBRARY_VIEW_BOOKS,
+    ],
+  },
+  {
+    name: ROLE.TEAM_LEAD,
+    description: 'Team leader with limited administrative access',
+    permissions: [
+      PERMISSION.USERS_READ,
+      PERMISSION.ROLES_READ,
+      PERMISSION.PRAISE_SEND,
+      PERMISSION.PRAISE_VIEW_ALL,
+      PERMISSION.COINS_VIEW_BALANCE,
+      PERMISSION.COINS_TRANSFER,
+      PERMISSION.STORE_VIEW_CATALOG,
+      PERMISSION.STORE_REDEEM_PRIZES,
+      PERMISSION.LIBRARY_VIEW_BOOKS,
+      PERMISSION.LIBRARY_RATE_BOOKS,
+    ],
+  },
+  {
+    name: ROLE.EMPLOYEE,
+    description: 'Standard employee with basic access',
+    permissions: [
+      PERMISSION.PRAISE_SEND,
+      PERMISSION.COINS_VIEW_BALANCE,
+      PERMISSION.COINS_TRANSFER,
+      PERMISSION.STORE_VIEW_CATALOG,
+      PERMISSION.STORE_REDEEM_PRIZES,
+      PERMISSION.LIBRARY_VIEW_BOOKS,
+      PERMISSION.LIBRARY_RATE_BOOKS,
+    ],
+  },
+]
+
+/**
+ * Helper function to validate if a string is a valid role
+ */
+export function isValidRole(role: string): role is Role {
+  return Object.values(ROLE).includes(role as Role)
+}
+
+/**
+ * Get role definition by name
+ */
+export function getRoleDefinition(role: Role): RoleDefinition | undefined {
+  return ALL_ROLES.find(r => r.name === role)
+}
+
+/**
+ * Get all permissions for a specific role
+ */
+export function getRolePermissions(role: Role): Permission[] {
+  return getRoleDefinition(role)?.permissions ?? []
+}
+
+/**
+ * Check if a role has a specific permission
+ */
+export function roleHasPermission(role: Role, permission: Permission): boolean {
+  const roleDefinition = getRoleDefinition(role)
+  return roleDefinition?.permissions.includes(permission) ?? false
+}
+
+/**
+ * Get all roles that have a specific permission
+ */
+export function getRolesWithPermission(permission: Permission): RoleDefinition[] {
+  return ALL_ROLES.filter(role => role.permissions.includes(permission))
+}

@@ -6,6 +6,7 @@ import { User } from '../users/user.model'
 import { prisma } from '@/lib/database'
 import { rbacService } from '../rbac/rbac.service'
 import { demoDataService } from '@/lib/seed/demo-data.service'
+import { PERMISSION } from '@/features/rbac/permissions.constants'
 
 export interface LoginRequest {
   email: string
@@ -85,13 +86,13 @@ export const authService = {
       
       // Define admin permissions
       const adminPermissions = [
-        'admin:access_panel',
-        'admin:view_analytics',
-        'admin:manage_company',
-        'admin:manage_system',
-        'users:manage_roles',
-        'roles:manage_permissions',
-        'company:manage_settings',
+        PERMISSION.ADMIN_ACCESS_PANEL,
+        PERMISSION.ADMIN_VIEW_ANALYTICS,
+        PERMISSION.ADMIN_MANAGE_COMPANY,
+        PERMISSION.ADMIN_MANAGE_SYSTEM,
+        PERMISSION.USERS_MANAGE_ROLES,
+        PERMISSION.ROLES_MANAGE_PERMISSIONS,
+        PERMISSION.COMPANY_MANAGE_SETTINGS,
       ]
 
       // Check if user has any admin permissions
@@ -111,7 +112,7 @@ export const authService = {
 
       // Filter admin permissions from user's permissions
       const userAdminPermissions = userPermissions.permissions.filter(permission =>
-        adminPermissions.includes(permission),
+        adminPermissions.includes(permission as typeof adminPermissions[number]),
       )
 
       logger.info('Admin login successful', {
@@ -793,6 +794,31 @@ export const authService = {
         error: error instanceof Error ? error.message : String(error),
       })
       // Don't throw error here as user creation should still succeed
+    }
+  },
+
+  /**
+   * Get company ID for the authenticated user
+   * This is more efficient than fetching the entire user object
+   */
+  async getCompanyId(auth0Id: string): Promise<string> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { auth0Id },
+        select: { companyId: true },
+      })
+
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      return user.companyId
+    } catch (error) {
+      logger.error('Failed to get company ID', {
+        auth0Id,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw new Error('Failed to retrieve company information')
     }
   },
 }

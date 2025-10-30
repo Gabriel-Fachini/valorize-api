@@ -180,11 +180,12 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/auth' },
   )
 
-  // RBAC module routes
+  // Admin routes - Centralized admin panel routes under /admin prefix
+  // Includes: dashboard, rbac, and future admin features
   await app.register(
     async function (fastify) {
-      const { default: rbacRoutes } = await import('@/features/rbac/rbac.routes')
-      await fastify.register(rbacRoutes)
+      const { default: adminRoutes } = await import('@/features/admin/admin.routes')
+      await fastify.register(adminRoutes)
     },
     { prefix: '/admin' },
   )
@@ -257,6 +258,8 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     },
     { prefix: '/redemptions' },
   )
+
+  // Dashboard routes are now under /admin/dashboard (see admin.routes.ts)
 
   // 404 handler
   app.setNotFoundHandler({
