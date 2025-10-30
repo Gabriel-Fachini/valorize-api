@@ -9,6 +9,7 @@ import {
   COMPLIMENTS_TO_GABRIEL,
   GABRIEL_AUTH0_ID,
   VALORIZE_COMPANY_ID,
+  daysAgo,
 } from '../data/compliments'
 
 export class ComplimentSeeder extends BaseSeeder {
@@ -59,6 +60,9 @@ export class ComplimentSeeder extends BaseSeeder {
     for (const complimentData of COMPLIMENTS_FROM_GABRIEL) {
       const receiver = valorizeUsers.find(u => u.auth0Id === complimentData.receiverAuth0Id)
       if (receiver && receiver.wallet && valorizeValues[complimentData.valueIndex]) {
+        // Determine creation date (if daysAgo is specified, use it)
+        const createdAt = complimentData.daysAgo ? daysAgo(complimentData.daysAgo) : new Date()
+
         // Create compliment
         await this.prisma.compliment.create({
           data: {
@@ -69,6 +73,7 @@ export class ComplimentSeeder extends BaseSeeder {
             message: complimentData.message,
             coins: complimentData.coins,
             isPublic: complimentData.isPublic,
+            createdAt,
           },
         })
         
@@ -132,6 +137,9 @@ export class ComplimentSeeder extends BaseSeeder {
     for (const complimentData of COMPLIMENTS_TO_GABRIEL) {
       const sender = valorizeUsers.find(u => u.auth0Id === complimentData.senderAuth0Id)
       if (sender && sender.wallet && valorizeValues[complimentData.valueIndex]) {
+        // Determine creation date (if daysAgo is specified, use it)
+        const createdAt = complimentData.daysAgo ? daysAgo(complimentData.daysAgo) : new Date()
+
         // Create compliment
         await this.prisma.compliment.create({
           data: {
@@ -142,6 +150,7 @@ export class ComplimentSeeder extends BaseSeeder {
             message: complimentData.message,
             coins: complimentData.coins,
             isPublic: complimentData.isPublic,
+            createdAt,
           },
         })
         

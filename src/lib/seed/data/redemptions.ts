@@ -1,32 +1,33 @@
 /**
- * Dados de seed para resgates
- * Resgates de prêmios de exemplo com vários status
+ * Redemption seed data
+ * Sample prize redemptions with various statuses
  */
 
 /**
- * Status de resgate
+ * Redemption status enum
  */
 export const REDEMPTION_STATUS = {
-  PENDING: 'pending',           // Apenas resgatado, aguardando processamento
-  PROCESSING: 'processing',     // Sendo preparado/pedido
-  SHIPPED: 'shipped',           // Em trânsito
-  DELIVERED: 'delivered',       // Entregue com sucesso
-  CANCELLED: 'cancelled',       // Cancelado pelo usuário ou admin
-  REFUNDED: 'refunded',         // Moedas devolvidas ao usuário
+  PENDING: 'pending',           // Just redeemed, awaiting processing
+  PROCESSING: 'processing',     // Being prepared/ordered
+  SHIPPED: 'shipped',           // In transit
+  DELIVERED: 'delivered',       // Successfully delivered
+  CANCELLED: 'cancelled',       // Cancelled by user or admin
+  REFUNDED: 'refunded',         // Coins returned to user
 }
 
 /**
- * Resgates de exemplo para Gabriel
- * Estes serão criados com status realistas e rastreamento
+ * Sample redemptions for Gabriel
+ * Distributed over the last 60 days for dashboard visualization
  */
 export const GABRIEL_REDEMPTIONS = [
   {
-    // Resgate recente - ainda pendente
+    // Recent redemption - still pending (1 day ago)
     prizeName: 'Cartão Presente Amazon R$ 50',
     variantValue: 'R$ 50',
     coinsSpent: 250,
     status: REDEMPTION_STATUS.PENDING,
     trackingCode: null,
+    daysAgo: 1,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
@@ -36,12 +37,13 @@ export const GABRIEL_REDEMPTIONS = [
     ],
   },
   {
-    // Em andamento - sendo processado
+    // In progress - being processed (5 days ago)
     prizeName: 'Fones Bluetooth Sem Fio',
     variantValue: 'Preto',
     coinsSpent: 800,
     status: REDEMPTION_STATUS.PROCESSING,
     trackingCode: null,
+    daysAgo: 5,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
@@ -56,12 +58,13 @@ export const GABRIEL_REDEMPTIONS = [
     ],
   },
   {
-    // Enviado - a caminho
+    // Shipped - on the way (8 days ago)
     prizeName: 'Tapete de Yoga Premium',
     variantValue: 'Roxo',
     coinsSpent: 350,
     status: REDEMPTION_STATUS.SHIPPED,
     trackingCode: 'YM2025101234',
+    daysAgo: 8,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
@@ -81,12 +84,13 @@ export const GABRIEL_REDEMPTIONS = [
     ],
   },
   {
-    // Entregue - concluído com sucesso
+    // Delivered - recent (12 days ago)
     prizeName: 'Spotify Premium - 3 Meses',
     variantValue: '3 meses',
     coinsSpent: 300,
     status: REDEMPTION_STATUS.DELIVERED,
     trackingCode: 'SPOT-CODE-ABC123',
+    daysAgo: 12,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
@@ -106,12 +110,13 @@ export const GABRIEL_REDEMPTIONS = [
     ],
   },
   {
-    // Entregue - outro pedido concluído
+    // Delivered (20 days ago)
     prizeName: 'Cartão Presente Starbucks R$ 50',
     variantValue: 'Digital',
     coinsSpent: 250,
     status: REDEMPTION_STATUS.DELIVERED,
     trackingCode: 'SB-DIGITAL-XYZ789',
+    daysAgo: 20,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
@@ -130,20 +135,104 @@ export const GABRIEL_REDEMPTIONS = [
       },
     ],
   },
+  {
+    // Delivered (28 days ago)
+    prizeName: 'Netflix Premium - 1 Mês',
+    variantValue: '1 mês',
+    coinsSpent: 200,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'NETFLIX-2025-VLZ',
+    daysAgo: 28,
+    tracking: [
+      {
+        status: REDEMPTION_STATUS.PENDING,
+        notes: 'Solicitação de resgate recebida.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.PROCESSING,
+        notes: 'Gerando código de assinatura.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.DELIVERED,
+        notes: 'Código de assinatura enviado com sucesso.',
+        createdBy: 'system',
+      },
+    ],
+  },
+  {
+    // Delivered (35 days ago)
+    prizeName: 'Garrafa Térmica Personalizada',
+    variantValue: 'Azul',
+    coinsSpent: 400,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'GT-2025-0421',
+    daysAgo: 35,
+    tracking: [
+      {
+        status: REDEMPTION_STATUS.PENDING,
+        notes: 'Solicitação de resgate recebida.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.PROCESSING,
+        notes: 'Pedido em produção.',
+        createdBy: 'admin',
+      },
+      {
+        status: REDEMPTION_STATUS.SHIPPED,
+        notes: 'Produto enviado via transportadora.',
+        createdBy: 'admin',
+      },
+      {
+        status: REDEMPTION_STATUS.DELIVERED,
+        notes: 'Produto entregue e confirmado pelo destinatário.',
+        createdBy: 'system',
+      },
+    ],
+  },
+  {
+    // Delivered (45 days ago)
+    prizeName: 'Curso Online Udemy',
+    variantValue: 'Qualquer curso',
+    coinsSpent: 600,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'UDEMY-VLZ-2025',
+    daysAgo: 45,
+    tracking: [
+      {
+        status: REDEMPTION_STATUS.PENDING,
+        notes: 'Solicitação de resgate recebida.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.PROCESSING,
+        notes: 'Processando voucher de curso.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.DELIVERED,
+        notes: 'Voucher enviado por email com instruções de uso.',
+        createdBy: 'system',
+      },
+    ],
+  },
 ]
 
 /**
- * Resgates de exemplo para outros usuários (prêmios específicos da empresa)
+ * Sample redemptions for other users (distributed over time)
  */
 export const COMPANY_REDEMPTIONS = [
   {
-    // Ana Costa - prêmio da empresa
+    // Ana Costa - company prize (15 days ago - delivered)
     userAuth0Id: 'auth0|demo-employee-valorize-1',
     prizeName: 'Moletom Valorize',
     variantValue: 'M',
     coinsSpent: 600,
     status: REDEMPTION_STATUS.DELIVERED,
     trackingCode: 'MERCH-2025-001',
+    daysAgo: 15,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
@@ -168,13 +257,14 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    // Pedro Lima - prêmio global
+    // Pedro Lima - global prize (7 days ago - shipped)
     userAuth0Id: 'auth0|demo-employee-valorize-2',
     prizeName: 'Kindle Paperwhite',
     variantValue: '8GB',
     coinsSpent: 1200,
     status: REDEMPTION_STATUS.SHIPPED,
     trackingCode: 'AMZN-KINDLE-456',
+    daysAgo: 7,
     tracking: [
       {
         status: REDEMPTION_STATUS.PENDING,
@@ -193,11 +283,87 @@ export const COMPANY_REDEMPTIONS = [
       },
     ],
   },
+  {
+    // João Santos (Admin) - old redemption (30 days ago - delivered)
+    userAuth0Id: 'auth0|demo-company-admin-valorize',
+    prizeName: 'Cartão Presente Amazon R$ 50',
+    variantValue: 'R$ 50',
+    coinsSpent: 250,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'AMZ-DIGITAL-789',
+    daysAgo: 30,
+    tracking: [
+      {
+        status: REDEMPTION_STATUS.PENDING,
+        notes: 'Solicitação de resgate recebida.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.PROCESSING,
+        notes: 'Processando código de presente digital.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.DELIVERED,
+        notes: 'Código digital enviado por email.',
+        createdBy: 'system',
+      },
+    ],
+  },
+  {
+    // Maria Silva (HR) - recent redemption (3 days ago - processing)
+    userAuth0Id: 'auth0|demo-hr-manager-valorize',
+    prizeName: 'Garrafa Térmica Personalizada',
+    variantValue: 'Rosa',
+    coinsSpent: 400,
+    status: REDEMPTION_STATUS.PROCESSING,
+    trackingCode: null,
+    daysAgo: 3,
+    tracking: [
+      {
+        status: REDEMPTION_STATUS.PENDING,
+        notes: 'Solicitação de resgate recebida.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.PROCESSING,
+        notes: 'Pedido em produção. Previsão de envio em 2-3 dias.',
+        createdBy: 'admin',
+      },
+    ],
+  },
+  {
+    // Carlos Souza (Team Lead) - old redemption (42 days ago - delivered)
+    userAuth0Id: 'auth0|demo-team-lead-valorize',
+    prizeName: 'Spotify Premium - 3 Meses',
+    variantValue: '3 meses',
+    coinsSpent: 300,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'SPOT-VLZ-2025-02',
+    daysAgo: 42,
+    tracking: [
+      {
+        status: REDEMPTION_STATUS.PENDING,
+        notes: 'Solicitação de resgate recebida.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.PROCESSING,
+        notes: 'Gerando código de assinatura.',
+        createdBy: 'system',
+      },
+      {
+        status: REDEMPTION_STATUS.DELIVERED,
+        notes: 'Código de assinatura ativado com sucesso.',
+        createdBy: 'system',
+      },
+    ],
+  },
 ]
 
 /**
- * Dados de endereço de exemplo para Gabriel
- * Este será usado para criar endereços para resgates
+ * Sample address data for Gabriel
+ * Used to create addresses for redemptions
  */
 export const GABRIEL_ADDRESS = {
   name: 'Gabriel Fachini',
@@ -214,7 +380,7 @@ export const GABRIEL_ADDRESS = {
 }
 
 /**
- * Endereços de exemplo para outros usuários
+ * Sample addresses for other users
  */
 export const SAMPLE_ADDRESSES = [
   {
@@ -252,7 +418,7 @@ export const SAMPLE_ADDRESSES = [
 ]
 
 /**
- * Helper para calcular dias atrás a partir da data atual
+ * Helper function to calculate dates in the past
  */
 export function daysAgo(days: number): Date {
   const date = new Date()

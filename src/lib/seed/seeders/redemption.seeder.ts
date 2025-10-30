@@ -81,17 +81,10 @@ export class RedemptionSeeder extends BaseSeeder {
         }
       }
 
-      // Determine redemption date based on status
-      let redeemedAt = new Date()
-      if (redemptionData.status === 'delivered') {
-        redeemedAt = daysAgo(10) // 10 days ago
-      } else if (redemptionData.status === 'shipped') {
-        redeemedAt = daysAgo(5) // 5 days ago
-      } else if (redemptionData.status === 'processing') {
-        redeemedAt = daysAgo(2) // 2 days ago
-      } else {
-        redeemedAt = daysAgo(1) // 1 day ago
-      }
+      // Determine redemption date - use daysAgo from data if available
+      const redeemedAt = redemptionData.daysAgo
+        ? daysAgo(redemptionData.daysAgo)
+        : new Date()
 
       // Create redemption
       const redemption = await this.prisma.redemption.create({
@@ -220,13 +213,10 @@ export class RedemptionSeeder extends BaseSeeder {
         }
       }
 
-      // Determine redemption date
-      let redeemedAt = new Date()
-      if (redemptionData.status === 'delivered') {
-        redeemedAt = daysAgo(15)
-      } else if (redemptionData.status === 'shipped') {
-        redeemedAt = daysAgo(7)
-      }
+      // Determine redemption date - use daysAgo from data if available
+      const redeemedAt = redemptionData.daysAgo
+        ? daysAgo(redemptionData.daysAgo)
+        : new Date()
 
       // Create redemption
       const redemption = await this.prisma.redemption.create({

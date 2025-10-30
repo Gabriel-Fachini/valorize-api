@@ -18,10 +18,8 @@ import { ALL_PERMISSIONS } from '@/features/rbac/permissions.constants'
 /**
  * @deprecated Use ALL_PERMISSIONS from @/features/rbac/permissions.constants
  */
-import type { PermissionDefinition } from '@/features/rbac/permissions.constants'
-
-export const PERMISSIONS: PermissionDefinition[] = ALL_PERMISSIONS.map(p => ({
+export const PERMISSIONS = ALL_PERMISSIONS.map(p => ({
   name: p.name,
   description: p.description,
-  category: p.category,
+  // Note: category is omitted as it's not in the Permission schema
 }))
