@@ -295,6 +295,8 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
             avatar: sessionInfo.user.avatar,
             companyId: sessionInfo.user.companyId,
             isActive: sessionInfo.user.isActive,
+            jobTitle: sessionInfo.user.jobTitle ?? null,
+            department: sessionInfo.user.department ?? null,
           },
           message: sessionInfo.needsRefresh 
             ? 'Token should be refreshed soon'

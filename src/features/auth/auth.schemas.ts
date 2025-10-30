@@ -20,6 +20,8 @@ const userInfoSchema = {
     name: { type: 'string' },
     avatar: { type: 'string' },
     companyId: { type: 'string' },
+    jobTitle: { anyOf: [{ type: 'string' }, { type: 'null' }] },
+    department: { anyOf: [{ type: 'string' }, { type: 'null' }] },
     isActive: { type: 'boolean' },
     auth0Sub: { type: 'string' },
     email_verified: { type: 'boolean' },

@@ -14,12 +14,16 @@ model User {
   name      String
   avatar    String?
   companyId String   @map("company_id")
+  jobTitleId   String?  @map("job_title_id")
+  departmentId String?  @map("department_id")
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   roles           UserRole[]
   company         Company @relation(fields: [companyId], references: [id])
+  jobTitle        JobTitle?   @relation(fields: [jobTitleId], references: [id])
+  department      Department? @relation(fields: [departmentId], references: [id])
   companyContacts CompanyContact[]
   wallet             Wallet?
   walletTransactions WalletTransaction[]
@@ -31,7 +35,39 @@ model User {
   addresses   Address[]
 
   @@index([companyId])
+  @@index([jobTitleId])
+  @@index([departmentId])
   @@map("users")
+}
+
+model Department {
+  id         String   @id @default(cuid())
+  companyId  String   @map("company_id")
+  name       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users      User[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("departments")
+}
+
+model JobTitle {
+  id         String   @id @default(cuid())
+  companyId  String   @map("company_id")
+  name       String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users      User[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("job_titles")
 }
 
 model Role {
@@ -103,6 +139,8 @@ model Company {
   // Relacionamentos
   users         User[]
   roles         Role[]
+  departments   Department[]
+  jobTitles     JobTitle[]
   companyBrazil CompanyBrazil?
   contacts      CompanyContact[]
   settings      CompanySettings?

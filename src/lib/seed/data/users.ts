@@ -8,6 +8,8 @@ export interface UserData {
   name: string
   companyId: string
   roles: string[]
+  jobTitleName?: string
+  departmentName?: string
 }
 
 export const DEMO_USERS: UserData[] = [
@@ -18,6 +20,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Gabriel Fachini',
     companyId: 'demo-company-001',
     roles: ['super_admin'],
+    jobTitleName: 'Software Engineer',
+    departmentName: 'Engineering',
   },
   {
     auth0Id: 'auth0|demo-super-admin',
@@ -32,6 +36,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'João Silva',
     companyId: 'demo-company-001',
     roles: ['company_admin'],
+    jobTitleName: 'Product Manager',
+    departmentName: 'Product',
   },
   {
     auth0Id: 'auth0|demo-hr-manager-valorize',
@@ -39,6 +45,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Maria Santos',
     companyId: 'demo-company-001',
     roles: ['hr_manager'],
+    jobTitleName: 'HR Manager',
+    departmentName: 'People',
   },
   {
     auth0Id: 'auth0|demo-team-lead-valorize',
@@ -46,6 +54,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Carlos Oliveira',
     companyId: 'demo-company-001',
     roles: ['team_lead'],
+    jobTitleName: 'Team Lead',
+    departmentName: 'Engineering',
   },
   {
     auth0Id: 'auth0|demo-employee-valorize-1',
@@ -53,6 +63,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Ana Costa',
     companyId: 'demo-company-001',
     roles: ['employee'],
+    jobTitleName: 'Software Engineer',
+    departmentName: 'Engineering',
   },
   {
     auth0Id: 'auth0|demo-employee-valorize-2',
@@ -60,6 +72,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Pedro Lima',
     companyId: 'demo-company-001',
     roles: ['employee'],
+    jobTitleName: 'Software Engineer',
+    departmentName: 'Engineering',
   },
 
   // TechStart Brasil users

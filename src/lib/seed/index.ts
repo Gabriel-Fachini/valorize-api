@@ -10,6 +10,8 @@ import { SeedVerifier } from './utils/verify-seed'
 import { CompanySeeder } from './seeders/company.seeder'
 import { PermissionSeeder } from './seeders/permission.seeder'
 import { RoleSeeder } from './seeders/role.seeder'
+import { DepartmentSeeder } from './seeders/department.seeder'
+import { JobTitleSeeder } from './seeders/jobTitle.seeder'
 import { UserSeeder } from './seeders/user.seeder'
 import { WalletSeeder } from './seeders/wallet.seeder'
 import { ValueSeeder } from './seeders/value.seeder'
@@ -35,9 +37,11 @@ export async function seed(): Promise<void> {
     
     // Step 2: Seed in dependency order
     await new CompanySeeder(prisma).seed()
-    await new PermissionSeeder(prisma).seed()
-    await new RoleSeeder(prisma).seed()
-    await new UserSeeder(prisma).seed()
+  await new PermissionSeeder(prisma).seed()
+  await new RoleSeeder(prisma).seed()
+  await new DepartmentSeeder(prisma).seed()
+  await new JobTitleSeeder(prisma).seed()
+  await new UserSeeder(prisma).seed()
     await new WalletSeeder(prisma).seed()
     await new ValueSeeder(prisma).seed()
     await new ContactSeeder(prisma).seed()

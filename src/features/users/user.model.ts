@@ -9,6 +9,8 @@ export interface UserProps {
   companyId: string
   avatar?: string
   isActive?: boolean
+  jobTitle?: { name: string } | null
+  department?: { name: string } | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -17,6 +19,8 @@ export class User {
   private _id: string
   private _createdAt: Date
   private _updatedAt: Date
+  private _jobTitle?: { name: string } | null
+  private _department?: { name: string } | null
 
   private constructor(
     private readonly _auth0Id: string,
@@ -28,10 +32,14 @@ export class User {
     id?: string,
     createdAt?: Date,
     updatedAt?: Date,
+    jobTitle?: { name: string } | null,
+    department?: { name: string } | null,
   ) {
     this._id = id ?? randomUUID()
     this._createdAt = createdAt ?? new Date()
     this._updatedAt = updatedAt ?? new Date()
+    this._jobTitle = jobTitle
+    this._department = department
   }
 
   // Factory method to create a new user
@@ -110,6 +118,14 @@ export class User {
 
   public get updatedAt(): Date {
     return this._updatedAt
+  }
+
+  public get jobTitle(): string | null {
+    return this._jobTitle?.name ?? null
+  }
+
+  public get department(): string | null {
+    return this._department?.name ?? null
   }
 
   // Business methods
@@ -207,6 +223,8 @@ export class User {
       companyId: this._companyId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      jobTitle: this._jobTitle ?? null,
+      department: this._department ?? null,
     }
   }
 
@@ -215,6 +233,19 @@ export class User {
     try {
       const user = await prisma.user.findUnique({
         where: { id },
+        select: {
+          id: true,
+          auth0Id: true,
+          email: true,
+          name: true,
+          companyId: true,
+          avatar: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          jobTitle: { select: { name: true } },
+          department: { select: { name: true } },
+        },
       })
       
       return user ? this.toDomainEntity(user) : null
@@ -227,6 +258,19 @@ export class User {
     try {
       const user = await prisma.user.findUnique({
         where: { auth0Id },
+        select: {
+          id: true,
+          auth0Id: true,
+          email: true,
+          name: true,
+          companyId: true,
+          avatar: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          jobTitle: { select: { name: true } },
+          department: { select: { name: true } },
+        },
       })
       
       return user ? this.toDomainEntity(user) : null
@@ -239,6 +283,19 @@ export class User {
     try {
       const user = await prisma.user.findUnique({
         where: { email: email.toLowerCase() },
+        select: {
+          id: true,
+          auth0Id: true,
+          email: true,
+          name: true,
+          companyId: true,
+          avatar: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          jobTitle: { select: { name: true } },
+          department: { select: { name: true } },
+        },
       })
       
       return user ? this.toDomainEntity(user) : null
@@ -253,6 +310,19 @@ export class User {
         take: limit,
         skip: offset,
         orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          auth0Id: true,
+          email: true,
+          name: true,
+          companyId: true,
+          avatar: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          jobTitle: { select: { name: true } },
+          department: { select: { name: true } },
+        },
       })
 
       return users.map(user => this.toDomainEntity(user))
@@ -334,6 +404,8 @@ export class User {
       isActive: prismaUser.isActive,
       createdAt: prismaUser.createdAt,
       updatedAt: prismaUser.updatedAt,
+      jobTitle: prismaUser.jobTitle ? { name: prismaUser.jobTitle.name } : null,
+      department: prismaUser.department ? { name: prismaUser.department.name } : null,
     })
   }
 }

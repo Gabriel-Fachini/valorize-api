@@ -3,10 +3,14 @@ export interface UserCreateInput {
   email: string
   name: string
   isActive?: boolean
+  jobTitleId?: string | null
+  departmentId?: string | null
 }
 
 export interface UserUpdateInput {
   name?: string
+  jobTitleId?: string | null
+  departmentId?: string | null
 }
 
 export interface UserResponse {
@@ -17,6 +21,14 @@ export interface UserResponse {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+  jobTitle?: {
+    id: string
+    name: string
+  } | null
+  department?: {
+    id: string
+    name: string
+  } | null
 }
 
 export interface SignUpResult {

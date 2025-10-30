@@ -30,6 +30,8 @@ export interface LoginResponse {
     email_verified: boolean
     name?: string
     avatar?: string
+    jobTitle?: string | null
+    department?: string | null
     [key: string]: unknown
   }
 }
@@ -545,6 +547,8 @@ export const authService = {
           email: true,
           name: true,
           avatar: true,
+          jobTitle: { select: { name: true } },
+          department: { select: { name: true } },
         },
       })
       
@@ -558,6 +562,8 @@ export const authService = {
         email_verified: true,
         name: user.name,
         avatar: user.avatar ?? undefined,
+        jobTitle: user.jobTitle?.name ?? null,
+        department: user.department?.name ?? null,
       }
     } catch (error) {
       logger.error('Error fetching user from database', {
