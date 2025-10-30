@@ -55,9 +55,11 @@ model Permission {
   id          String   @id @default(cuid())
   name        String   @unique
   description String?
+  category    String
 
   roles RolePermission[]
 
+  @@index([category])
   @@map("permissions")
 }
 

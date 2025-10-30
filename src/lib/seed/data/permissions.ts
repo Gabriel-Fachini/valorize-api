@@ -21,5 +21,5 @@ import { ALL_PERMISSIONS } from '@/features/rbac/permissions.constants'
 export const PERMISSIONS = ALL_PERMISSIONS.map(p => ({
   name: p.name,
   description: p.description,
-  // Note: category is omitted as it's not in the Permission schema
+  category: p.category,
 }))

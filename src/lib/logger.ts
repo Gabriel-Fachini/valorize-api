@@ -1,3 +1,5 @@
+import { formatPrismaError, isPrismaError } from './utils/prisma-error-formatter'
+
 interface LogLevel {
   DEBUG: 0
   INFO: 1
@@ -86,11 +88,21 @@ class Logger {
 
   error(message: string, error?: Error | unknown): void {
     if (this.shouldLog(LOG_LEVELS.ERROR)) {
-      const errorMeta = error instanceof Error 
-        ? { 
-            name: error.name, 
-            message: error.message, 
-            stack: error.stack, 
+      // Check if it's a Prisma error and format it specially
+      if (isPrismaError(error)) {
+        // eslint-disable-next-line no-console
+        console.error(this.formatMessage('ERROR', message))
+        // eslint-disable-next-line no-console
+        console.error(formatPrismaError(error))
+        return
+      }
+
+      // Regular error formatting
+      const errorMeta = error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
           }
         : error
 
