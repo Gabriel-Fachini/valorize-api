@@ -33,7 +33,7 @@ export default async function rbacRoutes(fastify: FastifyInstance) {
           id: role.id,
           name: role.name,
           description: role.description,
-          permissions: role.permissions.map(rp => rp.permission.name),
+          permissions: (role.permissions as any[]).map((rp: any) => rp.permission.name),
         },
       })
     },

@@ -40,6 +40,17 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     { prefix: '/rbac' },
   )
 
+  // Company Settings routes - /admin/company/*
+  await fastify.register(
+    async function (fastify) {
+      const { default: companySettingsRoutes } = await import(
+        '@/features/admin/company-settings/company-settings.routes'
+      )
+      await fastify.register(companySettingsRoutes)
+    },
+    { prefix: '/company' },
+  )
+
   // Future admin routes can be added here
   // Example:
   // await fastify.register(

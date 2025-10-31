@@ -129,7 +129,8 @@ model RolePermission {
 model Company {
   id          String   @id @default(cuid())
   name        String   // Nome fantasia
-  domain      String   @unique // Para verificação de email no login
+  logoUrl     String?  @map("logo_url") // URL da logo da empresa
+  domain      String   @unique // Para verificação de email no login (domínio principal)
   country     String   @default("BR") // Código do país
   timezone    String   @default("America/Sao_Paulo")
   isActive    Boolean  @default(true) @map("is_active")
@@ -137,17 +138,18 @@ model Company {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
-  users         User[]
-  roles         Role[]
-  departments   Department[]
-  jobTitles     JobTitle[]
-  companyBrazil CompanyBrazil?
-  contacts      CompanyContact[]
-  settings      CompanySettings?
-  values        CompanyValue[]
-  compliments   Compliment[]
-  prizes        Prize[]
-  redemptions   Redemption[]
+  users          User[]
+  roles          Role[]
+  departments    Department[]
+  jobTitles      JobTitle[]
+  companyBrazil  CompanyBrazil?
+  contacts       CompanyContact[]
+  settings       CompanySettings?
+  values         CompanyValue[]
+  compliments    Compliment[]
+  prizes         Prize[]
+  redemptions    Redemption[]
+  allowedDomains AllowedDomain[] // Domínios permitidos para SSO
 
   @@index([domain])
   @@index([country])
@@ -198,15 +200,29 @@ model CompanyContact {
 }
 
 model CompanySettings {
-  id                        Int      @id @default(autoincrement())
-  companyId                 String   @unique @map("company_id")
-  weeklyComplimentCoinLimit Int      @default(100) @map("weekly_compliment_coin_limit")
-  createdAt                 DateTime @default(now()) @map("created_at")
-  updatedAt                 DateTime @updatedAt @map("updated_at")
+  id                   Int      @id @default(autoincrement())
+  companyId            String   @unique @map("company_id")
+  weeklyRenewalAmount  Int      @default(100) @map("weekly_renewal_amount") // Quantidade de moedas semanais (50-500)
+  renewalDay           Int      @default(1) @map("renewal_day") // Dia da renovação (1=Monday, 7=Sunday)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("company_settings")
+}
+
+model AllowedDomain {
+  id        String   @id @default(cuid())
+  companyId String   @map("company_id")
+  domain    String   // Domínio permitido para SSO (ex: "empresax.com.br")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, domain])
+  @@index([companyId])
+  @@map("allowed_domains")
 }
 
 model CompanyValue {
