@@ -238,4 +238,31 @@ export const companyValuesService = {
     // Return updated list
     return this.listValues(companyId)
   },
+
+  /**
+   * Delete a company value (soft delete via isActive flag)
+   */
+  async deleteValue(companyId: string, valueId: number): Promise<void> {
+    logger.info(`Deleting company value ${valueId} for company ${companyId}`)
+
+    // Check if value exists and belongs to company
+    const existingValue = await prisma.companyValue.findFirst({
+      where: {
+        id: valueId,
+        companyId,
+      },
+    })
+
+    if (!existingValue) {
+      throw new Error('Company value not found')
+    }
+
+    // Soft delete by setting isActive to false
+    await prisma.companyValue.update({
+      where: { id: valueId },
+      data: { isActive: false },
+    })
+
+    logger.info(`Company value deleted successfully`, { valueId })
+  },
 }

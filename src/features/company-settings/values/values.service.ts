@@ -26,6 +26,7 @@ export const companyValuesService = {
       isActive: true,
       example: null,
       order: nextOrder,
+      iconColor: data.iconColor ?? null,
     })
     logger.info(`Company value created successfully for company ${companyId}`)
     return newCompanyValue

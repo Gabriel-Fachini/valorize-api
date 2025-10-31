@@ -13,6 +13,7 @@ import {
   createCompanyValueSchema,
   updateCompanyValueSchema,
   reorderCompanyValuesSchema,
+  deleteCompanyValueSchema,
 } from './company-values.schemas'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/rbac/permissions.constants'
@@ -243,6 +244,50 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
         return reply.code(500).send({
           error: 'Internal server error',
           message: 'Failed to reorder company values',
+        })
+      }
+    },
+  )
+
+  /**
+   * DELETE /admin/company/values/:id
+   * Delete a company value (soft delete)
+   */
+  fastify.delete(
+    '/:id',
+    {
+      schema: deleteCompanyValueSchema,
+      preHandler: [requirePermission(PERMISSION.COMPANY_MANAGE_SETTINGS)],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const auth0Id = getAuth0Id(request)
+        const companyId = await getCompanyIdFromUser(auth0Id)
+        const valueId = parseInt((request.params as any).id, 10)
+
+        if (isNaN(valueId)) {
+          return reply.code(400).send({
+            error: 'Invalid ID',
+            message: 'Value ID must be a valid integer',
+          })
+        }
+
+        await companyValuesService.deleteValue(companyId, valueId)
+
+        return reply.code(204).send()
+      } catch (error) {
+        logger.error('Failed to delete company value', { error })
+
+        if (error instanceof Error && error.message === 'Company value not found') {
+          return reply.code(404).send({
+            error: 'Not found',
+            message: 'Company value not found',
+          })
+        }
+
+        return reply.code(500).send({
+          error: 'Internal server error',
+          message: 'Failed to delete company value',
         })
       }
     },

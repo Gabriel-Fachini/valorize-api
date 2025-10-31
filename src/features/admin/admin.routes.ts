@@ -5,9 +5,12 @@
  * All routes registered here will be prefixed with /admin
  *
  * Structure:
- * - /admin/dashboard/*  - Dashboard and analytics routes
- * - /admin/rbac/*       - Role and permission management routes
- * - /admin/*            - Other future admin routes
+ * - /admin/dashboard/*         - Dashboard and analytics routes
+ * - /admin/rbac/*              - Role and permission management routes
+ * - /admin/company/info        - Company basic information
+ * - /admin/company/domains     - Allowed domains for SSO
+ * - /admin/company/coin-economy - Coin economy settings
+ * - /admin/company/values      - Company values management
  *
  * @module features/admin/admin.routes
  */
@@ -40,18 +43,40 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     { prefix: '/rbac' },
   )
 
-  // Company Settings routes - /admin/company/*
+  // Company Info routes - /admin/company/info
   await fastify.register(
     async function (fastify) {
-      const { default: companySettingsRoutes } = await import(
-        '@/features/admin/company-settings/company-settings.routes'
+      const { default: companyInfoRoutes } = await import(
+        '@/features/admin/company-info/company-info.routes'
       )
-      await fastify.register(companySettingsRoutes)
+      await fastify.register(companyInfoRoutes)
     },
-    { prefix: '/company' },
+    { prefix: '/company/info' },
   )
 
-  // Company Values routes - /admin/company/values/*
+  // Company Domains routes - /admin/company/domains
+  await fastify.register(
+    async function (fastify) {
+      const { default: companyDomainsRoutes } = await import(
+        '@/features/admin/company-domains/company-domains.routes'
+      )
+      await fastify.register(companyDomainsRoutes)
+    },
+    { prefix: '/company/domains' },
+  )
+
+  // Company Coin Economy routes - /admin/company/coin-economy
+  await fastify.register(
+    async function (fastify) {
+      const { default: companyCoinEconomyRoutes } = await import(
+        '@/features/admin/company-coin-economy/company-coin-economy.routes'
+      )
+      await fastify.register(companyCoinEconomyRoutes)
+    },
+    { prefix: '/company/coin-economy' },
+  )
+
+  // Company Values routes - /admin/company/values
   await fastify.register(
     async function (fastify) {
       const { default: companyValuesRoutes } = await import(

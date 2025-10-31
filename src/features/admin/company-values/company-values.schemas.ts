@@ -271,3 +271,38 @@ export const reorderCompanyValuesSchema = {
     },
   },
 }
+
+/**
+ * DELETE /admin/company/values/:id
+ */
+export const deleteCompanyValueSchema = {
+  tags: ['Admin - Company Values'],
+  description: 'Delete a company value (soft delete via isActive flag)',
+  params: {
+    type: 'object',
+    properties: {
+      id: { type: 'integer' },
+    },
+    required: ['id'],
+  },
+  response: {
+    204: {
+      type: 'null',
+      description: 'Company value deleted successfully',
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+      },
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+      },
+    },
+  },
+}
