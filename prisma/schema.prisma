@@ -229,16 +229,21 @@ model CompanyValue {
   id          Int      @id @default(autoincrement())
   companyId   String   @map("company_id")
   title       String
-  description String
-  icon        String
+  description String?
+  example     String?
+  iconName    String?
+  iconColor   String?
+  order       Int
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  company    Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   compliments Compliment[]
 
+  @@unique([companyId, title])
   @@index([companyId])
+  @@index([companyId, order])
   @@index([isActive])
   @@map("company_values")
 }

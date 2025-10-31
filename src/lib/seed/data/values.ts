@@ -5,7 +5,8 @@
 export interface CompanyValueData {
   title: string
   description: string
-  icon: string
+  iconName: string
+  iconColor?: string
   isActive: boolean
 }
 
@@ -22,31 +23,31 @@ export const DEMO_COMPANY_VALUES: CompanyValuesSet[] = [
       {
         title: 'Innovation',
         description: 'Constantly seeking new and better ways to solve problems',
-        icon: '💡',
+        iconName: '💡',
         isActive: true,
       },
       {
         title: 'Collaboration',
         description: 'Working together to achieve common goals',
-        icon: '🤝',
+        iconName: '🤝',
         isActive: true,
       },
       {
         title: 'Excellence',
         description: 'Striving for the highest quality in everything we do',
-        icon: '⭐',
+        iconName: '⭐',
         isActive: true,
       },
       {
         title: 'Integrity',
         description: 'Being honest and transparent in all our actions',
-        icon: '🛡️',
+        iconName: '🛡️',
         isActive: true,
       },
       {
         title: 'Customer Focus',
         description: 'Putting our customers at the center of everything we do',
-        icon: '🎯',
+        iconName: '🎯',
         isActive: true,
       },
     ],
@@ -58,25 +59,25 @@ export const DEMO_COMPANY_VALUES: CompanyValuesSet[] = [
       {
         title: 'Inovação',
         description: 'Buscando constantemente novas formas de resolver problemas',
-        icon: '💡',
+        iconName: '💡',
         isActive: true,
       },
       {
         title: 'Trabalho em Equipe',
         description: 'Colaborando para alcançar objetivos comuns',
-        icon: '🤝',
+        iconName: '🤝',
         isActive: true,
       },
       {
         title: 'Compromisso',
         description: 'Dedicação e responsabilidade em tudo que fazemos',
-        icon: '💪',
+        iconName: '💪',
         isActive: true,
       },
       {
         title: 'Transparência',
         description: 'Comunicação clara e honesta',
-        icon: '🔍',
+        iconName: '🔍',
         isActive: true,
       },
     ],
@@ -88,19 +89,19 @@ export const DEMO_COMPANY_VALUES: CompanyValuesSet[] = [
       {
         title: 'Innovation',
         description: 'Driving change through creative solutions',
-        icon: '🚀',
+        iconName: '🚀',
         isActive: true,
       },
       {
         title: 'Teamwork',
         description: 'Achieving more together',
-        icon: '👥',
+        iconName: '👥',
         isActive: true,
       },
       {
         title: 'Accountability',
         description: 'Taking ownership of our actions and results',
-        icon: '✓',
+        iconName: '✓',
         isActive: true,
       },
     ],

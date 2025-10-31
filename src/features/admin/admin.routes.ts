@@ -51,6 +51,17 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     { prefix: '/company' },
   )
 
+  // Company Values routes - /admin/company/values/*
+  await fastify.register(
+    async function (fastify) {
+      const { default: companyValuesRoutes } = await import(
+        '@/features/admin/company-values/company-values.routes'
+      )
+      await fastify.register(companyValuesRoutes)
+    },
+    { prefix: '/company/values' },
+  )
+
   // Future admin routes can be added here
   // Example:
   // await fastify.register(

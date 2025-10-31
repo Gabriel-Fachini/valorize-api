@@ -14,19 +14,24 @@ export class ValueSeeder extends BaseSeeder {
     this.logStart()
     
     let totalValues = 0
-    
+
     for (const companyValues of DEMO_COMPANY_VALUES) {
+      let orderIndex = 1
       for (const value of companyValues.values) {
         await this.prisma.companyValue.create({
           data: {
             companyId: companyValues.companyId,
             title: value.title,
             description: value.description,
-            icon: value.icon,
+            example: null,
+            iconName: value.iconName,
+            iconColor: value.iconColor || null,
+            order: orderIndex,
             isActive: value.isActive,
           },
         })
         totalValues++
+        orderIndex++
       }
       
       const company = await this.prisma.company.findUnique({
