@@ -39,6 +39,23 @@ export class CompanyValueModel {
     }
   }
 
+  static async findLastOrderByCompanyId(companyId: string): Promise<number | null> {
+    try {
+      const lastValue = await prisma.companyValue.findFirst({
+        where: { companyId },
+        orderBy: { order: 'desc' },
+        select: { order: true },
+      })
+      return lastValue?.order || null
+    } catch (error) {
+      logger.error('Error finding last order by companyId', {
+        error,
+        companyId,
+      })
+      throw new Error('Failed to find last order.')
+    }
+  }
+
   static async create(data: CreateCompanyValueData): Promise<CompanyValueModel> {
     try {
       const value = await prisma.companyValue.create({ data })

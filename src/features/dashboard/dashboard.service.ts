@@ -240,7 +240,8 @@ export const dashboardService = {
       select: {
         id: true,
         title: true,
-        icon: true,
+        iconName: true,
+        iconColor: true,
       },
     })
 

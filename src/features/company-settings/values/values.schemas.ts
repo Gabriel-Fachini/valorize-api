@@ -7,7 +7,8 @@ const createCompanyValueZodSchema = {
     description: z
       .string()
       .min(10, 'Description must be at least 10 characters long.'),
-    icon: z.string().min(1, 'Icon is required.'),
+    iconName: z.string().min(1, 'Icon name is required.'),
+    iconColor: z.string().optional(),
   }),
   params: z.object({
     companyId: z.string().cuid('Invalid company ID format.'),
@@ -33,12 +34,15 @@ export const createCompanyValueSchema = {
         type: 'string',
         minLength: 10,
       },
-      icon: {
+      iconName: {
         type: 'string',
         minLength: 1,
       },
+      iconColor: {
+        type: 'string',
+      },
     },
-    required: ['title', 'description', 'icon'],
+    required: ['title', 'description', 'iconName'],
     additionalProperties: false,
   },
   params: {

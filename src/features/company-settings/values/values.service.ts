@@ -16,10 +16,17 @@ export const companyValuesService = {
       )
     }
 
+    // Get the highest order number for this company
+    const lastOrder = await CompanyValueModel.findLastOrderByCompanyId(companyId)
+    const nextOrder = lastOrder ? lastOrder + 1 : 1
+
     const newCompanyValue = await CompanyValueModel.create({
       ...data,
       companyId,
       isActive: true,
+      example: null,
+      order: nextOrder,
+      iconColor: data.iconColor ?? null,
     })
     logger.info(`Company value created successfully for company ${companyId}`)
     return newCompanyValue
