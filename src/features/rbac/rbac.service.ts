@@ -90,7 +90,10 @@ export const rbacService = {
             permission: {
               connectOrCreate: {
                 where: { name: p },
-                create: { name: p },
+                create: {
+                  name: p,
+                  category: 'Custom', // Default category for dynamically created permissions
+                },
               },
             },
           })),

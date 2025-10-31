@@ -1,23 +1,19 @@
 import { z } from 'zod'
 
+// @deprecated - Use /admin/company-settings instead
 // Zod schema for type inference
 const updateCompanySettingsZodSchema = {
   body: z.object({
-    weeklyComplimentCoinLimit: z
+    weeklyRenewalAmount: z
       .number()
       .int()
       .positive('Limit must be a positive number.')
       .optional(),
-    maxCoinsPerCompliment: z
+    renewalDay: z
       .number()
       .int()
-      .min(5, 'Must be at least 5 coins.')
-      .max(100, 'Cannot exceed 100 coins.')
-      .optional(),
-    minActiveValuesRequired: z
-      .number()
-      .int()
-      .positive('Must be at least 1.')
+      .min(1, 'Must be between 1 and 7.')
+      .max(7, 'Must be between 1 and 7.')
       .optional(),
   }),
   params: z.object({
@@ -25,23 +21,21 @@ const updateCompanySettingsZodSchema = {
   }),
 }
 
+// @deprecated - Use /admin/company-settings instead
 // JSON Schema for Fastify (temporary until ZodTypeProvider is fully implemented)
 export const updateCompanySettingsSchema = {
   body: {
     type: 'object',
     properties: {
-      weeklyComplimentCoinLimit: {
+      weeklyRenewalAmount: {
+        type: 'integer',
+        minimum: 50,
+        maximum: 500,
+      },
+      renewalDay: {
         type: 'integer',
         minimum: 1,
-      },
-      maxCoinsPerCompliment: {
-        type: 'integer',
-        minimum: 5,
-        maximum: 100,
-      },
-      minActiveValuesRequired: {
-        type: 'integer',
-        minimum: 1,
+        maximum: 7,
       },
     },
     additionalProperties: false,

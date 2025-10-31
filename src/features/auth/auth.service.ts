@@ -98,8 +98,8 @@ export const authService = {
       ]
 
       // Check if user has any admin permissions
-      const hasAdminPermissions = userPermissions.permissions.some(permission =>
-        adminPermissions.includes(permission),
+      const hasAdminPermissions = userPermissions.permissions.some((permission: string) =>
+        adminPermissions.includes(permission as any),
       )
 
       if (!hasAdminPermissions) {

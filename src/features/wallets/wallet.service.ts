@@ -32,7 +32,7 @@ export async function resetWeeklyBalances(adminUserId?: string) {
 
     await prisma.$transaction(async (tx) => {
       for (const company of companies) {
-        const weeklyLimit = company.settings?.weeklyComplimentCoinLimit ?? 100
+        const weeklyLimit = company.settings?.weeklyRenewalAmount ?? 100
         
         // First, get all wallets that will be updated to record their previous balances
         const walletsToUpdate = await tx.wallet.findMany({
@@ -120,7 +120,7 @@ export async function resetWeeklyBalancesForCompany(companyId: string, adminUser
       throw new Error(`Company with ID ${companyId} not found or is inactive`)
     }
 
-    const weeklyLimit = company.settings?.weeklyComplimentCoinLimit ?? 100
+    const weeklyLimit = company.settings?.weeklyRenewalAmount ?? 100
 
     const result = await prisma.$transaction(async (tx) => {
       // First, get all wallets that will be updated to record their previous balances

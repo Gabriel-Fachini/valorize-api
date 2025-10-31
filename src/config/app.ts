@@ -24,7 +24,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
     : ['http://localhost:3000', 'http://localhost:3001'],
     credentials: process.env.CORS_CREDENTIALS === 'true',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH',  'DELETE', 'OPTIONS'],
   })
 
   // Register Helmet for security
