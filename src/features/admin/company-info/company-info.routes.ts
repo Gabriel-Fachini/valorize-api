@@ -84,12 +84,12 @@ export default async function companyInfoRoutes(fastify: FastifyInstance) {
         const auth0Id = getAuth0Id(request)
         const companyId = await getCompanyIdFromUser(auth0Id)
 
-        const info = await companyInfoService.updateCompanyInfo(
+        await companyInfoService.updateCompanyInfo(
           companyId,
           request.body as any,
         )
 
-        return reply.code(200).send(info)
+        return reply.code(200).send()
       } catch (error) {
         logger.error('Failed to update company info', { error })
 

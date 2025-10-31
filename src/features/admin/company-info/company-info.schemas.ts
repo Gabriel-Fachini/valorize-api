@@ -5,21 +5,15 @@
  */
 
 /**
- * Response schema for Company Info
+ * Response schema for Company Info (GET endpoint)
  */
 export const companyInfoResponseSchema = {
   type: 'object',
   properties: {
-    id: { type: 'string' },
     name: { type: 'string' },
     logo_url: { type: 'string', nullable: true },
-    country: { type: 'string' },
-    timezone: { type: 'string' },
-    is_active: { type: 'boolean' },
-    created_at: { type: 'string', format: 'date-time' },
-    updated_at: { type: 'string', format: 'date-time' },
   },
-  required: ['id', 'name', 'country', 'timezone', 'is_active', 'created_at', 'updated_at'],
+  required: ['name'],
 }
 
 /**
@@ -55,15 +49,17 @@ export const updateCompanyInfoSchema = {
         maxLength: 100,
       },
       logo_url: {
-        type: 'string',
-        format: 'uri',
-        nullable: true,
+        anyOf: [
+          { type: 'null' },
+          { type: 'string', const: '' },
+          { type: 'string', format: 'uri', minLength: 1 },
+        ],
       },
     },
     additionalProperties: false,
   },
   response: {
-    200: companyInfoResponseSchema,
+    200: {},
     400: {
       type: 'object',
       properties: {

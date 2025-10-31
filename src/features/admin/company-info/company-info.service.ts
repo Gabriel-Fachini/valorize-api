@@ -9,14 +9,8 @@ import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 
 export interface CompanyInfoResponse {
-  id: string
   name: string
   logo_url: string | null
-  country: string
-  timezone: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
 }
 
 export interface UpdateCompanyInfoInput {
@@ -29,14 +23,8 @@ export interface UpdateCompanyInfoInput {
  */
 function formatCompanyInfo(company: any): CompanyInfoResponse {
   return {
-    id: company.id,
     name: company.name,
     logo_url: company.logoUrl,
-    country: company.country,
-    timezone: company.timezone,
-    is_active: company.isActive,
-    created_at: company.createdAt.toISOString(),
-    updated_at: company.updatedAt.toISOString(),
   }
 }
 
@@ -50,14 +38,8 @@ export const companyInfoService = {
     const company = await prisma.company.findUnique({
       where: { id: companyId },
       select: {
-        id: true,
         name: true,
         logoUrl: true,
-        country: true,
-        timezone: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
       },
     })
 
@@ -74,29 +56,21 @@ export const companyInfoService = {
   async updateCompanyInfo(
     companyId: string,
     data: UpdateCompanyInfoInput,
-  ): Promise<CompanyInfoResponse> {
+  ): Promise<void> {
     logger.info(`Updating company info for company ${companyId}`)
 
     const updateData: any = {}
     if (data.name !== undefined) updateData.name = data.name
-    if (data.logo_url !== undefined) updateData.logoUrl = data.logo_url
+    if (data.logo_url !== undefined) {
+      // Convert empty string to null for database consistency
+      updateData.logoUrl = data.logo_url === '' ? null : data.logo_url
+    }
 
-    const company = await prisma.company.update({
+    await prisma.company.update({
       where: { id: companyId },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        logoUrl: true,
-        country: true,
-        timezone: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     })
 
     logger.info(`Company info updated successfully for company ${companyId}`)
-    return formatCompanyInfo(company)
   },
 }
