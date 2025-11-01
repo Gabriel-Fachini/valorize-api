@@ -30,6 +30,8 @@ export const PERMISSION = {
   USERS_UPDATE: 'users:update',
   USERS_DELETE: 'users:delete',
   USERS_MANAGE_ROLES: 'users:manage_roles',
+  USERS_IMPORT_CSV: 'users:import_csv',
+  USERS_BULK_ACTIONS: 'users:bulk_actions',
 
   // Role management permissions
   ROLES_READ: 'roles:read',
@@ -101,6 +103,16 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
   {
     name: PERMISSION.USERS_MANAGE_ROLES,
     description: 'Assign and remove user roles',
+    category: 'User Management',
+  },
+  {
+    name: PERMISSION.USERS_IMPORT_CSV,
+    description: 'Import users via CSV file',
+    category: 'User Management',
+  },
+  {
+    name: PERMISSION.USERS_BULK_ACTIONS,
+    description: 'Perform bulk actions on users',
     category: 'User Management',
   },
 
