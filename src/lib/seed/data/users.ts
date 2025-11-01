@@ -7,6 +7,7 @@ export interface UserData {
   email: string
   name: string
   companyId: string
+  avatarUrl?: string
   roles: string[]
   jobTitleName?: string
   departmentName?: string
@@ -18,6 +19,7 @@ export const DEMO_USERS: UserData[] = [
     auth0Id: 'auth0|688aa3e7f3f1dbd119c3b600',
     email: 'gabriel@valorize.com',
     name: 'Gabriel Fachini',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/72563021?v=4',
     companyId: 'demo-company-001',
     roles: ['super_admin'],
     jobTitleName: 'Software Engineer',
