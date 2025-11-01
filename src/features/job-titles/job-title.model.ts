@@ -41,6 +41,49 @@ export const JobTitle = {
   },
 
   /**
+   * Get job titles for a company filtered by department
+   */
+  async findByDepartment(
+    companyId: string,
+    departmentId: string,
+  ): Promise<JobTitleWithCount[]> {
+    const jobTitles = await prisma.jobTitle.findMany({
+      where: {
+        companyId,
+        users: {
+          some: {
+            departmentId,
+            isActive: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: {
+            users: {
+              where: {
+                departmentId,
+                isActive: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    })
+
+    return jobTitles.map((jobTitle) => ({
+      id: jobTitle.id,
+      name: jobTitle.name,
+      userCount: jobTitle._count.users,
+    }))
+  },
+
+  /**
    * Validate if job title belongs to company
    */
   async validateJobTitleBelongsToCompany(

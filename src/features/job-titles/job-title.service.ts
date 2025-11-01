@@ -16,6 +16,26 @@ export const jobTitleService = {
   },
 
   /**
+   * Get job titles filtered by department
+   */
+  async getJobTitlesByDepartment(
+    companyId: string,
+    departmentId: string,
+  ): Promise<JobTitleWithCount[]> {
+    try {
+      logger.info('Fetching job titles for department', { companyId, departmentId })
+      return await JobTitle.findByDepartment(companyId, departmentId)
+    } catch (error) {
+      logger.error('Failed to get job titles by department', {
+        error,
+        companyId,
+        departmentId,
+      })
+      throw error
+    }
+  },
+
+  /**
    * Validate if job title belongs to company
    */
   async validateJobTitleBelongsToCompany(

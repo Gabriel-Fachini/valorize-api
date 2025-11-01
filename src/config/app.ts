@@ -199,6 +199,16 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/companies' },
   )
 
+  // Job Titles module routes
+  await app.register(
+    async function (fastify) {
+      const { default: jobTitleRoutes } = await import('@/features/job-titles/job-title.routes')
+      await fastify.register(jobTitleRoutes)
+    },
+    { prefix: '/job-titles' },
+  )
+
+
   // Company Settings module routes
   await app.register(async function (fastify) {
     const { default: companySettingsRoutes } = await import(
