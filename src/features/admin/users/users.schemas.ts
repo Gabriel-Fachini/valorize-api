@@ -69,8 +69,6 @@ export const listUsersSchema = {
         currentPage: { type: 'integer' },
       },
     },
-    400: { $ref: '#/definitions/Error' },
-    403: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -126,8 +124,6 @@ export const getUserDetailSchema = {
         },
       },
     },
-    404: { $ref: '#/definitions/Error' },
-    403: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -161,9 +157,6 @@ export const createUserSchema = {
         createdAt: { type: 'string', format: 'date-time' },
       },
     },
-    400: { $ref: '#/definitions/Error' },
-    403: { $ref: '#/definitions/Error' },
-    409: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -204,10 +197,6 @@ export const updateUserSchema = {
         updatedAt: { type: 'string', format: 'date-time' },
       },
     },
-    400: { $ref: '#/definitions/Error' },
-    403: { $ref: '#/definitions/Error' },
-    404: { $ref: '#/definitions/Error' },
-    409: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -227,8 +216,6 @@ export const deleteUserSchema = {
   },
   response: {
     204: { description: 'User deactivated' },
-    403: { $ref: '#/definitions/Error' },
-    404: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -268,8 +255,6 @@ export const bulkActionsSchema = {
         },
       ],
     },
-    400: { $ref: '#/definitions/Error' },
-    403: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -286,7 +271,6 @@ export const csvTemplateSchema = {
       type: 'string',
       format: 'binary',
     },
-    403: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -334,8 +318,6 @@ export const csvPreviewSchema = {
         expiresAt: { type: 'string', format: 'date-time' },
       },
     },
-    400: { $ref: '#/definitions/Error' },
-    403: { $ref: '#/definitions/Error' },
   },
 }
 
@@ -386,8 +368,5 @@ export const csvImportSchema = {
         },
       },
     },
-    400: { $ref: '#/definitions/Error' },
-    403: { $ref: '#/definitions/Error' },
-    404: { $ref: '#/definitions/Error' },
   },
 }
