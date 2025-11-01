@@ -116,7 +116,7 @@ export const companyDomainsService = {
       },
     })
 
-    logger.info(`Domain added successfully`, { domainId: domain.id })
+    logger.info('Domain added successfully', { domainId: domain.id })
     return formatDomain(domain)
   },
 
@@ -151,6 +151,6 @@ export const companyDomainsService = {
       where: { id: domainId },
     })
 
-    logger.info(`Domain removed successfully`, { domainId })
+    logger.info('Domain removed successfully', { domainId })
   },
 }

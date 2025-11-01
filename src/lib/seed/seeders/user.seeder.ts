@@ -78,7 +78,7 @@ export class UserSeeder extends BaseSeeder {
       this.logInfo(
         `Created user '${userData.name}' with roles: ${userData.roles.join(', ')}`
         + (userData.jobTitleName ? `, jobTitle: ${userData.jobTitleName}` : '')
-        + (userData.departmentName ? `, department: ${userData.departmentName}` : '')
+        + (userData.departmentName ? `, department: ${userData.departmentName}` : ''),
       )
     }
     

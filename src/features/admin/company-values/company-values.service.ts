@@ -140,7 +140,7 @@ export const companyValuesService = {
       },
     })
 
-    logger.info(`Company value created successfully`, { valueId: value.id })
+    logger.info('Company value created successfully', { valueId: value.id })
     return formatCompanyValue(value)
   },
 
@@ -195,7 +195,7 @@ export const companyValuesService = {
       data: updateData,
     })
 
-    logger.info(`Company value updated successfully`, { valueId })
+    logger.info('Company value updated successfully', { valueId })
     return formatCompanyValue(value)
   },
 
@@ -233,7 +233,7 @@ export const companyValuesService = {
       ),
     )
 
-    logger.info(`Company values reordered successfully`)
+    logger.info('Company values reordered successfully')
 
     // Return updated list
     return this.listValues(companyId)
@@ -263,6 +263,6 @@ export const companyValuesService = {
       data: { isActive: false },
     })
 
-    logger.info(`Company value deleted successfully`, { valueId })
+    logger.info('Company value deleted successfully', { valueId })
   },
 }

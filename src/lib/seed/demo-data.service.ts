@@ -90,7 +90,7 @@ export const demoDataService = {
   async createReceivedCompliments(
     config: DemoDataConfig,
     otherUsers: any[],
-    companyValues: any[]
+    companyValues: any[],
   ): Promise<void> {
     const complimentsReceived = [
       {
@@ -160,7 +160,7 @@ export const demoDataService = {
   async createSentCompliments(
     config: DemoDataConfig,
     otherUsers: any[],
-    companyValues: any[]
+    companyValues: any[],
   ): Promise<void> {
     const complimentsSent = [
       {
@@ -281,7 +281,7 @@ export const demoDataService = {
       where: { 
         companyId: config.companyId,
         isActive: true,
-        stock: { gt: 0 }
+        stock: { gt: 0 },
       },
       take: 2,
     })

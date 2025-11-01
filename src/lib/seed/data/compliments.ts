@@ -282,6 +282,114 @@ export const COMPLIMENTS_TO_GABRIEL: Omit<ComplimentData, 'receiverAuth0Id' | 'c
   },
 ]
 
+// TechStart Brasil Compliments (between team members)
+export const TECHSTART_COMPLIMENTS: ComplimentData[] = [
+  {
+    senderAuth0Id: 'auth0|demo-company-admin-techstart',
+    receiverAuth0Id: 'auth0|demo-team-lead-techstart',
+    companyId: 'demo-company-002',
+    valueIndex: 0, // Innovation
+    message: 'Juliana, sua ideia para melhorar a pipeline de CI/CD foi genial! Ganhos de velocidade significativos.',
+    coins: 30,
+    isPublic: true,
+    daysAgo: 5,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-team-lead-techstart',
+    receiverAuth0Id: 'auth0|demo-employee-techstart-1',
+    companyId: 'demo-company-002',
+    valueIndex: 2, // Excellence
+    message: 'Lucas, seu trabalho no sistema de logging foi excelente! Muito bem estruturado.',
+    coins: 25,
+    isPublic: true,
+    daysAgo: 8,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-employee-techstart-2',
+    receiverAuth0Id: 'auth0|demo-company-admin-techstart',
+    companyId: 'demo-company-002',
+    valueIndex: 1, // Collaboration
+    message: 'Fernanda, obrigada por ser tão colaborativa com nossos testes. Você fez a diferença!',
+    coins: 20,
+    isPublic: true,
+    daysAgo: 12,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-employee-techstart-1',
+    receiverAuth0Id: 'auth0|demo-employee-techstart-2',
+    companyId: 'demo-company-002',
+    valueIndex: 3, // Integrity
+    message: 'Camila, sua atenção à qualidade dos testes nos mantém confiantes. Muito profissional!',
+    coins: 15,
+    isPublic: true,
+    daysAgo: 18,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-hr-manager-techstart',
+    receiverAuth0Id: 'auth0|demo-team-lead-techstart',
+    companyId: 'demo-company-002',
+    valueIndex: 4, // Customer Focus
+    message: 'Juliana, você sempre coloca a satisfação do usuário em primeiro lugar. Admirável!',
+    coins: 20,
+    isPublic: true,
+    daysAgo: 22,
+  },
+]
+
+// Global Solutions Compliments
+export const GLOBAL_SOLUTIONS_COMPLIMENTS: ComplimentData[] = [
+  {
+    senderAuth0Id: 'auth0|demo-company-admin-global',
+    receiverAuth0Id: 'auth0|demo-employee-global-1',
+    companyId: 'demo-company-003',
+    valueIndex: 0, // Innovation
+    message: 'Mike, sua solução arquitetural foi muito inovadora. Exatamente o que precisávamos!',
+    coins: 30,
+    isPublic: true,
+    daysAgo: 7,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-hr-manager-global',
+    receiverAuth0Id: 'auth0|demo-company-admin-global',
+    companyId: 'demo-company-003',
+    valueIndex: 1, // Collaboration
+    message: 'John, sua colaboração com os consultores externos foi perfeita. Muito profissional!',
+    coins: 25,
+    isPublic: true,
+    daysAgo: 14,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-employee-global-1',
+    receiverAuth0Id: 'auth0|demo-hr-manager-global',
+    companyId: 'demo-company-003',
+    valueIndex: 2, // Excellence
+    message: 'Sarah, o programa de treinamento que você desenvolveu é excelente. Muito bem estruturado!',
+    coins: 25,
+    isPublic: true,
+    daysAgo: 20,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-company-admin-global',
+    receiverAuth0Id: 'auth0|demo-hr-manager-global',
+    companyId: 'demo-company-003',
+    valueIndex: 3, // Integrity
+    message: 'Sarah, sua transparência nos relatórios de RH constrói muita confiança com o board.',
+    coins: 20,
+    isPublic: true,
+    daysAgo: 25,
+  },
+  {
+    senderAuth0Id: 'auth0|demo-employee-global-1',
+    receiverAuth0Id: 'auth0|demo-company-admin-global',
+    companyId: 'demo-company-003',
+    valueIndex: 4, // Customer Focus
+    message: 'John, você sempre entende o que nossos clientes realmente precisam. Muito atento!',
+    coins: 20,
+    isPublic: true,
+    daysAgo: 30,
+  },
+]
+
 // Gabriel's auth0Id for reference
 export const GABRIEL_AUTH0_ID = 'auth0|688aa3e7f3f1dbd119c3b600'
 export const VALORIZE_COMPANY_ID = 'demo-company-001'
