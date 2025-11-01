@@ -1,0 +1,436 @@
+{
+  "info": {
+    "name": "Admin Users CRUD API",
+    "description": "Complete API collection for Admin Users management including CRUD operations and CSV import.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get Auth Token (Example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "client_id",
+                  "value": "YOUR_AUTH0_CLIENT_ID"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "YOUR_AUTH0_CLIENT_SECRET"
+                },
+                {
+                  "key": "audience",
+                  "value": "YOUR_AUTH0_AUDIENCE"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://YOUR_AUTH0_DOMAIN/oauth/token",
+              "protocol": "https",
+              "host": ["YOUR_AUTH0_DOMAIN"],
+              "path": ["oauth", "token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "1. List Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users?page=1&limit=20&search=&status=&departmentId=&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}", "admin", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (1-based)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (1-100)"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by name or email",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Filter: active | inactive",
+                  "disabled": true
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "Filter by department",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort direction: asc | desc"
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of users with optional filters and search"
+          }
+        },
+        {
+          "name": "2. Get User Detail",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/{{user_id}}",
+              "host": ["{{base_url}}", "admin", "users"],
+              "path": ["{{user_id}}"]
+            },
+            "description": "Get complete user details including statistics"
+          }
+        },
+        {
+          "name": "3. Create User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@empresa.com.br\",\n  \"departmentId\": \"dept_123\",\n  \"jobTitleId\": \"job_456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": ["{{base_url}}", "admin", "users"]
+            },
+            "description": "Create a new user"
+          }
+        },
+        {
+          "name": "4. Update User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva Updated\",\n  \"email\": \"joao.updated@empresa.com.br\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/{{user_id}}",
+              "host": ["{{base_url}}", "admin", "users"],
+              "path": ["{{user_id}}"]
+            },
+            "description": "Update user information"
+          }
+        },
+        {
+          "name": "5. Delete User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/{{user_id}}",
+              "host": ["{{base_url}}", "admin", "users"],
+              "path": ["{{user_id}}"]
+            },
+            "description": "Deactivate a user (soft delete)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bulk Actions",
+      "item": [
+        {
+          "name": "Bulk Activate Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"user_1\", \"user_2\"],\n  \"action\": \"activate\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/bulk/actions",
+              "host": ["{{base_url}}", "admin", "users", "bulk", "actions"]
+            },
+            "description": "Activate multiple users at once"
+          }
+        },
+        {
+          "name": "Bulk Deactivate Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"user_1\", \"user_2\"],\n  \"action\": \"deactivate\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/bulk/actions",
+              "host": ["{{base_url}}", "admin", "users", "bulk", "actions"]
+            },
+            "description": "Deactivate multiple users at once"
+          }
+        },
+        {
+          "name": "Bulk Export Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"user_1\", \"user_2\"],\n  \"action\": \"export\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/bulk/actions",
+              "host": ["{{base_url}}", "admin", "users", "bulk", "actions"]
+            },
+            "description": "Export multiple users to CSV"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CSV Import",
+      "item": [
+        {
+          "name": "1. Download CSV Template",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/csv/template",
+              "host": ["{{base_url}}", "admin", "users", "csv", "template"]
+            },
+            "description": "Download CSV template for bulk import"
+          }
+        },
+        {
+          "name": "2. Preview CSV Import",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileContent\": \"bm9tZSxlbWFpbCxkZXBhcnRhbWVudG8sY2FyZ28KSm/Dh28gU2lsdmEsam9hb0BlbXByZXNhLmNvbS5icixUZWNub2xvZ2lhLERlc2Vudm9sdmVkb3IKTWFyaWEgU2FudG9zLG1hcmlhQGVtcHJlc2EuY29tLmJyLFJILEFuYWxpc3Rh\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/csv/preview",
+              "host": ["{{base_url}}", "admin", "users", "csv", "preview"]
+            },
+            "description": "Preview CSV and validate data before import. The fileContent should be a base64 encoded CSV file."
+          }
+        },
+        {
+          "name": "3. Confirm CSV Import",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"previewId\": \"preview-1705849200000-abc123def456\",\n  \"confirmedRows\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/csv/import",
+              "host": ["{{base_url}}", "admin", "users", "csv", "import"]
+            },
+            "description": "Confirm and process CSV import. Use previewId from preview step."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string",
+      "description": "Your Auth0 JWT token. Get this from Auth0 or your auth endpoint."
+    },
+    {
+      "key": "user_id",
+      "value": "user_123",
+      "type": "string",
+      "description": "Replace with actual user ID from list endpoint"
+    }
+  ]
+}
