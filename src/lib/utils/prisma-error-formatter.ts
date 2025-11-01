@@ -23,7 +23,7 @@ export function isPrismaError(error: unknown): error is PrismaError {
     (err.name && typeof err.name === 'string' && err.name.includes('Prisma')) ||
     'code' in err ||
     'clientVersion' in err ||
-    (err.message && typeof err.message === 'string' && err.message.includes('prisma.'))
+    (err.message && typeof err.message === 'string' && err.message.includes('prisma.')),
   )
 }
 
@@ -161,7 +161,7 @@ export function formatPrismaError(error: PrismaError): string {
       .filter(line =>
         line.includes('at ') &&
         !line.includes('node_modules') &&
-        !line.includes('node:')
+        !line.includes('node:'),
       )
       .slice(0, 3)
 
@@ -199,7 +199,7 @@ export function getErrorSummary(error: PrismaError): {
       line.trim() &&
       !line.includes('Invalid') &&
       !line.includes('at ') &&
-      !line.includes('prisma.')
+      !line.includes('prisma.'),
     )?.trim() || error.message.split('\n')[0],
     location: locationMatch ? `${locationMatch[1]}:${locationMatch[2]}:${locationMatch[3]}` : undefined,
     code: error.code,

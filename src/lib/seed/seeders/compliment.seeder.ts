@@ -9,7 +9,10 @@ import {
   COMPLIMENTS_TO_GABRIEL,
   GABRIEL_AUTH0_ID,
   VALORIZE_COMPANY_ID,
+  TECHSTART_COMPLIMENTS,
+  GLOBAL_SOLUTIONS_COMPLIMENTS,
   daysAgo,
+  type ComplimentData,
 } from '../data/compliments'
 
 export class ComplimentSeeder extends BaseSeeder {
@@ -219,8 +222,117 @@ export class ComplimentSeeder extends BaseSeeder {
       },
     })
     
+    // Create compliments for other companies
+    await this.seedCompanyCompliments('demo-company-002', TECHSTART_COMPLIMENTS)
+    await this.seedCompanyCompliments('demo-company-003', GLOBAL_SOLUTIONS_COMPLIMENTS)
+
     this.logComplete(createdCount, 'compliments')
     this.logInfo(`Gabriel sent ${totalCoinsFromGabriel} coins and received ${totalCoinsToGabriel} coins`)
     this.logInfo(`Created ${createdCount * 2} wallet transactions`)
+  }
+
+  private async seedCompanyCompliments(companyId: string, compliments: ComplimentData[]): Promise<void> {
+    // Get company users
+    const users = await this.prisma.user.findMany({
+      where: { companyId },
+      include: { wallet: true },
+    })
+
+    // Get company values
+    const values = await this.prisma.companyValue.findMany({
+      where: { companyId },
+    })
+
+    if (values.length === 0) {
+      this.logWarning(`No company values found for company ${companyId}`)
+      return
+    }
+
+    // Create each compliment with wallet transactions
+    for (const complimentData of compliments) {
+      const sender = users.find(u => u.auth0Id === complimentData.senderAuth0Id)
+      const receiver = users.find(u => u.auth0Id === complimentData.receiverAuth0Id)
+
+      if (!sender || !receiver || !sender.wallet || !receiver.wallet) {
+        continue
+      }
+
+      const createdAt = complimentData.daysAgo ? daysAgo(complimentData.daysAgo) : new Date()
+      const value = values[complimentData.valueIndex]
+
+      if (!value) {
+        continue
+      }
+
+      // Create compliment
+      await this.prisma.compliment.create({
+        data: {
+          senderId: sender.id,
+          receiverId: receiver.id,
+          companyId,
+          valueId: value.id,
+          message: complimentData.message,
+          coins: complimentData.coins,
+          isPublic: complimentData.isPublic,
+          createdAt,
+        },
+      })
+
+      // Create debit transaction for sender
+      const senderPreviousBalance = sender.wallet.complimentBalance
+      const senderNewBalance = senderPreviousBalance - complimentData.coins
+      await this.prisma.walletTransaction.create({
+        data: {
+          walletId: sender.wallet.id,
+          userId: sender.id,
+          transactionType: 'DEBIT',
+          balanceType: 'COMPLIMENT',
+          amount: complimentData.coins,
+          previousBalance: senderPreviousBalance,
+          newBalance: senderNewBalance,
+          reason: `Compliment sent to ${receiver.name}`,
+          metadata: {
+            receiverId: receiver.id,
+            receiverName: receiver.name,
+            valueId: value.id,
+            message: complimentData.message.substring(0, 100),
+          } as Prisma.JsonObject,
+        },
+      })
+
+      // Update sender wallet
+      await this.prisma.wallet.update({
+        where: { userId: sender.id },
+        data: { complimentBalance: senderNewBalance },
+      })
+
+      // Create credit transaction for receiver
+      const receiverPreviousBalance = receiver.wallet.redeemableBalance
+      const receiverNewBalance = receiverPreviousBalance + complimentData.coins
+      await this.prisma.walletTransaction.create({
+        data: {
+          walletId: receiver.wallet.id,
+          userId: receiver.id,
+          transactionType: 'CREDIT',
+          balanceType: 'REDEEMABLE',
+          amount: complimentData.coins,
+          previousBalance: receiverPreviousBalance,
+          newBalance: receiverNewBalance,
+          reason: `Compliment received from ${sender.name}`,
+          metadata: {
+            senderId: sender.id,
+            senderName: sender.name,
+            valueId: value.id,
+            message: complimentData.message.substring(0, 100),
+          } as Prisma.JsonObject,
+        },
+      })
+
+      // Update receiver wallet
+      await this.prisma.wallet.update({
+        where: { userId: receiver.id },
+        data: { redeemableBalance: receiverNewBalance },
+      })
+    }
   }
 }

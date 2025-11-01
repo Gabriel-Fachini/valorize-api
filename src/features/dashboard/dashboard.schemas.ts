@@ -3,12 +3,23 @@ export const dashboardStatsSchema = {
   querystring: {
     type: 'object',
     properties: {
-      days: {
-        type: 'integer',
-        minimum: 1,
-        maximum: 365,
-        default: 30,
-        description: 'Number of days to include in statistics (default: 30)',
+      startDate: {
+        type: 'string',
+        format: 'date',
+        description: 'Start date for statistics (ISO 8601 format: YYYY-MM-DD)',
+      },
+      endDate: {
+        type: 'string',
+        format: 'date',
+        description: 'End date for statistics (ISO 8601 format: YYYY-MM-DD)',
+      },
+      departmentId: {
+        type: 'string',
+        description: 'Filter by department ID',
+      },
+      jobTitleId: {
+        type: 'string',
+        description: 'Filter by job title ID',
       },
     },
     additionalProperties: false,
@@ -17,5 +28,8 @@ export const dashboardStatsSchema = {
 
 // TypeScript type for the querystring
 export interface DashboardStatsQuery {
-  days?: number
+  startDate?: string
+  endDate?: string
+  departmentId?: string
+  jobTitleId?: string
 }

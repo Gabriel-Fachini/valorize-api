@@ -1,23 +1,117 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
+import { Prisma } from '@prisma/client'
+
+export interface DashboardFilters {
+  startDate?: string
+  endDate?: string
+  departmentId?: string
+  jobTitleId?: string
+}
 
 /**
  * Dashboard service for calculating company-wide statistics and metrics
  */
 export const dashboardService = {
   /**
+   * Build user filters for compliments queries
+   * Filters by sender OR receiver matching the criteria
+   */
+  buildUserFilters(
+    departmentId?: string,
+    jobTitleId?: string,
+  ): Prisma.ComplimentWhereInput | undefined {
+    if (!departmentId && !jobTitleId) {
+      return undefined
+    }
+
+    // If both filters are provided
+    if (departmentId && jobTitleId) {
+      return {
+        OR: [
+          {
+            sender: {
+              departmentId,
+              jobTitleId,
+            },
+          },
+          {
+            receiver: {
+              departmentId,
+              jobTitleId,
+            },
+          },
+        ],
+      }
+    }
+
+    // If only department filter
+    if (departmentId) {
+      return {
+        OR: [
+          { sender: { departmentId } },
+          { receiver: { departmentId } },
+        ],
+      }
+    }
+
+    // If only job title filter
+    return {
+      OR: [
+        { sender: { jobTitleId } },
+        { receiver: { jobTitleId } },
+      ],
+    }
+  },
+
+  /**
+   * Build user count filters
+   */
+  buildUserCountFilters(
+    departmentId?: string,
+    jobTitleId?: string,
+  ): Prisma.UserWhereInput {
+    const filters: Prisma.UserWhereInput = {
+      isActive: true,
+    }
+
+    if (departmentId) {
+      filters.departmentId = departmentId
+    }
+
+    if (jobTitleId) {
+      filters.jobTitleId = jobTitleId
+    }
+
+    return filters
+  },
+
+  /**
    * Get comprehensive dashboard statistics for a company
    *
    * @param companyId - The company ID to get statistics for
-   * @param days - Number of days to look back (default: 30)
+   * @param filters - Optional filters (startDate, endDate, departmentId, jobTitleId)
    * @returns Dashboard statistics including metrics, top values, and weekly trends
    */
-  async getCompanyStats(companyId: string, days: number = 30) {
-    logger.info('Fetching dashboard statistics', { companyId, days })
+  async getCompanyStats(companyId: string, filters: DashboardFilters = {}) {
+    logger.info('Fetching dashboard statistics', { companyId, filters })
 
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - days)
+    // Parse dates or use defaults
+    const endDate = filters.endDate ? new Date(filters.endDate) : new Date()
+    const startDate = filters.startDate
+      ? new Date(filters.startDate)
+      : (() => {
+          const date = new Date()
+          date.setDate(date.getDate() - 30)
+          return date
+        })()
+
+    // Build filters
+    const userFilters = this.buildUserFilters(filters.departmentId, filters.jobTitleId)
+    const userCountFilters = this.buildUserCountFilters(
+      filters.departmentId,
+      filters.jobTitleId,
+    )
 
     try {
       // Execute all queries in parallel for better performance
@@ -38,6 +132,7 @@ export const dashboardService = {
               gte: startDate,
               lte: endDate,
             },
+            ...userFilters,
           },
         }),
 
@@ -49,6 +144,7 @@ export const dashboardService = {
               gte: startDate,
               lte: endDate,
             },
+            ...userFilters,
           },
           _sum: {
             coins: true,
@@ -57,17 +153,23 @@ export const dashboardService = {
 
         // Active users - users who either SENT compliments OR REDEEMED prizes
         // This gives us the count of unique users who engaged with the platform
-        this.getActiveUsersCount(companyId, startDate, endDate),
+        this.getActiveUsersCount(
+          companyId,
+          startDate,
+          endDate,
+          filters.departmentId,
+          filters.jobTitleId,
+        ),
 
-        // Total active users in the company
+        // Total active users in the company (filtered by department/job title if provided)
         prisma.user.count({
           where: {
             companyId,
-            isActive: true,
+            ...userCountFilters,
           },
         }),
 
-        // Total prizes redeemed in the period
+        // Total prizes redeemed in the period (filtered by department/job title)
         prisma.redemption.count({
           where: {
             companyId,
@@ -75,14 +177,30 @@ export const dashboardService = {
               gte: startDate,
               lte: endDate,
             },
+            user: {
+              ...(filters.departmentId && { departmentId: filters.departmentId }),
+              ...(filters.jobTitleId && { jobTitleId: filters.jobTitleId }),
+            },
           },
         }),
 
         // Top company values by compliment count
-        this.getTopValues(companyId, startDate, endDate),
+        this.getTopValues(
+          companyId,
+          startDate,
+          endDate,
+          filters.departmentId,
+          filters.jobTitleId,
+        ),
 
-        // Weekly compliment trends for the last 8 weeks
-        this.getWeeklyCompliments(companyId),
+        // Weekly compliment trends
+        this.getWeeklyCompliments(
+          companyId,
+          startDate,
+          endDate,
+          filters.departmentId,
+          filters.jobTitleId,
+        ),
       ])
 
       const coinsDistributed = coinsStats._sum.coins ?? 0
@@ -104,7 +222,6 @@ export const dashboardService = {
 
       return {
         period: {
-          days,
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
         },
@@ -141,13 +258,19 @@ export const dashboardService = {
    * @param companyId - The company ID
    * @param startDate - Start date of the period
    * @param endDate - End date of the period
+   * @param departmentId - Optional department filter
+   * @param jobTitleId - Optional job title filter
    * @returns Object with count of active users
    */
   async getActiveUsersCount(
     companyId: string,
     startDate: Date,
     endDate: Date,
+    departmentId?: string,
+    jobTitleId?: string,
   ) {
+    const userFilters = this.buildUserFilters(departmentId, jobTitleId)
+
     // Get distinct users who sent compliments
     const complimentSenders = await prisma.compliment.findMany({
       where: {
@@ -156,11 +279,12 @@ export const dashboardService = {
           gte: startDate,
           lte: endDate,
         },
+        ...userFilters,
       },
       select: {
         senderId: true,
+        receiverId: true,
       },
-      distinct: ['senderId'],
     })
 
     // Get distinct users who redeemed prizes
@@ -171,6 +295,10 @@ export const dashboardService = {
           gte: startDate,
           lte: endDate,
         },
+        user: {
+          ...(departmentId && { departmentId }),
+          ...(jobTitleId && { jobTitleId }),
+        },
       },
       select: {
         userId: true,
@@ -178,9 +306,48 @@ export const dashboardService = {
       distinct: ['userId'],
     })
 
-    // Combine and deduplicate user IDs using a Set
+    // Extract user IDs from compliments (both senders and receivers that match filters)
+    const complimentUserIds = new Set<string>()
+
+    for (const compliment of complimentSenders) {
+      // We need to check which users match the filters
+      // Since the query already filtered by sender OR receiver,
+      // we need to verify which specific users match
+      const [sender, receiver] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: compliment.senderId },
+          select: { departmentId: true, jobTitleId: true },
+        }),
+        prisma.user.findUnique({
+          where: { id: compliment.receiverId },
+          select: { departmentId: true, jobTitleId: true },
+        }),
+      ])
+
+      // Check if sender matches filters
+      if (sender) {
+        const senderMatches =
+          (!departmentId || sender.departmentId === departmentId) &&
+          (!jobTitleId || sender.jobTitleId === jobTitleId)
+        if (senderMatches) {
+          complimentUserIds.add(compliment.senderId)
+        }
+      }
+
+      // Check if receiver matches filters
+      if (receiver) {
+        const receiverMatches =
+          (!departmentId || receiver.departmentId === departmentId) &&
+          (!jobTitleId || receiver.jobTitleId === jobTitleId)
+        if (receiverMatches) {
+          complimentUserIds.add(compliment.receiverId)
+        }
+      }
+    }
+
+    // Combine all active user IDs
     const activeUserIds = new Set([
-      ...complimentSenders.map((c) => c.senderId),
+      ...complimentUserIds,
       ...prizeRedeemers.map((r) => r.userId),
     ])
 
@@ -195,9 +362,19 @@ export const dashboardService = {
    * @param companyId - The company ID
    * @param startDate - Start date of the period
    * @param endDate - End date of the period
+   * @param departmentId - Optional department filter
+   * @param jobTitleId - Optional job title filter
    * @returns Array of all company values with count and percentage, ordered by count descending
    */
-  async getTopValues(companyId: string, startDate: Date, endDate: Date) {
+  async getTopValues(
+    companyId: string,
+    startDate: Date,
+    endDate: Date,
+    departmentId?: string,
+    jobTitleId?: string,
+  ) {
+    const userFilters = this.buildUserFilters(departmentId, jobTitleId)
+
     // Get compliment counts grouped by value
     const valueCounts = await prisma.compliment.groupBy({
       by: ['valueId'],
@@ -207,13 +384,14 @@ export const dashboardService = {
           gte: startDate,
           lte: endDate,
         },
+        ...userFilters,
       },
       _count: {
-        id: true,
+        valueId: true,
       },
       orderBy: {
         _count: {
-          id: 'desc',
+          valueId: 'desc',
         },
       },
     })
@@ -224,7 +402,7 @@ export const dashboardService = {
 
     // Calculate total compliments for percentage calculation
     const totalCount = valueCounts.reduce(
-      (sum, item) => sum + item._count.id,
+      (sum, item) => sum + item._count.valueId,
       0,
     )
 
@@ -251,43 +429,101 @@ export const dashboardService = {
     // Combine data
     return valueCounts.map((item) => {
       const value = valueMap.get(item.valueId)
-      const percentage = (item._count.id / totalCount) * 100
+      const percentage = (item._count.valueId / totalCount) * 100
 
       return {
         valueId: item.valueId,
         valueName: value?.title ?? 'Unknown Value',
-        count: item._count.id,
+        count: item._count.valueId,
         percentage: parseFloat(percentage.toFixed(2)),
       }
     })
   },
 
   /**
-   * Get compliment counts grouped by week for the last 8 weeks
+   * Get compliment counts grouped by week
    *
    * @param companyId - The company ID
+   * @param startDate - Start date of the period
+   * @param endDate - End date of the period
+   * @param departmentId - Optional department filter
+   * @param jobTitleId - Optional job title filter
    * @returns Array of weekly compliment counts
    */
-  async getWeeklyCompliments(companyId: string) {
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - 56) // 8 weeks = 56 days
+  async getWeeklyCompliments(
+    companyId: string,
+    startDate: Date,
+    endDate: Date,
+    departmentId?: string,
+    jobTitleId?: string,
+  ) {
+    // Build query based on which filters are provided
+    // This avoids Prisma tagged template literal issues with undefined values
+    let weeklyData: Array<{ week_start: Date; count: bigint }>
 
-    // Use raw SQL for date truncation as Prisma doesn't have native support
-    // for DATE_TRUNC across all databases in the same way
-    const weeklyData = await prisma.$queryRaw<
-      Array<{ week_start: Date; count: bigint }>
-    >`
-      SELECT
-        DATE_TRUNC('week', created_at) as week_start,
-        COUNT(*) as count
-      FROM compliments
-      WHERE company_id = ${companyId}
-        AND created_at >= ${startDate}
-        AND created_at <= ${endDate}
-      GROUP BY week_start
-      ORDER BY week_start ASC
-    `
+    if (departmentId && jobTitleId) {
+      // Both filters provided
+      weeklyData = await prisma.$queryRaw<Array<{ week_start: Date; count: bigint }>>`
+        SELECT
+          DATE_TRUNC('week', c.created_at) as week_start,
+          COUNT(*) as count
+        FROM compliments c
+        INNER JOIN users sender ON c.sender_id = sender.id
+        INNER JOIN users receiver ON c.receiver_id = receiver.id
+        WHERE c.company_id = ${companyId}
+          AND c.created_at >= ${startDate}
+          AND c.created_at <= ${endDate}
+          AND (sender.department_id = ${departmentId} OR receiver.department_id = ${departmentId})
+          AND (sender.job_title_id = ${jobTitleId} OR receiver.job_title_id = ${jobTitleId})
+        GROUP BY week_start
+        ORDER BY week_start ASC
+      `
+    } else if (departmentId) {
+      // Only department filter
+      weeklyData = await prisma.$queryRaw<Array<{ week_start: Date; count: bigint }>>`
+        SELECT
+          DATE_TRUNC('week', c.created_at) as week_start,
+          COUNT(*) as count
+        FROM compliments c
+        INNER JOIN users sender ON c.sender_id = sender.id
+        INNER JOIN users receiver ON c.receiver_id = receiver.id
+        WHERE c.company_id = ${companyId}
+          AND c.created_at >= ${startDate}
+          AND c.created_at <= ${endDate}
+          AND (sender.department_id = ${departmentId} OR receiver.department_id = ${departmentId})
+        GROUP BY week_start
+        ORDER BY week_start ASC
+      `
+    } else if (jobTitleId) {
+      // Only job title filter
+      weeklyData = await prisma.$queryRaw<Array<{ week_start: Date; count: bigint }>>`
+        SELECT
+          DATE_TRUNC('week', c.created_at) as week_start,
+          COUNT(*) as count
+        FROM compliments c
+        INNER JOIN users sender ON c.sender_id = sender.id
+        INNER JOIN users receiver ON c.receiver_id = receiver.id
+        WHERE c.company_id = ${companyId}
+          AND c.created_at >= ${startDate}
+          AND c.created_at <= ${endDate}
+          AND (sender.job_title_id = ${jobTitleId} OR receiver.job_title_id = ${jobTitleId})
+        GROUP BY week_start
+        ORDER BY week_start ASC
+      `
+    } else {
+      // No user filters
+      weeklyData = await prisma.$queryRaw<Array<{ week_start: Date; count: bigint }>>`
+        SELECT
+          DATE_TRUNC('week', c.created_at) as week_start,
+          COUNT(*) as count
+        FROM compliments c
+        WHERE c.company_id = ${companyId}
+          AND c.created_at >= ${startDate}
+          AND c.created_at <= ${endDate}
+        GROUP BY week_start
+        ORDER BY week_start ASC
+      `
+    }
 
     return weeklyData.map((item) => ({
       weekStart: item.week_start.toISOString().split('T')[0],

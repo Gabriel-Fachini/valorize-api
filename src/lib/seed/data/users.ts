@@ -29,6 +29,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Super Admin',
     companyId: 'demo-company-001',
     roles: ['super_admin'],
+    jobTitleName: 'Senior Software Engineer',
+    departmentName: 'Engineering',
   },
   {
     auth0Id: 'auth0|demo-company-admin-valorize',
@@ -83,6 +85,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Fernanda Rodrigues',
     companyId: 'demo-company-002',
     roles: ['company_admin'],
+    jobTitleName: 'Tech Lead',
+    departmentName: 'Development',
   },
   {
     auth0Id: 'auth0|demo-hr-manager-techstart',
@@ -90,6 +94,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Roberto Alves',
     companyId: 'demo-company-002',
     roles: ['hr_manager'],
+    jobTitleName: 'Support Specialist',
+    departmentName: 'Support',
   },
   {
     auth0Id: 'auth0|demo-team-lead-techstart',
@@ -97,6 +103,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Juliana Pereira',
     companyId: 'demo-company-002',
     roles: ['team_lead'],
+    jobTitleName: 'Senior Developer',
+    departmentName: 'Development',
   },
   {
     auth0Id: 'auth0|demo-employee-techstart-1',
@@ -104,6 +112,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Lucas Martins',
     companyId: 'demo-company-002',
     roles: ['employee'],
+    jobTitleName: 'Junior Developer',
+    departmentName: 'Development',
   },
   {
     auth0Id: 'auth0|demo-employee-techstart-2',
@@ -111,6 +121,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Camila Souza',
     companyId: 'demo-company-002',
     roles: ['employee'],
+    jobTitleName: 'QA Engineer',
+    departmentName: 'Quality Assurance',
   },
 
   // Global Solutions Inc users
@@ -120,6 +132,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'John Smith',
     companyId: 'demo-company-003',
     roles: ['company_admin'],
+    jobTitleName: 'Solutions Architect',
+    departmentName: 'Consulting',
   },
   {
     auth0Id: 'auth0|demo-hr-manager-global',
@@ -127,6 +141,8 @@ export const DEMO_USERS: UserData[] = [
     name: 'Sarah Johnson',
     companyId: 'demo-company-003',
     roles: ['hr_manager'],
+    jobTitleName: 'HR Manager',
+    departmentName: 'HR',
   },
   {
     auth0Id: 'auth0|demo-employee-global-1',
@@ -134,5 +150,7 @@ export const DEMO_USERS: UserData[] = [
     name: 'Mike Wilson',
     companyId: 'demo-company-003',
     roles: ['employee'],
+    jobTitleName: 'Software Engineer',
+    departmentName: 'Engineering',
   },
 ]
