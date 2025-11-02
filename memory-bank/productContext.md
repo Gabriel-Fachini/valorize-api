@@ -56,7 +56,21 @@ Em vez de focar nos problemas, o Valorize oferece soluções práticas e imediat
 **Características:**
 - Prêmios tangíveis e desejáveis
 - Sistema de resgate com moedas acumuladas
-- Integração futura com fornecedores de prêmios
+- Variantes de produtos (cor, voltagem, tamanho)
+- Gestão de estoque com proteção contra race condition
+- Sistema de endereços para entrega
+- Tracking completo do status do pedido
+- Cancelamento inteligente (até 3 dias após resgate)
+
+**Fluxo de Resgate:**
+1. Usuário navega pelo catálogo de prêmios
+2. Seleciona prêmio desejado e variante (se aplicável)
+3. Sistema valida saldo de moedas redeemable
+4. Usuário seleciona ou cadastra endereço de entrega (máx 3 endereços)
+5. Confirma resgate - moedas são debitadas automaticamente
+6. Admin processa pedido e atualiza tracking
+7. Usuário acompanha status (pendente → processando → enviado → entregue)
+8. Pode cancelar em até 3 dias (moedas + estoque devolvidos)
 
 ### 4. Biblioteca (Cultura de Leitura)
 **Funcionalidades Especializadas:**
@@ -74,10 +88,13 @@ Em vez de focar nos problemas, o Valorize oferece soluções práticas e imediat
 
 ### Jornada Principal
 1. **Login**: Acesso via Auth0 com dados da empresa
-2. **Dashboard**: Visão geral de moedas, elogios recebidos/enviados
-3. **Enviar Elogio**: Fluxo principal - selecionar colega, valor, moeda e mensagem
-4. **Explorar**: Biblioteca, loja de prêmios, histórico de atividades
-5. **Resgatar**: Usar moedas acumuladas para prêmios ou livros
+2. **Perfil Completo**: Usuário tem departamento e cargo definidos
+3. **Dashboard**: Visão geral de moedas, elogios recebidos/enviados, métricas
+4. **Enviar Elogio**: Fluxo principal - selecionar colega, valor, moeda e mensagem
+5. **Explorar**: Catálogo de prêmios, histórico de atividades
+6. **Cadastrar Endereço**: Até 3 endereços para entrega (se ainda não tiver)
+7. **Resgatar**: Usar moedas acumuladas para prêmios
+8. **Acompanhar**: Status do resgate em tempo real
 
 ### Personas Principais
 
@@ -95,6 +112,10 @@ Em vez de focar nos problemas, o Valorize oferece soluções práticas e imediat
 - Configura valores da empresa
 - Gerencia catálogo de prêmios
 - Acompanha métricas de engajamento
+- Configura estrutura organizacional (departamentos e cargos)
+- Visualiza dashboard com analytics em tempo real
+- Gerencia resgates e acompanha entregas
+- Define domínios permitidos para SSO
 
 ## Diferencial Competitivo
 

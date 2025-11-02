@@ -180,6 +180,103 @@ try {
 }
 ```
 
+## Padrões de Validação e Regras de Negócio
+
+### Validação de Limites (Exemplo: Endereços)
+```typescript
+// Pattern: Validar no service antes de criar
+const MAX_ITEMS_PER_USER = 3
+
+async create(userId: string, data: CreateData) {
+  const itemCount = await Model.countByUserId(userId)
+  
+  if (itemCount >= MAX_ITEMS_PER_USER) {
+    throw new BadRequestError(
+      `User cannot have more than ${MAX_ITEMS_PER_USER} items`,
+      { name: 'MaxItemsReachedError' }
+    )
+  }
+  
+  return await Model.create(data)
+}
+```
+
+### Gestão de Valores Padrão (Default Handling)
+```typescript
+// Pattern: Auto-default para primeiro item
+async create(userId: string, data: CreateData) {
+  const existingCount = await Model.countByUserId(userId)
+  
+  // Se é o primeiro item, marca como padrão
+  if (existingCount === 0) {
+    data.isDefault = true
+  }
+  
+  // Se marcado como padrão, remove padrão dos outros
+  if (data.isDefault) {
+    await Model.unsetDefaultForUser(userId)
+  }
+  
+  return await Model.create(data)
+}
+
+// Pattern: Promover outro item ao deletar o padrão
+async delete(itemId: string, userId: string) {
+  const item = await Model.findById(itemId)
+  
+  await item.delete()
+  
+  // Se era o padrão, promove outro
+  if (item.isDefault) {
+    const otherItems = await Model.findByUserId(userId)
+    if (otherItems.length > 0) {
+      await otherItems[0].update({ isDefault: true })
+    }
+  }
+}
+```
+
+### Validação de Pertencimento (Ownership Validation)
+```typescript
+// Pattern: Validar que recurso pertence à empresa/usuário
+async validateBelongsToCompany(itemId: string, companyId: string) {
+  const item = await Model.findById(itemId)
+  
+  if (!item) {
+    throw new NotFoundError('Item not found')
+  }
+  
+  if (item.companyId !== companyId) {
+    throw new ForbiddenError('Item does not belong to this company')
+  }
+  
+  return true
+}
+```
+
+### Validação de Unicidade por Escopo
+```typescript
+// Pattern: Nome único dentro do escopo (ex: por empresa)
+// Implementado no Prisma Schema
+model Department {
+  companyId String
+  name      String
+  
+  @@unique([companyId, name]) // Nome único por empresa
+}
+
+// Validação no service (se necessário)
+async create(companyId: string, name: string) {
+  const existing = await Department.findByCompanyAndName(companyId, name)
+  
+  if (existing) {
+    throw new ConflictError('Department name already exists in this company')
+  }
+  
+  return await Department.create({ companyId, name })
+}
+```
+
 ## Padrões de Segurança
 
 ### Autenticação (Auth0)

@@ -4,6 +4,18 @@
 
 ### ✅ Funcionalidades Recém-Implementadas
 
+#### Sistema de Organização Empresarial
+Implementação completa de **Departamentos** e **Cargos (Job Titles)** para estruturação organizacional dentro das empresas.
+
+#### Sistema de Endereços
+Implementação completa do **Sistema de Endereços** com validações brasileiras, limite de 3 endereços por usuário e gestão de endereço padrão.
+
+#### Sistema de Dashboard
+Implementação de **Dashboard Centralizado** com métricas em tempo real e integração com múltiplos services.
+
+#### Sistema de Múltiplos Domínios
+Implementação de **AllowedDomains** para suporte a empresas com múltiplos domínios de email no SSO.
+
 #### Sistema de Empresas (Companies)
 Implementação completa da entidade **Company** com suporte específico para dados brasileiros e sistema de contatos empresariais.
 
@@ -53,14 +65,57 @@ O **Sistema de Elogios** foi implementado com sucesso, incluindo sistema de audi
    - Endpoints para envio, listagem e histórico
    - Integração com RBAC e permissões
 
-6. **Sistema de Auditoria de Carteiras - NOVO**
+9. **Sistema de Auditoria de Carteiras (100%) ✅ IMPLEMENTADO**
    - Modelo WalletTransaction para rastreamento completo
    - Log de todas movimentações (débito, crédito, reset)
    - Metadados detalhados para cada transação
    - Endpoints para consulta de histórico (usuário e admin)
    - Prova documental para confrontar usuários desconfiados
 
-7. **Infraestrutura Base**
+10. **Loja de Prêmios MVP (100%) ✅ IMPLEMENTADO**
+   - Prize & PrizeVariant Models com estoque
+   - Redemption & RedemptionTracking com histórico
+   - Race Condition protection com transações atômicas
+   - API REST completa (catálogo, admin, resgates)
+   - Cancelamento inteligente (3 dias + devolução)
+   - Integração com Wallet e Address
+
+11. **Sistema de Endereços (100%) ✅ NOVO**
+   - Address Model com validações brasileiras
+   - Limite de 3 endereços por usuário
+   - Sistema de endereço padrão automático
+   - Validações: CEP, telefone, campos obrigatórios
+   - CRUD completo com Zod schemas
+   - Integração com Redemptions
+
+12. **Sistema de Departamentos (100%) ✅ NOVO**
+   - Department Model com relacionamentos
+   - Validação de unicidade (nome único por empresa)
+   - Integração com User e Company
+   - Cascade delete ao remover empresa
+   - CRUD completo para gestão
+
+13. **Sistema de Job Titles/Cargos (100%) ✅ NOVO**
+   - JobTitle Model com relacionamentos
+   - Validação de unicidade (nome único por empresa)
+   - Integração com User e Company
+   - Cascade delete ao remover empresa
+   - CRUD completo para gestão
+
+14. **Sistema de Dashboard (100%) ✅ NOVO**
+   - Métricas centralizadas da empresa
+   - Integração com múltiplos services
+   - Validações de pertencimento (dept/cargo)
+   - Analytics em tempo real
+   - Endpoints otimizados
+
+15. **Sistema de Domínios Permitidos (100%) ✅ NOVO**
+   - AllowedDomain Model para SSO
+   - Suporte a múltiplos domínios por empresa
+   - Validação no fluxo de autenticação
+   - Unique constraint por empresa
+
+16. **Infraestrutura Base**
    - API REST com Fastify
    - Database PostgreSQL + Prisma
    - Logging estruturado
@@ -330,6 +385,84 @@ DELETE /companies/:id/values/:valueId  # Deletar valor ✅
 5. **🟣 Metadados**: Informações detalhadas para cada transação
 
 ## Considerações para o Futuro
+
+### Sistemas Recém-Implementados
+
+#### Sistema de Endereços ✅
+**Implementado**: Novembro 2025
+**Funcionalidades**:
+- Limite de 3 endereços por usuário (validação no service)
+- Sistema automático de endereço padrão (default handling)
+- Validações brasileiras: CEP, telefone, estado
+- Integração completa com sistema de resgates
+- Deleção inteligente: promove outro endereço como padrão
+
+**Padrões Importantes**:
+```typescript
+// Validação de limite
+if (addressCount >= MAX_ADDRESSES_PER_USER) {
+  throw new Error('User cannot have more than 3 addresses')
+}
+
+// Auto-default quando é o primeiro endereço
+if (addressCount === 0) {
+  data.isDefault = true
+}
+
+// Ao deletar endereço padrão, promove outro
+if (address.isDefault && otherAddresses.length > 0) {
+  await otherAddresses[0].update({ isDefault: true })
+}
+```
+
+#### Sistema de Organização Empresarial ✅
+**Implementado**: Novembro 2025
+**Funcionalidades**:
+- **Departamentos**: Estruturação de áreas/setores
+- **Job Titles**: Cargos/funções dos colaboradores
+- **Validação de Unicidade**: Nome único por empresa
+- **Cascade Delete**: Remoção automática ao deletar empresa
+- **Integração com User**: Relacionamento M:1
+
+**Uso**:
+- Filtros e segmentação no dashboard
+- Analytics por departamento/cargo
+- Organização visual da estrutura empresarial
+- Validação de pertencimento (dept/cargo pertencem à empresa)
+
+#### Sistema de Dashboard ✅
+**Implementado**: Novembro 2025
+**Funcionalidades**:
+- Métricas centralizadas (elogios, moedas, resgates)
+- Integração com múltiplos services (compliments, wallets, prizes)
+- Validações de pertencimento (departamento/cargo)
+- Performance otimizada para consultas agregadas
+- Analytics em tempo real
+
+#### Sistema de Múltiplos Domínios (AllowedDomain) ✅
+**Implementado**: Novembro 2025
+**Motivação**: Empresas grandes possuem múltiplos domínios de email
+**Exemplo**: @empresa.com.br, @empresa.com, @filial.com.br
+
+**Implementação**:
+```prisma
+model AllowedDomain {
+  id        String @id @default(cuid())
+  companyId String
+  domain    String
+  
+  @@unique([companyId, domain])
+}
+```
+
+**Validação no Auth**:
+```typescript
+// Antes: apenas Company.domain
+const company = await Company.findByDomain(emailDomain)
+
+// Depois: Company.domain OU AllowedDomain.domain
+const allowedDomain = await AllowedDomain.findByDomain(emailDomain)
+```
 
 ### Próximas Funcionalidades
 1. **✅ Sistema de Elogios**: IMPLEMENTADO COM SUCESSO

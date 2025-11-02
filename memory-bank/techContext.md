@@ -211,6 +211,31 @@ export const logger = pino({
 - **Auth0**: Autenticação e autorização
 - **PostgreSQL**: Persistência de dados
 
+### Padrões de SSO Multi-Domínio
+```typescript
+// Pattern: Suporte a múltiplos domínios por empresa
+// Implementado em: AllowedDomain model
+
+// Validação no login
+const emailDomain = email.split('@')[1]
+
+// Busca pelo domínio principal da empresa
+let company = await Company.findByDomain(emailDomain)
+
+// Se não encontrar, busca em domínios permitidos
+if (!company) {
+  const allowedDomain = await AllowedDomain.findByDomain(emailDomain)
+  if (allowedDomain) {
+    company = await Company.findById(allowedDomain.companyId)
+  }
+}
+
+// Exemplo de uso:
+// Empresa com domínio principal: @empresa.com.br
+// Domínios permitidos: @empresa.com, @filial.com.br
+// Todos os emails podem fazer login na mesma empresa
+```
+
 ### Futuras (Planejadas)
 - **Fornecedor de Prêmios**: API para catálogo e entrega
 - **Email Service**: Notificações (SendGrid/AWS SES)
@@ -271,25 +296,59 @@ export const logger = pino({
 ## Evolução Técnica
 
 ### Próximas Adições
-1. **Praise System**: Sistema de elogios (próxima prioridade)
-2. **Testing Suite**: Expansão da cobertura de testes
-3. **File Upload**: Suporte a imagens e documentos
-4. **Caching Layer**: Redis para performance
-5. **Monitoring**: APM e métricas de negócio
+1. **Sistema de Notificações**: Sistema de notificações em tempo real
+2. **Analytics Avançado**: Métricas de cultura e ROI
+3. **Testing Suite**: Expansão da cobertura de testes
+4. **File Upload**: Suporte a imagens e documentos
+5. **Caching Layer**: Redis para performance
+6. **Monitoring**: APM e métricas de negócio
 
 ### Recém-Implementado
-1. **RBAC System**: Sistema completo de controle de acesso
+1. **Sistema de Endereços**: Sistema completo para entrega de prêmios
+   - Validações brasileiras (CEP, telefone, estado)
+   - Limite de 3 endereços por usuário
+   - Gestão automática de endereço padrão
+   - Integração com sistema de resgates
+
+2. **Sistema de Organização Empresarial**: Departamentos e Job Titles
+   - Estruturação de hierarquia organizacional
+   - Validação de unicidade por empresa
+   - Cascade delete automático
+   - Integração com usuários e analytics
+
+3. **Sistema de Dashboard**: Métricas centralizadas
+   - Integração com múltiplos services
+   - Validações de pertencimento
+   - Performance otimizada
+
+4. **Sistema de Múltiplos Domínios**: AllowedDomain para SSO
+   - Suporte a múltiplos domínios de email por empresa
+   - Validação automática no fluxo de autenticação
+   - Unique constraint por empresa
+
+5. **RBAC System**: Sistema completo de controle de acesso
    - Middleware requirePermission
    - Padrão feature:objective para permissões
    - 3 endpoints administrativos
    - Testes unitários implementados
    - Error handling customizado
 
-2. **Companies System**: Sistema completo de empresas
+6. **Companies System**: Sistema completo de empresas
    - Validação CNPJ brasileira
    - Dados específicos por país
    - Sistema de contatos empresariais
    - 10 endpoints REST com validação Zod
+
+7. **Sistema de Elogios e Wallets**: Core da gamificação
+   - Sistema de moedas duplo (compliment + redeemable)
+   - Auditoria completa de transações
+   - Integração com valores da empresa
+
+8. **Sistema de Prêmios**: Loja completa com resgates
+   - Catálogo de prêmios com variantes
+   - Race condition protection
+   - Sistema de tracking de entregas
+   - Cancelamento inteligente
 
 ### Considerações Futuras
 - **Microservices**: Se complexidade justificar
