@@ -370,3 +370,33 @@ export const csvImportSchema = {
     },
   },
 }
+
+// ============================================================================
+// RESET PASSWORD
+// ============================================================================
+
+export const resetPasswordSchema = {
+  tags: ['Admin - Users'],
+  description: 'Generate a temporary password reset link for a user',
+  params: {
+    type: 'object',
+    properties: {
+      userId: { type: 'string' },
+    },
+    required: ['userId'],
+  },
+  body: {
+    type: 'null',
+  },
+  response: {
+    200: {
+      description: 'Temporary password reset link generated',
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        ticketUrl: { type: 'string', format: 'uri' },
+        expiresIn: { type: 'string' },
+      },
+    },
+  },
+}

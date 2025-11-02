@@ -827,4 +827,157 @@ export const authService = {
       throw new Error('Failed to retrieve company information')
     }
   },
+
+  /**
+   * Generate a temporary password for a user and trigger change password ticket
+   * Returns the change password ticket URL that can be sent to the user
+   */
+  async generateTemporaryPassword(auth0Id: string): Promise<{ ticket_url: string }> {
+    try {
+      const auth0Domain = process.env.AUTH0_DOMAIN!
+      
+      const managementToken = await this.getManagementToken()
+
+      // Request a change password ticket from Auth0
+      const response = await axios.post(
+        `https://${auth0Domain}/api/v2/tickets/password-change`,
+        {
+          user_id: auth0Id,
+          result_url: process.env.AUTH0_PASSWORD_RESET_REDIRECT_URI ?? `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`,
+          ttl_sec: 86400, // 24 hours
+          includeEmailInRedirect: false,
+          mark_email_as_verified: false,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${managementToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      const ticketUrl = response.data.ticket
+
+      logger.info('Temporary password ticket generated', {
+        auth0Id,
+        ticketUrl: ticketUrl.substring(0, 50) + '...', // Log only first 50 chars for security
+      })
+
+      return { ticket_url: ticketUrl }
+    } catch (error) {
+      logger.error('Failed to generate temporary password', {
+        auth0Id,
+        error: axios.isAxiosError(error) ? {
+          status: error.response?.status,
+          data: error.response?.data,
+        } : error instanceof Error ? error.message : String(error),
+      })
+      throw new Error('Failed to generate temporary password')
+    }
+  },
+
+  /**
+   * Reset password for a user by creating a new ticket
+   * This generates a change password URL that should be sent to the user
+   */
+  async resetUserPassword(auth0Id: string): Promise<{ ticket_url: string }> {
+    try {
+      logger.info('Resetting password for user', { auth0Id })
+      return await this.generateTemporaryPassword(auth0Id)
+    } catch (error) {
+      logger.error('Failed to reset password', {
+        auth0Id,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  },
+
+  /**
+   * Create a new user in Auth0 from Admin Panel
+   * Generates a password reset ticket automatically for first login
+   */
+  async createAdminUser(userData: {
+    email: string
+    name: string
+  }): Promise<{ auth0Id: string; ticketUrl: string }> {
+    try {
+      const auth0Domain = process.env.AUTH0_DOMAIN!
+      const clientId = process.env.AUTH0_M2M_CLIENT_ID!
+      const clientSecret = process.env.AUTH0_M2M_CLIENT_SECRET!
+
+      // Validate required environment variables
+      if (!auth0Domain || !clientId || !clientSecret) {
+        throw new Error('Missing required Auth0 environment variables')
+      }
+
+      // Create user in Auth0
+      const auth0UserData = {
+        email: userData.email.toLowerCase(),
+        name: userData.name,
+        password: 'T3mp0r@ryP@ss', // Temporary password (will be reset)
+        email_verified: true,
+        connection: 'Username-Password-Authentication',
+      }
+
+      const managementToken = await this.getManagementToken()
+
+      const auth0Response = await axios.post(
+        `https://${auth0Domain}/api/v2/users`,
+        auth0UserData,
+        {
+          headers: {
+            'Authorization': `Bearer ${managementToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      const auth0User = auth0Response.data
+
+      if (!auth0User.user_id) {
+        throw new Error('Failed to create user in Auth0')
+      }
+
+      logger.info('User created in Auth0 via Admin Panel', {
+        auth0Id: auth0User.user_id,
+        email: userData.email,
+      })
+
+      // Generate password reset ticket
+      const passwordTicket = await this.generateTemporaryPassword(auth0User.user_id)
+
+      return {
+        auth0Id: auth0User.user_id,
+        ticketUrl: passwordTicket.ticket_url,
+      }
+    } catch (error) {
+      logger.error('Error creating user in Auth0 via Admin Panel', {
+        email: userData.email,
+        error: axios.isAxiosError(error) ? {
+          status: error.response?.status,
+          data: error.response?.data,
+        } : error instanceof Error ? error.message : String(error),
+      })
+
+      // Handle specific Auth0 errors
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          throw new Error('Auth0 Management API authentication failed')
+        }
+        if (error.response?.status === 403) {
+          throw new Error('Auth0 Management API access denied')
+        }
+        if (error.response?.status === 409) {
+          throw new Error('User with this email already exists in Auth0')
+        }
+        if (error.response?.status === 400) {
+          const errorMessage = error.response.data?.message ?? 'Invalid user data'
+          throw new Error(`Auth0 validation error: ${errorMessage}`)
+        }
+      }
+
+      throw error
+    }
+  },
 }

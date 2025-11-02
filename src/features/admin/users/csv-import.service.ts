@@ -6,6 +6,7 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { ValidationError } from '@/middleware/error-handler'
+import { authService } from '@/features/auth/auth.service'
 import type {
   CSVRow,
   CSVRowError,
@@ -370,13 +371,37 @@ export async function importUsers(
             })
             updated++
           } else {
-            // Create new user
-            const auth0Id = `imported-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            // Create new user in Auth0 first
+            let auth0Id: string
+            let ticketUrl: string | undefined
 
+            try {
+              const auth0Result = await authService.createAdminUser({
+                email: row.email.toLowerCase().trim(),
+                name: row.nome.trim(),
+              })
+              auth0Id = auth0Result.auth0Id
+              ticketUrl = auth0Result.ticketUrl
+
+              logger.info('User created in Auth0 via CSV import', {
+                auth0Id,
+                email: row.email,
+              })
+            } catch (auth0Error) {
+              logger.error('Failed to create user in Auth0 during CSV import', {
+                email: row.email,
+                error: auth0Error instanceof Error ? auth0Error.message : String(auth0Error),
+              })
+              throw new Error(
+                `Failed to create user in Auth0: ${auth0Error instanceof Error ? auth0Error.message : 'Unknown error'}`,
+              )
+            }
+
+            // Create in local database
             await tx.user.create({
               data: {
                 auth0Id,
-                email: row.email,
+                email: row.email.toLowerCase().trim(),
                 name: row.nome.trim(),
                 companyId,
                 departmentId,
@@ -385,13 +410,19 @@ export async function importUsers(
               },
             })
             created++
+
+            logger.info('User created from CSV import', {
+              userId: auth0Id,
+              email: row.email,
+              ticketUrl,
+            })
           }
         } catch (error) {
           logger.error(`Error importing row ${row.rowNumber}:`, error)
           errors.push({
             rowNumber: row.rowNumber,
             email: row.email,
-            reason: 'Failed to import user',
+            reason: error instanceof Error ? error.message : 'Failed to import user',
           })
         }
       }
@@ -446,7 +477,7 @@ async function getExistingEmailsByCompany(
 }
 
 async function resolveDepartment(
-  tx: any,
+  tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   departmentName: string,
   companyId: string,
 ): Promise<string | null> {
@@ -461,10 +492,14 @@ async function resolveDepartment(
     },
   })
 
-  return dept?.id || null
+  return dept?.id ?? null
 }
 
-async function resolveJobTitle(tx: any, jobTitleName: string, companyId: string): Promise<string | null> {
+async function resolveJobTitle(
+  tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  jobTitleName: string,
+  companyId: string,
+): Promise<string | null> {
   // Try to find by name
   const jobTitle = await tx.jobTitle.findFirst({
     where: {
@@ -476,7 +511,7 @@ async function resolveJobTitle(tx: any, jobTitleName: string, companyId: string)
     },
   })
 
-  return jobTitle?.id || null
+  return jobTitle?.id ?? null
 }
 
 // Export as service object

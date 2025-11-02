@@ -17,6 +17,7 @@ import {
   csvTemplateSchema,
   csvPreviewSchema,
   csvImportSchema,
+  resetPasswordSchema,
 } from './users.schemas'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/rbac/permissions.constants'
@@ -235,6 +236,31 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         throw new Error('Invalid action')
       } catch (error) {
         logger.error('Failed to perform bulk action', { error })
+        throw error
+      }
+    },
+  )
+
+  // ============================================================================
+  // RESET PASSWORD
+  // ============================================================================
+  fastify.put(
+    '/:userId/reset-password',
+    {
+      schema: resetPasswordSchema,
+      preHandler: [requirePermission(PERMISSION.USERS_UPDATE)],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const auth0Id = getAuth0Id(request)
+        const companyId = await getCompanyIdFromUser(auth0Id)
+        const { userId } = request.params as { userId: string }
+
+        const result = await usersService.resetUserPassword(companyId, userId)
+
+        return reply.code(200).send(result)
+      } catch (error) {
+        logger.error('Failed to reset password', { error })
         throw error
       }
     },

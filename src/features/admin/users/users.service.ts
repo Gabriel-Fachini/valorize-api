@@ -6,6 +6,8 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { NotFoundError, ConflictError, ValidationError } from '@/middleware/error-handler'
+import { authService } from '@/features/auth/auth.service'
+import { companyDomainsService } from '@/features/admin/company-domains/company-domains.service'
 import type {
   UserListItem,
   UserDetailResponse,
@@ -19,6 +21,13 @@ import type {
 // ============================================================================
 // USER LISTING & SEARCH
 // ============================================================================
+
+type WhereClause = {
+  companyId: string
+  isActive?: boolean
+  departmentId?: string | null
+  OR?: Array<{ name: { contains: string; mode: 'insensitive' } } | { email: { contains: string; mode: 'insensitive' } }>
+}
 
 export async function listUsers(
   companyId: string,
@@ -39,7 +48,7 @@ export async function listUsers(
   }
 
   // Build where clause
-  const where: any = {
+  const where: WhereClause = {
     companyId,
   }
 
@@ -53,7 +62,7 @@ export async function listUsers(
     where.departmentId = departmentId
   }
 
-  if (search && search.trim()) {
+  if (search?.trim()) {
     where.OR = [{ name: { contains: search, mode: 'insensitive' } }, { email: { contains: search, mode: 'insensitive' } }]
   }
 
@@ -102,7 +111,7 @@ export async function listUsers(
     email: user.email,
     department: user.department ? { id: user.department.id, name: user.department.name } : undefined,
     position: user.jobTitle ? { id: user.jobTitle.id, name: user.jobTitle.name } : undefined,
-    avatar: user.avatar || undefined,
+    avatar: user.avatar ?? undefined,
     isActive: user.isActive,
     createdAt: user.createdAt,
     lastLogin: undefined, // TODO: add lastLogin field to User model if needed
@@ -154,7 +163,7 @@ export async function getUserById(companyId: string, userId: string): Promise<Us
     email: user.email,
     department: user.department ? { id: user.department.id, name: user.department.name } : undefined,
     position: user.jobTitle ? { id: user.jobTitle.id, name: user.jobTitle.name } : undefined,
-    avatar: user.avatar || undefined,
+    avatar: user.avatar ?? undefined,
     isActive: user.isActive,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -204,7 +213,7 @@ export async function getUserStatistics(userId: string): Promise<UserStatistics>
   return {
     complimentsSent,
     complimentsReceived,
-    totalCoins: wallet?.redeemableBalance || 0,
+    totalCoins: wallet?.redeemableBalance ?? 0,
     redeemptions,
   }
 }
@@ -223,6 +232,7 @@ export async function createUser(
   email: string
   isActive: boolean
   createdAt: Date
+  temporaryPasswordUrl?: string
 }> {
   const { name, email, departmentId, jobTitleId } = input
 
@@ -236,6 +246,9 @@ export async function createUser(
   }
 
   const normalizedEmail = email.toLowerCase().trim()
+
+  // Validate email domain
+  await companyDomainsService.validateEmailDomain(companyId, normalizedEmail)
 
   // Check if email already exists in company
   const existingUser = await prisma.user.findFirst({
@@ -275,23 +288,61 @@ export async function createUser(
     }
   }
 
-  // Generate Auth0 ID if not provided
-  const finalAuth0Id = auth0Id || `admin-created-${Date.now()}`
+  // Create user in Auth0 if auth0Id not provided
+  let finalAuth0Id = auth0Id
+  let temporaryPasswordUrl: string | undefined
 
-  // Create user
+  if (!finalAuth0Id) {
+    try {
+      const auth0Result = await authService.createAdminUser({
+        email: normalizedEmail,
+        name: name.trim(),
+      })
+      finalAuth0Id = auth0Result.auth0Id
+      temporaryPasswordUrl = auth0Result.ticketUrl
+
+      logger.info('User created in Auth0 via Admin Panel', {
+        auth0Id: finalAuth0Id,
+        email: normalizedEmail,
+      })
+    } catch (error) {
+      logger.error('Failed to create user in Auth0', {
+        email: normalizedEmail,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw new Error(`Failed to create user in Auth0: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  } else {
+    // If auth0Id is provided, just generate a password reset ticket
+    try {
+      const passwordTicket = await authService.generateTemporaryPassword(finalAuth0Id)
+      temporaryPasswordUrl = passwordTicket.ticket_url
+    } catch (error) {
+      logger.warn('Failed to generate temporary password for provided auth0Id', {
+        auth0Id: finalAuth0Id,
+        email: normalizedEmail,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      // Don't fail user creation if password generation fails
+    }
+  }
+
+  // Create user in local database
   const user = await prisma.user.create({
     data: {
       auth0Id: finalAuth0Id,
       email: normalizedEmail,
       name: name.trim(),
       companyId,
-      departmentId: departmentId || null,
-      jobTitleId: jobTitleId || null,
+      departmentId: departmentId ?? null,
+      jobTitleId: jobTitleId ?? null,
       isActive: true,
     },
   })
 
-  logger.info(`User created in admin panel: ${user.id} (${user.email})`)
+  logger.info(`User created in admin panel: ${user.id} (${user.email})`, {
+    auth0Id: finalAuth0Id,
+  })
 
   return {
     id: user.id,
@@ -299,12 +350,9 @@ export async function createUser(
     email: user.email,
     isActive: user.isActive,
     createdAt: user.createdAt,
+    temporaryPasswordUrl,
   }
 }
-
-// ============================================================================
-// UPDATE USER
-// ============================================================================
 
 export async function updateUser(
   companyId: string,
@@ -332,7 +380,14 @@ export async function updateUser(
   const { name, email, departmentId, jobTitleId, isActive } = input
 
   // Prepare update data
-  const updateData: any = {}
+  type UpdateData = {
+    name?: string
+    email?: string
+    departmentId?: string | null
+    jobTitleId?: string | null
+    isActive?: boolean
+  }
+  const updateData: UpdateData = {}
 
   if (name !== undefined) {
     if (name.trim().length < 2) {
@@ -450,6 +505,69 @@ export async function deactivateUser(companyId: string, userId: string): Promise
 }
 
 // ============================================================================
+// RESET PASSWORD
+// ============================================================================
+
+export async function resetUserPassword(
+  companyId: string,
+  userId: string,
+): Promise<{
+  message: string
+  ticketUrl: string
+  expiresIn: string
+}> {
+  const user = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      companyId,
+    },
+  })
+
+  if (!user) {
+    throw new NotFoundError('User not found')
+  }
+
+  if (!user.auth0Id) {
+    logger.error('User has no auth0Id', {
+      userId,
+      email: user.email,
+    })
+    throw new ValidationError('User does not have a valid Auth0 ID. Cannot reset password.')
+  }
+
+  try {
+    logger.info('Attempting to reset password for user', {
+      userId,
+      email: user.email,
+      auth0Id: user.auth0Id,
+    })
+
+    const result = await authService.resetUserPassword(user.auth0Id)
+
+    logger.info('Password reset ticket generated for user', {
+      userId,
+      email: user.email,
+      ticketUrl: result.ticket_url ? result.ticket_url.substring(0, 50) + '...' : 'NO URL',
+    })
+
+    return {
+      message: 'Password reset link has been sent. User will have 24 hours to reset their password.',
+      ticketUrl: result.ticket_url,
+      expiresIn: '24 hours',
+    }
+  } catch (error) {
+    logger.error('Failed to reset user password', {
+      userId,
+      email: user.email,
+      auth0Id: user.auth0Id,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    throw error
+  }
+}
+
+// ============================================================================
 // BULK ACTIONS
 // ============================================================================
 
@@ -549,7 +667,7 @@ export async function getUsersForExport(companyId: string, userIds: string[]): P
     email: user.email,
     department: user.department ? { id: user.department.id, name: user.department.name } : undefined,
     position: user.jobTitle ? { id: user.jobTitle.id, name: user.jobTitle.name } : undefined,
-    avatar: user.avatar || undefined,
+    avatar: user.avatar ?? undefined,
     isActive: user.isActive,
     createdAt: user.createdAt,
   }))
@@ -579,6 +697,7 @@ export const usersService = {
   createUser,
   updateUser,
   deactivateUser,
+  resetUserPassword,
   bulkActivate,
   bulkDeactivate,
   getUsersForExport,

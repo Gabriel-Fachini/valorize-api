@@ -35,7 +35,7 @@ function uniqueDomains(domains: string[]): string[] {
 /**
  * Format domain for response
  */
-function formatDomain(domain: any): DomainResponse {
+function formatDomain(domain: { id: string; domain: string; createdAt: Date }): DomainResponse {
   return {
     id: domain.id,
     domain: domain.domain,
@@ -152,5 +152,47 @@ export const companyDomainsService = {
     })
 
     logger.info('Domain removed successfully', { domainId })
+  },
+
+  /**
+   * Check if an email belongs to an allowed domain for the company
+   */
+  async isEmailAllowed(companyId: string, email: string): Promise<boolean> {
+    try {
+      const emailDomain = email.toLowerCase().split('@')[1]
+
+      if (!emailDomain) {
+        logger.warn('Invalid email format', { email })
+        return false
+      }
+
+      const allowedDomain = await prisma.allowedDomain.findFirst({
+        where: {
+          companyId,
+          domain: emailDomain,
+        },
+      })
+
+      return !!allowedDomain
+    } catch (error) {
+      logger.error('Error checking if email is allowed', {
+        companyId,
+        email,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      return false
+    }
+  },
+
+  /**
+   * Validate email domain or throw error
+   */
+  async validateEmailDomain(companyId: string, email: string): Promise<void> {
+    const isAllowed = await this.isEmailAllowed(companyId, email)
+
+    if (!isAllowed) {
+      const emailDomain = email.toLowerCase().split('@')[1]
+      throw new Error(`Email domain '${emailDomain}' is not allowed for this company`)
+    }
   },
 }
