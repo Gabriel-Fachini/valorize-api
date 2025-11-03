@@ -150,6 +150,7 @@ model Company {
   prizes         Prize[]
   redemptions    Redemption[]
   allowedDomains AllowedDomain[] // Domínios permitidos para SSO
+  wallet         CompanyWallet?
 
   @@index([domain])
   @@index([country])
@@ -414,4 +415,43 @@ model RedemptionTracking {
 
   @@index([redemptionId, createdAt])
   @@map("redemption_tracking")
+}
+
+model CompanyWallet {
+  id              String   @id @default(cuid())
+  companyId       String   @unique @map("company_id")
+  balance         Decimal  @default(0) @db.Decimal(10, 2)
+  totalDeposited  Decimal  @default(0) @db.Decimal(10, 2) @map("total_deposited")
+  totalSpent      Decimal  @default(0) @db.Decimal(10, 2) @map("total_spent")
+  overdraftLimit  Decimal  @default(0) @db.Decimal(10, 2) @map("overdraft_limit")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  company  Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  deposits WalletDeposit[]
+
+  @@index([companyId])
+  @@index([balance])
+  @@map("company_wallets")
+}
+
+model WalletDeposit {
+  id              String   @id @default(cuid())
+  companyWalletId String   @map("company_wallet_id")
+  amount          Decimal  @db.Decimal(10, 2)
+  status          String   @default("completed")
+  paymentMethod   String?  @map("payment_method")
+  transactionId   String?  @map("transaction_id")
+  notes           String?
+  createdBy       String?  @map("created_by")
+  depositedAt     DateTime @default(now()) @map("deposited_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  companyWallet CompanyWallet @relation(fields: [companyWalletId], references: [id], onDelete: Cascade)
+
+  @@index([companyWalletId])
+  @@index([status])
+  @@index([depositedAt])
+  @@index([companyWalletId, depositedAt])
+  @@map("wallet_deposits")
 }

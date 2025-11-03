@@ -148,4 +148,15 @@ export default async function dashboardRoutes(fastify: FastifyInstance) {
       }
     },
   )
+
+  // Economy dashboard routes - /dashboard/economy/*
+  await fastify.register(
+    async function (fastify) {
+      const { default: economyDashboardRoutes } = await import(
+        '@/features/dashboard/economy.routes'
+      )
+      await fastify.register(economyDashboardRoutes)
+    },
+    { prefix: '/economy' },
+  )
 }
