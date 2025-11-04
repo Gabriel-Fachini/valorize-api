@@ -36,6 +36,7 @@ export class UserSeeder extends BaseSeeder {
         update: {
           email: userData.email,
           name: userData.name,
+          avatar: userData.avatarUrl ?? null,
           companyId: userData.companyId,
           jobTitleId: jobTitleRecord?.id ?? null,
           departmentId: departmentRecord?.id ?? null,
@@ -44,6 +45,7 @@ export class UserSeeder extends BaseSeeder {
           auth0Id: userData.auth0Id,
           email: userData.email,
           name: userData.name,
+          avatar: userData.avatarUrl ?? undefined,
           companyId: userData.companyId,
           jobTitleId: jobTitleRecord ? jobTitleRecord.id : undefined,
           departmentId: departmentRecord?.id ?? null,

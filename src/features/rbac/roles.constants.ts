@@ -26,11 +26,11 @@ export interface RoleDefinition {
  * Use these constants instead of string literals throughout the application
  */
 export const ROLE = {
-  SUPER_ADMIN: 'super_admin',
-  COMPANY_ADMIN: 'company_admin',
-  HR_MANAGER: 'hr_manager',
-  TEAM_LEAD: 'team_lead',
-  EMPLOYEE: 'employee',
+  SUPER_ADMIN: 'Super Administrador',
+  COMPANY_ADMIN: 'Administrador da Empresa',
+  HR_MANAGER: 'Gerente RH',
+  TEAM_LEAD: 'Líder de Equipe',
+  EMPLOYEE: 'Empregado',
 } as const
 
 /**
@@ -45,7 +45,7 @@ export type Role = typeof ROLE[keyof typeof ROLE]
 export const ALL_ROLES: RoleDefinition[] = [
   {
     name: ROLE.SUPER_ADMIN,
-    description: 'Super administrator with full system access',
+    description: 'Super administrador com acesso total ao sistema',
     permissions: [
       // User management
       PERMISSION.USERS_READ,
@@ -61,6 +61,7 @@ export const ALL_ROLES: RoleDefinition[] = [
       PERMISSION.ROLES_UPDATE,
       PERMISSION.ROLES_DELETE,
       PERMISSION.ROLES_MANAGE_PERMISSIONS,
+      PERMISSION.PERMISSIONS_READ_ALL,
       // Admin panel
       PERMISSION.ADMIN_ACCESS_PANEL,
       PERMISSION.ADMIN_VIEW_ANALYTICS,
@@ -87,7 +88,7 @@ export const ALL_ROLES: RoleDefinition[] = [
   },
   {
     name: ROLE.COMPANY_ADMIN,
-    description: 'Company administrator with full company access',
+    description: 'Administrador da empresa com acesso total à empresa',
     permissions: [
       PERMISSION.USERS_READ,
       PERMISSION.USERS_CREATE,
@@ -99,6 +100,7 @@ export const ALL_ROLES: RoleDefinition[] = [
       PERMISSION.ROLES_CREATE,
       PERMISSION.ROLES_UPDATE,
       PERMISSION.ROLES_MANAGE_PERMISSIONS,
+      PERMISSION.PERMISSIONS_READ_ALL,
       PERMISSION.ADMIN_ACCESS_PANEL,
       PERMISSION.ADMIN_VIEW_ANALYTICS,
       PERMISSION.ADMIN_MANAGE_COMPANY,
@@ -112,12 +114,13 @@ export const ALL_ROLES: RoleDefinition[] = [
   },
   {
     name: ROLE.HR_MANAGER,
-    description: 'HR manager with user and analytics access',
+    description: 'Gerente de RH com acesso a usuários e análises',
     permissions: [
       PERMISSION.USERS_READ,
       PERMISSION.USERS_UPDATE,
       PERMISSION.USERS_MANAGE_ROLES,
       PERMISSION.ROLES_READ,
+      PERMISSION.PERMISSIONS_READ_ALL,
       PERMISSION.ADMIN_ACCESS_PANEL,
       PERMISSION.ADMIN_VIEW_ANALYTICS,
       PERMISSION.PRAISE_VIEW_ALL,
@@ -129,7 +132,7 @@ export const ALL_ROLES: RoleDefinition[] = [
   },
   {
     name: ROLE.TEAM_LEAD,
-    description: 'Team leader with limited administrative access',
+    description: 'Líder de equipe com acesso administrativo limitado',
     permissions: [
       PERMISSION.USERS_READ,
       PERMISSION.ROLES_READ,
@@ -145,7 +148,7 @@ export const ALL_ROLES: RoleDefinition[] = [
   },
   {
     name: ROLE.EMPLOYEE,
-    description: 'Standard employee with basic access',
+    description: 'Empregado padrão com acesso básico',
     permissions: [
       PERMISSION.PRAISE_SEND,
       PERMISSION.COINS_VIEW_BALANCE,

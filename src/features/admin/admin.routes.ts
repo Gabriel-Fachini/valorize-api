@@ -6,7 +6,7 @@
  *
  * Structure:
  * - /admin/dashboard/*         - Dashboard and analytics routes
- * - /admin/rbac/*              - Role and permission management routes
+ * - /admin/roles/*             - Role and permission management (CRUD)
  * - /admin/users/*             - User management and CSV import
  * - /admin/company/info        - Company basic information
  * - /admin/company/domains     - Allowed domains for SSO
@@ -35,13 +35,15 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     { prefix: '/dashboard' },
   )
 
-  // RBAC routes - /admin/rbac/*
+  // Roles Management routes - /admin/roles/* (full CRUD for roles and permissions + admin's own permissions)
   await fastify.register(
     async function (fastify) {
-      const { default: rbacRoutes } = await import('@/features/rbac/rbac.routes')
-      await fastify.register(rbacRoutes)
+      const { default: rolesManagementRoutes } = await import(
+        '@/features/admin/roles-management/roles-management.routes'
+      )
+      await fastify.register(rolesManagementRoutes)
     },
-    { prefix: '/rbac' },
+    { prefix: '/roles' },
   )
 
   // Users management routes - /admin/users/*

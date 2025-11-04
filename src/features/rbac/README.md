@@ -242,5 +242,5 @@ If you have existing code using hardcoded permission strings:
 
 - **Middleware**: [middleware/rbac.ts](../../middleware/rbac.ts) - Permission checking middleware
 - **Service**: [rbac.service.ts](./rbac.service.ts) - RBAC business logic
-- **Routes**: [rbac.routes.ts](./rbac.routes.ts) - RBAC management endpoints
 - **Seed Data**: [lib/seed/data/](../../lib/seed/data/) - Database seeding (deprecated, now re-exports from constants)
+- **Roles Management**: [features/admin/roles-management/](../admin/roles-management/) - Admin endpoints for roles CRUD
