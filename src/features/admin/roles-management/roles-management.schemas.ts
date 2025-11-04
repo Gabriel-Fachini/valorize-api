@@ -586,12 +586,15 @@ export const getUserRolesSchema = {
 
 export const assignRoleToUserSchema = {
   tags: ['User Roles'],
-  description: 'Assign a role to a user',
+  description: 'Assign a role to one or multiple users',
   params: {
     type: 'object',
     required: ['userId'],
     properties: {
-      userId: { type: 'string' },
+      userId: {
+        type: 'string',
+        description: 'Single user ID (can also use userIds in body for multiple users)',
+      },
     },
     additionalProperties: false,
   },
@@ -599,7 +602,12 @@ export const assignRoleToUserSchema = {
     type: 'object',
     required: ['roleId'],
     properties: {
-      roleId: { type: 'string' },
+      roleId: { type: 'string', description: 'Role ID to assign' },
+      userIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Optional array of user IDs to assign role to multiple users. If provided, overrides userId param.',
+      },
     },
     additionalProperties: false,
   },
@@ -609,11 +617,35 @@ export const assignRoleToUserSchema = {
       properties: {
         success: { type: 'boolean' },
         data: {
-          type: 'object',
-          properties: {
-            userId: { type: 'string' },
-            roleId: { type: 'string' },
-          },
+          oneOf: [
+            {
+              type: 'object',
+              properties: {
+                userId: { type: 'string' },
+                roleId: { type: 'string' },
+              },
+              description: 'Single user assignment result',
+            },
+            {
+              type: 'object',
+              properties: {
+                successCount: { type: 'integer' },
+                failedCount: { type: 'integer' },
+                failedAssignments: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      userId: { type: 'string' },
+                      reason: { type: 'string' },
+                    },
+                  },
+                },
+                summary: { type: 'string' },
+              },
+              description: 'Multiple users assignment result',
+            },
+          ],
         },
       },
     },

@@ -701,6 +701,100 @@ export const rolesManagementService = {
   },
 
   /**
+   * Assign a role to multiple users at once
+   * @param companyId - Company ID (for multi-tenancy validation)
+   * @param userIds - Array of user IDs
+   * @param roleId - Role ID to assign
+   * @returns Object with success count, failed assignments, and details
+   * @throws Error if role not found or belongs to different company
+   */
+  async assignRoleToMultipleUsers(
+    companyId: string,
+    userIds: string[],
+    roleId: string,
+  ) {
+    logger.debug('Assigning role to multiple users', {
+      companyId,
+      userCount: userIds.length,
+      roleId,
+    })
+
+    // Validate role exists and belongs to company
+    const role = await prisma.role.findFirst({
+      where: { id: roleId, companyId },
+    })
+
+    if (!role) {
+      throw new Error(`Role not found or does not belong to this company: ${roleId}`)
+    }
+
+    // Validate all users exist and belong to company
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds }, companyId },
+      select: { id: true },
+    })
+
+    const foundUserIds = new Set(users.map(u => u.id))
+    const notFoundUserIds = userIds.filter(id => !foundUserIds.has(id))
+
+    if (notFoundUserIds.length > 0) {
+      throw new Error(`Users not found or do not belong to this company: ${notFoundUserIds.join(', ')}`)
+    }
+
+    // Get existing role assignments for these users
+    const existingAssignments = await prisma.userRole.findMany({
+      where: { userId: { in: userIds }, roleId },
+      select: { userId: true },
+    })
+
+    const alreadyAssignedUserIds = new Set(existingAssignments.map(a => a.userId))
+    const usersToAssign = userIds.filter(id => !alreadyAssignedUserIds.has(id))
+
+    let successCount = 0
+    const failedAssignments: Array<{ userId: string; reason: string }> = []
+
+    if (usersToAssign.length > 0) {
+      try {
+        await prisma.userRole.createMany({
+          data: usersToAssign.map(userId => ({ userId, roleId })),
+          skipDuplicates: false,
+        })
+        successCount = usersToAssign.length
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        logger.error('Failed to assign role to some users', {
+          error: message,
+          companyId,
+          roleId,
+        })
+        throw error
+      }
+    }
+
+    // Users that were already assigned
+    for (const userId of alreadyAssignedUserIds) {
+      failedAssignments.push({
+        userId,
+        reason: 'Role is already assigned to user',
+      })
+    }
+
+    logger.info('Role assigned to multiple users successfully', {
+      companyId,
+      roleId,
+      successCount,
+      failedCount: failedAssignments.length,
+    })
+
+    return {
+      successCount,
+      failedCount: failedAssignments.length,
+      failedAssignments,
+      summary: `Successfully assigned role to ${successCount} user(s). ${failedAssignments.length} user(s) already had this role or failed.`,
+    }
+  },
+
+  /**
    * Remove a role from a user
    * @param companyId - Company ID (for multi-tenancy validation)
    * @param userId - User ID

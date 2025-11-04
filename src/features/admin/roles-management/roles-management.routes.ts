@@ -752,7 +752,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /admin/users/:userId/roles
-   * Assign a role to a user
+   * Assign a role to one or multiple users
+   * Supports both single user (via URL param) and multiple users (via userIds in body)
    */
   fastify.post(
     '/users/:userId/roles',
@@ -764,21 +765,42 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       const auth0Id = getAuth0Id(request)
       const companyId = await getCompanyIdFromUser(auth0Id)
       const { userId } = request.params as { userId: string }
-      const { roleId } = request.body as Record<string, unknown>
+      const { roleId, userIds } = request.body as Record<string, unknown>
 
       try {
-        const result = await rolesManagementService.assignRoleToUser(
-          companyId,
-          userId,
-          roleId as string,
-        )
+        // If userIds array is provided, assign to multiple users
+        if (userIds && Array.isArray(userIds) && userIds.length > 0) {
+          const result = await rolesManagementService.assignRoleToMultipleUsers(
+            companyId,
+            userIds as string[],
+            roleId as string,
+          )
 
-        logger.info('Role assigned to user', { userId, roleId, companyId })
+          logger.info('Role assigned to multiple users', {
+            roleId,
+            userCount: userIds.length,
+            companyId,
+          })
 
-        return reply.code(200).send({
-          success: true,
-          data: result,
-        })
+          return reply.code(200).send({
+            success: true,
+            data: result,
+          })
+        } else {
+          // Otherwise, assign to single user using userId param
+          const result = await rolesManagementService.assignRoleToUser(
+            companyId,
+            userId,
+            roleId as string,
+          )
+
+          logger.info('Role assigned to user', { userId, roleId, companyId })
+
+          return reply.code(200).send({
+            success: true,
+            data: result,
+          })
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
 
