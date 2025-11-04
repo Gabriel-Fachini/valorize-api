@@ -64,11 +64,6 @@ export const PERMISSION = {
   STORE_VIEW_CATALOG: 'store:view_catalog',
   STORE_REDEEM_PRIZES: 'store:redeem_prizes',
   STORE_MANAGE_CATALOG: 'store:manage_catalog',
-
-  // Library system permissions
-  LIBRARY_VIEW_BOOKS: 'library:view_books',
-  LIBRARY_RATE_BOOKS: 'library:rate_books',
-  LIBRARY_MANAGE_CATALOG: 'library:manage_catalog',
 } as const
 
 /**
@@ -232,23 +227,6 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     name: PERMISSION.STORE_MANAGE_CATALOG,
     description: 'Gerenciar catálogo de prêmios',
     category: 'Sistema de Loja',
-  },
-
-  // Library system permissions
-  {
-    name: PERMISSION.LIBRARY_VIEW_BOOKS,
-    description: 'Visualizar biblioteca de livros',
-    category: 'Sistema de Biblioteca',
-  },
-  {
-    name: PERMISSION.LIBRARY_RATE_BOOKS,
-    description: 'Avaliar e resenhar livros',
-    category: 'Sistema de Biblioteca',
-  },
-  {
-    name: PERMISSION.LIBRARY_MANAGE_CATALOG,
-    description: 'Gerenciar catálogo de livros',
-    category: 'Sistema de Biblioteca',
   },
 ]
 

@@ -654,3 +654,34 @@ export const removeRoleFromUserSchema = {
     },
   },
 }
+
+// ============================================================================
+// COMPANY USERS SCHEMAS
+// ============================================================================
+
+export const listCompanyUsersSchema = {
+  tags: ['Roles Management'],
+  description: 'List all active users in the company for dropdown selections',
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string', description: 'User ID' },
+              name: { type: 'string', description: 'User full name' },
+              email: { type: 'string', format: 'email', description: 'User email' },
+              avatar: { type: ['string', 'null'], description: 'User avatar URL' },
+            },
+            required: ['id', 'name', 'email'],
+          },
+          description: 'Array of active users sorted by name',
+        },
+      },
+    },
+  },
+}

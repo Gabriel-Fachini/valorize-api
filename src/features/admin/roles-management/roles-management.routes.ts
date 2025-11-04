@@ -31,6 +31,7 @@ import {
   getUserRolesSchema,
   assignRoleToUserSchema,
   removeRoleFromUserSchema,
+  listCompanyUsersSchema,
 } from './roles-management.schemas'
 
 /**
@@ -868,6 +869,35 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
 
         throw error
       }
+    },
+  )
+
+  // =========================================================================
+  // COMPANY USERS - LIST
+  // =========================================================================
+
+  /**
+   * GET /admin/roles/users/list
+   * List all active users in the company for role assignment
+   */
+  fastify.get(
+    '/users/list',
+    {
+      preHandler: [requirePermission(PERMISSION.ROLES_READ)],
+      schema: listCompanyUsersSchema,
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const auth0Id = getAuth0Id(request)
+      const companyId = await getCompanyIdFromUser(auth0Id)
+
+      const users = await rolesManagementService.listCompanyUsers(companyId)
+
+      logger.info('Company users retrieved', { companyId, usersCount: users.length })
+
+      return reply.code(200).send({
+        success: true,
+        data: users,
+      })
     },
   )
 }

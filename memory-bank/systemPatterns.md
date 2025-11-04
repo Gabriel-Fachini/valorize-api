@@ -13,7 +13,7 @@ src/
 │   ├── users/         # Gestão de usuários
 │   ├── companies/     # Sistema de empresas
 │   ├── rbac/          # Controle de acesso (implementado)
-│   └── [future]/      # Próximas features (coins, praise, store, library)
+│   └── [future]/      # Próximas features (analytics, integrações)
 ├── lib/               # Utilitários compartilhados
 ├── middleware/        # Middlewares do Fastify
 ├── types/            # Tipos TypeScript compartilhados

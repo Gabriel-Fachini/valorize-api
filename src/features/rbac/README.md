@@ -170,11 +170,6 @@ const rolesWithAnalytics = getRolesWithPermission(PERMISSION.ADMIN_VIEW_ANALYTIC
 - `PERMISSION.STORE_REDEEM_PRIZES` - Redeem prizes with coins
 - `PERMISSION.STORE_MANAGE_CATALOG` - Manage prize catalog
 
-### Library System
-- `PERMISSION.LIBRARY_VIEW_BOOKS` - View book library
-- `PERMISSION.LIBRARY_RATE_BOOKS` - Rate and review books
-- `PERMISSION.LIBRARY_MANAGE_CATALOG` - Manage book catalog
-
 ## 👥 Available Roles
 
 ### Super Admin (`ROLE.SUPER_ADMIN`)

@@ -775,5 +775,42 @@ export const rolesManagementService = {
 
     return result
   },
+
+  // =========================================================================
+  // ADMIN USERS - LIST
+  // =========================================================================
+
+  /**
+   * List all active users in the company
+   * Used for dropdowns to assign users to roles or manage permissions
+   *
+   * @param companyId - Company ID (for multi-tenancy validation)
+   * @returns Array of active users with their names, emails, and avatars
+   */
+  async listCompanyUsers(companyId: string) {
+    logger.debug('Listing company users', { companyId })
+
+    // Find all active users in the company
+    const users = await prisma.user.findMany({
+      where: {
+        companyId,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+      },
+      orderBy: { name: 'asc' },
+    })
+
+    logger.info('Company users listed successfully', {
+      companyId,
+      usersCount: users.length,
+    })
+
+    return users
+  },
 }
 

@@ -162,17 +162,6 @@
 - ✅ Categorias dinâmicas (SQL DISTINCT)
 - 📋 Integração com fornecedores externos (planejado v2)
 
-#### Biblioteca (Foco em Livros)
-**Status**: Não iniciado
-**Prioridade**: Média
-
-**Funcionalidades**:
-- Catálogo com capas e modelos 3D
-- Sistema de avaliações e comentários
-- Clubes de leitura por empresa
-- Recomendações personalizadas
-- Integração com APIs de livros
-
 ### Métricas de Desenvolvimento
 
 ### Arquivos e Código
@@ -248,9 +237,7 @@
 - 🎯 Sistema de elogios completo
 - 🎯 Sistema de moedas MVP
 - 🎯 Primeira versão da loja de prêmios
-
 ### Q3 2024
-- 🎯 Biblioteca de livros
 - 🎯 Analytics e relatórios
 - 🎯 Otimizações de performance
 
@@ -340,6 +327,6 @@ O projeto Valorize API está em **desenvolvimento ativo** com fundações sólid
 7. 📊 RH visualiza tudo no dashboard
 8. 🔍 Todo processo auditado e rastreável
 
-**Próximo Marco**: Sistema de Biblioteca (foco em livros) ou Analytics Avançado com métricas de cultura empresarial.
+**Próximo Marco**: Analytics Avançado com métricas de cultura empresarial.
 
 **Momentum**: Excelente! Feature core + infraestrutura organizacional completa, pronto para testes reais e feedback de usuários.

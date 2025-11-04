@@ -26,7 +26,6 @@ Em vez de focar nos problemas, o Valorize oferece soluções práticas e imediat
 #### 3. **Recompensas Tangíveis e Frequentes**
 - Prêmios reais que os colaboradores realmente desejam
 - Sistema de moedas que permite reconhecimento constante
-- Biblioteca focada em desenvolvimento pessoal e profissional
 
 ## Funcionalidades Principais
 
@@ -71,18 +70,6 @@ Em vez de focar nos problemas, o Valorize oferece soluções práticas e imediat
 6. Admin processa pedido e atualiza tracking
 7. Usuário acompanha status (pendente → processando → enviado → entregue)
 8. Pode cancelar em até 3 dias (moedas + estoque devolvidos)
-
-### 4. Biblioteca (Cultura de Leitura)
-**Funcionalidades Especializadas:**
-- **Visual Rico**: Capas e modelos 3D dos livros
-- **Social Empresarial**: Avaliações e comentários visíveis apenas para a empresa
-- **Clubes de Leitura**: Facilitação de discussões e grupos de leitura
-- **Desenvolvimento**: Foco em crescimento pessoal e profissional
-
-**Impacto Cultural:**
-- Promove aprendizado contínuo
-- Cria conversas e conexões baseadas em conhecimento
-- Demonstra investimento da empresa no desenvolvimento dos colaboradores
 
 ## Experiência do Usuário
 
@@ -137,8 +124,4 @@ Em vez de focar nos problemas, o Valorize oferece soluções práticas e imediat
 - Distribuição de elogios por valores da empresa
 - Conexões criadas entre colaboradores
 - Feedback qualitativo sobre ambiente de trabalho
-
-### Desenvolvimento
-- Livros resgatados e avaliados
-- Participação em clubes de leitura
 - Crescimento do catálogo de conhecimento compartilhado

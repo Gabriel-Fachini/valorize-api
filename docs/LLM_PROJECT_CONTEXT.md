@@ -24,7 +24,6 @@ Valorize provides:
 1. **Relevant Engagement**: Tools connecting daily actions to company values
 2. **Strengthened Culture**: Peer-to-peer recognition based on real company values
 3. **Tangible & Frequent Rewards**: Real prizes employees actually want
-4. **Professional Development**: Library focused on continuous learning
 
 ### Target Audience
 - **B2B Companies** seeking to improve culture and engagement
@@ -361,18 +360,12 @@ JWT_SECRET=your-jwt-secret
 7. Prize Store MVP
 
 ### 📋 Planned
-1. **Library System** (next priority)
-   - Book catalog with covers and 3D models
-   - Company-only reviews and comments
-   - Reading clubs
-   - Personalized recommendations
-
-2. **Analytics Dashboard**
+1. **Analytics Dashboard**
    - Engagement metrics
    - Compliment distribution by values
    - Active users tracking
 
-3. **Gamification**
+2. **Gamification**
    - Badges and achievements
    - Leaderboards
    - Challenges
@@ -462,7 +455,7 @@ When starting a new conversation about this project:
 3. **My role**: Solo full-stack developer (TypeScript/Node.js)
 4. **Architecture**: Feature-first, Fastify + Prisma + PostgreSQL
 5. **Core feature**: Compliment system with dual wallet and prize store
-6. **Next priority**: Library system or production readiness
+6. **Next priority**: Production readiness and advanced analytics
 7. **Code style**: No semicolons, clean & simple, TypeScript strict
 
 **Ask me**:
@@ -523,7 +516,6 @@ When starting a new conversation about this project:
    - Integration with wallet system
 
 ### Next Steps
-- Library system implementation
 - Analytics dashboard
 - Production deployment preparation
 - Test coverage expansion
