@@ -318,37 +318,26 @@ model Prize {
   companyId      String?  @map("company_id")
   name           String
   description    String
-  category       String
+  category       String // "voucher", "experience", "product"
   images         String[]
   coinPrice      Int      @map("coin_price")
   brand          String?
-  specifications Json?
+  specifications Json? // Mantém para experiences e dados genéricos
   stock          Int      @default(0)
   isActive       Boolean  @default(true) @map("is_active")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  // Campos específicos de vouchers (normalizados para queries rápidas)
-  voucherProvider   String?  @map("voucher_provider") // "tremendous", "giftty", etc
-  voucherExternalId String?  @map("voucher_external_id") // ID do produto no provider
-  voucherMinValue   Decimal? @map("voucher_min_value") @db.Decimal(10, 2)
-  voucherMaxValue   Decimal? @map("voucher_max_value") @db.Decimal(10, 2)
-
-  // Campos específicos de produtos físicos (futuro)
-  productWeight          Decimal? @map("product_weight") @db.Decimal(5, 2)
-  productDimensions      String?  @map("product_dimensions")
-  productRequiresAddress Boolean? @default(true) @map("product_requires_address")
-
-  // Metadados flexíveis (JSON para dados extras)
-  metadata Json?
-
   company     Company?       @relation(fields: [companyId], references: [id])
   variants    PrizeVariant[]
   redemptions Redemption[]
 
+  // Relacionamentos específicos por tipo (1:1 opcional)
+  voucherPrize VoucherPrize? // Se category = "voucher"
+  // productPrize ProductPrize? // FUTURO: Se category = "product"
+
   @@index([companyId, isActive, stock])
   @@index([category])
-  @@index([voucherProvider, isActive])
   @@map("prizes")
 }
 
@@ -413,7 +402,6 @@ model Redemption {
 
   // Relacionamentos específicos por tipo (1:1 opcional)
   voucherRedemption VoucherRedemption? // Se category = "voucher"
-  productRedemption ProductRedemption? // Se category = "physical" (futuro)
 
   @@index([userId, redeemedAt])
   @@index([companyId, status])
@@ -476,7 +464,7 @@ model WalletDeposit {
 }
 
 // ============================================================================
-// VOUCHER SYSTEM - Tabelas para integração com provedores de vouchers
+// VOUCHER SYSTEM - Tables for integration with voucher providers
 // ============================================================================
 
 model VoucherRedemption {
@@ -548,29 +536,30 @@ model VoucherProduct {
   @@map("voucher_products")
 }
 
-model ProductRedemption {
-  id           String @id @default(cuid())
-  redemptionId String @unique @map("redemption_id") // 1:1 com Redemption
+model VoucherPrize {
+  id      String @id @default(cuid())
+  prizeId String @unique @map("prize_id") // 1:1 com Prize
 
-  // Dados de envio
-  trackingCode      String?   @map("tracking_code")
-  carrier           String? // "Correios", "Loggi", "Jadlog"
-  shippedAt         DateTime? @map("shipped_at")
-  deliveredAt       DateTime? @map("delivered_at")
-  estimatedDelivery DateTime? @map("estimated_delivery")
+  // Dados do provider
+  provider   String // "tremendous", "giftty", "incentivar"
+  externalId String @map("external_id") // ID do produto no provider
 
-  // Metadados do produto
-  weight     Decimal? @db.Decimal(5, 2) // kg
-  dimensions String? // "10x10x5 cm"
+  // Valores permitidos
+  minValue Decimal @map("min_value") @db.Decimal(10, 2)
+  maxValue Decimal @map("max_value") @db.Decimal(10, 2)
+  currency String  @default("BRL")
+
+  // Metadados extras (flexível para dados específicos do provider)
+  metadata Json?
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relacionamento 1:1 com Redemption
-  redemption Redemption @relation(fields: [redemptionId], references: [id], onDelete: Cascade)
+  // Relacionamento 1:1 com Prize
+  prize Prize @relation(fields: [prizeId], references: [id], onDelete: Cascade)
 
-  @@index([carrier, shippedAt])
-  @@index([deliveredAt])
-  @@map("product_redemptions")
+  @@index([provider])
+  @@index([provider, externalId])
+  @@map("voucher_prizes")
 }
