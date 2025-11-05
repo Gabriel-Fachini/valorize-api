@@ -283,6 +283,55 @@ const userRoutes = async (
     },
   )
 
+  // Get current user's permissions
+  fastify.get('/me/permissions', {
+    schema: {
+      tags: ['Users'],
+      description: 'Get current user permissions for conditional UI rendering',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+          },
+        },
+        401: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' },
+            statusCode: { type: 'number' },
+          },
+        },
+      },
+    },
+  }, async (request, reply) => {
+    const user = await getCurrentUser(request)
+    const { rbacService } = await import('@/features/rbac/rbac.service')
+
+    try {
+      const result = await rbacService.getUserPermissions(user.auth0Id as string)
+      
+      return reply.send({
+        success: true,
+        data: result.permissions,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to retrieve permissions'
+      reply.statusCode = 500
+      return {
+        error: 'PERMISSIONS_FETCH_ERROR',
+        message,
+        statusCode: 500,
+      }
+    }
+  })
+
   // Health check for users module
   fastify.get('/health', {
     schema: {

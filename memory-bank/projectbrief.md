@@ -24,7 +24,6 @@ Tornar-se um módulo robusto e completo voltado para:
 1. **Sistema de Elogios** - Fluxo principal da plataforma
 2. **Moedas Virtuais** - Economia interna da empresa
 3. **Loja de Prêmios** - Resgate de recompensas tangíveis
-4. **Biblioteca** - Foco em cultura de leitura e desenvolvimento
 
 ### Público-Alvo
 - **Empresas B2B** que buscam melhorar cultura e engajamento

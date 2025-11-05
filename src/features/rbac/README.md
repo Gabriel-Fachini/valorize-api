@@ -170,11 +170,6 @@ const rolesWithAnalytics = getRolesWithPermission(PERMISSION.ADMIN_VIEW_ANALYTIC
 - `PERMISSION.STORE_REDEEM_PRIZES` - Redeem prizes with coins
 - `PERMISSION.STORE_MANAGE_CATALOG` - Manage prize catalog
 
-### Library System
-- `PERMISSION.LIBRARY_VIEW_BOOKS` - View book library
-- `PERMISSION.LIBRARY_RATE_BOOKS` - Rate and review books
-- `PERMISSION.LIBRARY_MANAGE_CATALOG` - Manage book catalog
-
 ## 👥 Available Roles
 
 ### Super Admin (`ROLE.SUPER_ADMIN`)
@@ -242,5 +237,5 @@ If you have existing code using hardcoded permission strings:
 
 - **Middleware**: [middleware/rbac.ts](../../middleware/rbac.ts) - Permission checking middleware
 - **Service**: [rbac.service.ts](./rbac.service.ts) - RBAC business logic
-- **Routes**: [rbac.routes.ts](./rbac.routes.ts) - RBAC management endpoints
 - **Seed Data**: [lib/seed/data/](../../lib/seed/data/) - Database seeding (deprecated, now re-exports from constants)
+- **Roles Management**: [features/admin/roles-management/](../admin/roles-management/) - Admin endpoints for roles CRUD

@@ -217,15 +217,19 @@ DELETE /companies/remove-company-contact/:id # Remover contato
 ### Estrutura Implementada
 ```
 src/features/rbac/
-├── rbac.model.ts      # Role e Permission entities
-├── rbac.service.ts    # Business logic completo
-├── rbac.routes.ts     # Admin endpoints
-└── rbac.schemas.ts    # Validações Fastify
+├── rbac.model.ts              # Role e Permission entities
+├── rbac.service.ts            # Business logic completo
+├── permissions.constants.ts    # Constantes de permissões
+└── roles.constants.ts          # Constantes de roles
+
+src/features/admin/roles-management/  # Endpoints de administração
+├── types.ts                    # Tipos e interfaces
+├── roles-management.schemas.ts # Validações Fastify
+├── roles-management.service.ts # Lógica de negócio
+└── roles-management.routes.ts  # Endpoints CRUD
+
 src/middleware/
-└── rbac.ts           # Middleware requirePermission
-tests/
-├── rbac.middleware.test.ts      # Testes do middleware
-└── permission-validation.test.ts # Testes de validação
+└── rbac.ts                     # Middleware requirePermission
 ```
 
 ### Funcionalidades Implementadas
@@ -467,9 +471,8 @@ const allowedDomain = await AllowedDomain.findByDomain(emailDomain)
 ### Próximas Funcionalidades
 1. **✅ Sistema de Elogios**: IMPLEMENTADO COM SUCESSO
 2. **Loja de Prêmios**: Catálogo e resgate de moedas redeemable
-3. **Biblioteca**: Funcionalidades de livros e avaliações
-4. **Dashboard Analytics**: Métricas e relatórios de elogios
-5. **Gamificação**: Badges, rankings e conquistas
+3. **Dashboard Analytics**: Métricas e relatórios de elogios
+4. **Gamificação**: Badges, rankings e conquistas
 
 ### Melhorias Técnicas
 - **Caching**: Redis para permissões frequentes

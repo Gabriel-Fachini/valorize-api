@@ -21,7 +21,6 @@ Este documento descreve todas as funcionalidades do Valorize, organizadas por ca
 13. [Notícias e Comunicação](#notícias-e-comunicação)
 14. [Eventos e Lives](#eventos-e-lives)
 15. [Treinamentos](#treinamentos)
-16. [Biblioteca (Futuro)](#biblioteca)
 
 ---
 
@@ -825,37 +824,7 @@ Este documento descreve todas as funcionalidades do Valorize, organizadas por ca
 
 ---
 
-## 📚 Biblioteca
-
-**Status**: ❌ **Descartada para MVP** (Muito trabalhosa, pouco resultado inicial)
-
-### Justificativa
-
-- Requer integração complexa com fornecedores
-- Logística de livros físicos
-- Curadoria constante
-- Pode ser diferenciador no **futuro** quando produto estiver consolidado
-
-### Funcionalidades Planejadas (V3+)
-
-#### Usuário
-
-- Catálogo de livros com capas 3D interativas
-- Sistema de resgate com moedas
-- Avaliações visíveis apenas para empresa
-- Clubes de leitura corporativos
-- Progresso de leitura
-- Recomendações personalizadas
-
-#### Admin
-
-- Gerenciar catálogo
-- Configurar custo em moedas
-- Analytics: livros mais resgatados, taxa de conclusão
-
----
-
-## 📊 Resumo de Priorização
+##  Resumo de Priorização
 
 ### ✅ Já Implementado (MVP Atual)
 - Elogios básicos
@@ -886,7 +855,6 @@ Este documento descreve todas as funcionalidades do Valorize, organizadas por ca
 - Web push notifications
 
 ### 🔮 V3 - Futuro (6-12 meses)
-- Biblioteca de livros
 - Eventos e lives
 - Treinamentos
 - White label completo

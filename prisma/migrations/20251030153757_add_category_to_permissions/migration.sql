@@ -15,7 +15,6 @@ UPDATE "public"."permissions" SET "category" = 'Company' WHERE "name" = 'company
 UPDATE "public"."permissions" SET "category" = 'Praise System' WHERE "name" LIKE 'praise:%';
 UPDATE "public"."permissions" SET "category" = 'Coins System' WHERE "name" LIKE 'coins:%';
 UPDATE "public"."permissions" SET "category" = 'Store System' WHERE "name" LIKE 'store:%';
-UPDATE "public"."permissions" SET "category" = 'Library System' WHERE "name" LIKE 'library:%';
 
 -- Remove the default value constraint (we want it to be required moving forward)
 ALTER TABLE "public"."permissions" ALTER COLUMN "category" DROP DEFAULT;

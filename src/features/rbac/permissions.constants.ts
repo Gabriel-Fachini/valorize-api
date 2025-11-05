@@ -40,6 +40,9 @@ export const PERMISSION = {
   ROLES_DELETE: 'roles:delete',
   ROLES_MANAGE_PERMISSIONS: 'roles:manage_permissions',
 
+  // Permissions management permissions
+  PERMISSIONS_READ_ALL: 'permissions:read_all',
+
   // Admin panel permissions
   ADMIN_ACCESS_PANEL: 'admin:access_panel',
   ADMIN_VIEW_ANALYTICS: 'admin:view_analytics',
@@ -61,11 +64,6 @@ export const PERMISSION = {
   STORE_VIEW_CATALOG: 'store:view_catalog',
   STORE_REDEEM_PRIZES: 'store:redeem_prizes',
   STORE_MANAGE_CATALOG: 'store:manage_catalog',
-
-  // Library system permissions
-  LIBRARY_VIEW_BOOKS: 'library:view_books',
-  LIBRARY_RATE_BOOKS: 'library:rate_books',
-  LIBRARY_MANAGE_CATALOG: 'library:manage_catalog',
 } as const
 
 /**
@@ -81,6 +79,11 @@ export type Permission = typeof PERMISSION[keyof typeof PERMISSION]
 export const ALL_PERMISSIONS: PermissionDefinition[] = [
   // User management permissions
   {
+    name: PERMISSION.ROLES_READ,
+    description: 'Visualizar funções e permissões',
+    category: 'Gerenciamento de Funções',
+  },
+  {
     name: PERMISSION.USERS_READ,
     description: 'View user information',
     category: 'User Management',
@@ -92,150 +95,138 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
   },
   {
     name: PERMISSION.USERS_UPDATE,
-    description: 'Update user information',
-    category: 'User Management',
+    description: 'Atualizar informações de usuários',
+    category: 'Gerenciamento de Usuários',
   },
   {
     name: PERMISSION.USERS_DELETE,
-    description: 'Delete users',
-    category: 'User Management',
+    description: 'Deletar usuários',
+    category: 'Gerenciamento de Usuários',
   },
   {
     name: PERMISSION.USERS_MANAGE_ROLES,
-    description: 'Assign and remove user roles',
-    category: 'User Management',
+    description: 'Atribuir e remover funções de usuários',
+    category: 'Gerenciamento de Usuários',
   },
   {
     name: PERMISSION.USERS_IMPORT_CSV,
-    description: 'Import users via CSV file',
-    category: 'User Management',
+    description: 'Importar usuários via arquivo CSV',
+    category: 'Gerenciamento de Usuários',
   },
   {
     name: PERMISSION.USERS_BULK_ACTIONS,
-    description: 'Perform bulk actions on users',
-    category: 'User Management',
+    description: 'Realizar ações em lote em usuários',
+    category: 'Gerenciamento de Usuários',
   },
 
   // Role management permissions
   {
     name: PERMISSION.ROLES_READ,
-    description: 'View roles and permissions',
-    category: 'Role Management',
+    description: 'Visualizar funções e permissões',
+    category: 'Gerenciamento de Funções',
   },
   {
     name: PERMISSION.ROLES_CREATE,
-    description: 'Create new roles',
-    category: 'Role Management',
+    description: 'Criar novas funções',
+    category: 'Gerenciamento de Funções',
   },
   {
     name: PERMISSION.ROLES_UPDATE,
-    description: 'Update existing roles',
-    category: 'Role Management',
+    description: 'Atualizar funções existentes',
+    category: 'Gerenciamento de Funções',
   },
   {
     name: PERMISSION.ROLES_DELETE,
-    description: 'Delete roles',
-    category: 'Role Management',
+    description: 'Deletar funções',
+    category: 'Gerenciamento de Funções',
   },
   {
     name: PERMISSION.ROLES_MANAGE_PERMISSIONS,
-    description: 'Assign permissions to roles',
-    category: 'Role Management',
+    description: 'Atribuir permissões a funções',
+    category: 'Gerenciamento de Funções',
+  },
+  {
+    name: PERMISSION.PERMISSIONS_READ_ALL,
+    description: 'Visualizar todas as permissões disponíveis para dicas de ferramentas e documentação',
+    category: 'Gerenciamento de Funções',
   },
 
   // Admin panel permissions
   {
     name: PERMISSION.ADMIN_ACCESS_PANEL,
-    description: 'Access administrative panel',
-    category: 'Administration',
+    description: 'Acessar painel de administração',
+    category: 'Administração',
   },
   {
     name: PERMISSION.ADMIN_VIEW_ANALYTICS,
-    description: 'View system analytics and reports',
-    category: 'Administration',
+    description: 'Visualizar análises e relatórios do sistema',
+    category: 'Administração',
   },
   {
     name: PERMISSION.ADMIN_MANAGE_COMPANY,
-    description: 'Manage company settings',
-    category: 'Administration',
+    description: 'Gerenciar configurações da empresa',
+    category: 'Administração',
   },
   {
     name: PERMISSION.ADMIN_MANAGE_SYSTEM,
-    description: 'Manage system-wide settings and operations',
-    category: 'Administration',
+    description: 'Gerenciar configurações e operações do sistema',
+    category: 'Administração',
   },
   {
     name: PERMISSION.COMPANY_MANAGE_SETTINGS,
-    description: 'Manage company-specific settings like values and compliments configuration',
-    category: 'Company',
+    description: 'Gerenciar configurações específicas da empresa como valores e configuração de elogios',
+    category: 'Empresa',
   },
 
   // Praise system permissions
   {
     name: PERMISSION.PRAISE_SEND,
-    description: 'Send praise to colleagues',
-    category: 'Praise System',
+    description: 'Enviar elogios para colegas',
+    category: 'Sistema de Elogios',
   },
   {
     name: PERMISSION.PRAISE_VIEW_ALL,
-    description: 'View all praise in company',
-    category: 'Praise System',
+    description: 'Visualizar todos os elogios da empresa',
+    category: 'Sistema de Elogios',
   },
   {
     name: PERMISSION.PRAISE_MODERATE,
-    description: 'Moderate and manage praise',
-    category: 'Praise System',
+    description: 'Moderar e gerenciar elogios',
+    category: 'Sistema de Elogios',
   },
 
   // Coins system permissions
   {
     name: PERMISSION.COINS_VIEW_BALANCE,
-    description: 'View coin balance',
-    category: 'Coins System',
+    description: 'Visualizar saldo de moedas',
+    category: 'Sistema de Moedas',
   },
   {
     name: PERMISSION.COINS_TRANSFER,
-    description: 'Transfer coins to others',
-    category: 'Coins System',
+    description: 'Transferir moedas para outros',
+    category: 'Sistema de Moedas',
   },
   {
     name: PERMISSION.COINS_MANAGE_SYSTEM,
-    description: 'Manage coin system settings',
-    category: 'Coins System',
+    description: 'Gerenciar configurações do sistema de moedas',
+    category: 'Sistema de Moedas',
   },
 
   // Store system permissions
   {
     name: PERMISSION.STORE_VIEW_CATALOG,
-    description: 'View prize catalog',
-    category: 'Store System',
+    description: 'Visualizar catálogo de prêmios',
+    category: 'Sistema de Loja',
   },
   {
     name: PERMISSION.STORE_REDEEM_PRIZES,
-    description: 'Redeem prizes with coins',
-    category: 'Store System',
+    description: 'Resgatar prêmios com moedas',
+    category: 'Sistema de Loja',
   },
   {
     name: PERMISSION.STORE_MANAGE_CATALOG,
-    description: 'Manage prize catalog',
-    category: 'Store System',
-  },
-
-  // Library system permissions
-  {
-    name: PERMISSION.LIBRARY_VIEW_BOOKS,
-    description: 'View book library',
-    category: 'Library System',
-  },
-  {
-    name: PERMISSION.LIBRARY_RATE_BOOKS,
-    description: 'Rate and review books',
-    category: 'Library System',
-  },
-  {
-    name: PERMISSION.LIBRARY_MANAGE_CATALOG,
-    description: 'Manage book catalog',
-    category: 'Library System',
+    description: 'Gerenciar catálogo de prêmios',
+    category: 'Sistema de Loja',
   },
 ]
 
