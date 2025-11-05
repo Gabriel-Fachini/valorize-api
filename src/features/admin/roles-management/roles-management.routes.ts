@@ -751,12 +751,12 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
   // =========================================================================
 
   /**
-   * POST /admin/users/:userId/roles
+   * POST /admin/roles/assign-role
    * Assign a role to one or multiple users
-   * Supports both single user (via URL param) and multiple users (via userIds in body)
+   * Accepts array of user IDs - handles 1 user or many users
    */
   fastify.post(
-    '/users/:userId/roles',
+    '/assign-role',
     {
       preHandler: [requirePermission(PERMISSION.USERS_MANAGE_ROLES)],
       schema: assignRoleToUserSchema,
@@ -764,43 +764,25 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const auth0Id = getAuth0Id(request)
       const companyId = await getCompanyIdFromUser(auth0Id)
-      const { userId } = request.params as { userId: string }
       const { roleId, userIds } = request.body as Record<string, unknown>
 
       try {
-        // If userIds array is provided, assign to multiple users
-        if (userIds && Array.isArray(userIds) && userIds.length > 0) {
-          const result = await rolesManagementService.assignRoleToMultipleUsers(
-            companyId,
-            userIds as string[],
-            roleId as string,
-          )
+        const result = await rolesManagementService.assignRoleToMultipleUsers(
+          companyId,
+          userIds as string[],
+          roleId as string,
+        )
 
-          logger.info('Role assigned to multiple users', {
-            roleId,
-            userCount: userIds.length,
-            companyId,
-          })
+        logger.info('Role assigned to users', {
+          roleId,
+          userCount: (userIds as string[]).length,
+          companyId,
+        })
 
-          return reply.code(200).send({
-            success: true,
-            data: result,
-          })
-        } else {
-          // Otherwise, assign to single user using userId param
-          const result = await rolesManagementService.assignRoleToUser(
-            companyId,
-            userId,
-            roleId as string,
-          )
-
-          logger.info('Role assigned to user', { userId, roleId, companyId })
-
-          return reply.code(200).send({
-            success: true,
-            data: result,
-          })
-        }
+        return reply.code(200).send({
+          success: true,
+          data: result,
+        })
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
 
@@ -822,16 +804,6 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
               },
             })
           }
-        }
-
-        if (message.includes('already assigned')) {
-          return reply.code(409).send({
-            success: false,
-            error: {
-              code: 'ROLE_ALREADY_ASSIGNED',
-              message,
-            },
-          })
         }
 
         throw error

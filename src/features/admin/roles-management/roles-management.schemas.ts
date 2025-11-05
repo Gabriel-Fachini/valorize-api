@@ -586,27 +586,17 @@ export const getUserRolesSchema = {
 
 export const assignRoleToUserSchema = {
   tags: ['User Roles'],
-  description: 'Assign a role to one or multiple users',
-  params: {
-    type: 'object',
-    required: ['userId'],
-    properties: {
-      userId: {
-        type: 'string',
-        description: 'Single user ID (can also use userIds in body for multiple users)',
-      },
-    },
-    additionalProperties: false,
-  },
+  description: 'Assign a role to one or multiple users. Always requires array of user IDs.',
   body: {
     type: 'object',
-    required: ['roleId'],
+    required: ['roleId', 'userIds'],
     properties: {
       roleId: { type: 'string', description: 'Role ID to assign' },
       userIds: {
         type: 'array',
         items: { type: 'string' },
-        description: 'Optional array of user IDs to assign role to multiple users. If provided, overrides userId param.',
+        minItems: 1,
+        description: 'Array of user IDs to assign role to. Can contain 1 or more users.',
       },
     },
     additionalProperties: false,
@@ -617,39 +607,27 @@ export const assignRoleToUserSchema = {
       properties: {
         success: { type: 'boolean' },
         data: {
-          oneOf: [
-            {
-              type: 'object',
-              properties: {
-                userId: { type: 'string' },
-                roleId: { type: 'string' },
-              },
-              description: 'Single user assignment result',
-            },
-            {
-              type: 'object',
-              properties: {
-                successCount: { type: 'integer' },
-                failedCount: { type: 'integer' },
-                failedAssignments: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      userId: { type: 'string' },
-                      reason: { type: 'string' },
-                    },
-                  },
+          type: 'object',
+          properties: {
+            successCount: { type: 'integer' },
+            failedCount: { type: 'integer' },
+            failedAssignments: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  userId: { type: 'string' },
+                  reason: { type: 'string' },
                 },
-                summary: { type: 'string' },
               },
-              description: 'Multiple users assignment result',
             },
-          ],
+            summary: { type: 'string' },
+          },
+          description: 'Bulk assignment result with success/failure statistics',
         },
       },
     },
-    409: {
+    404: {
       type: 'object',
       properties: {
         success: { type: 'boolean' },

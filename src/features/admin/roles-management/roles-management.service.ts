@@ -655,55 +655,9 @@ export const rolesManagementService = {
   },
 
   /**
-   * Assign a role to a user
-   * @param companyId - Company ID (for multi-tenancy validation)
-   * @param userId - User ID
-   * @param roleId - Role ID to assign
-   * @throws Error if user/role not found, belongs to different company, or already assigned
-   */
-  async assignRoleToUser(companyId: string, userId: string, roleId: string) {
-    logger.debug('Assigning role to user', { companyId, userId, roleId })
-
-    // Validate user exists and belongs to company
-    const user = await prisma.user.findFirst({
-      where: { id: userId, companyId },
-    })
-
-    if (!user) {
-      throw new Error(`User not found or does not belong to this company: ${userId}`)
-    }
-
-    // Validate role exists and belongs to same company
-    const role = await prisma.role.findFirst({
-      where: { id: roleId, companyId },
-    })
-
-    if (!role) {
-      throw new Error(`Role not found or does not belong to this company: ${roleId}`)
-    }
-
-    // Check if already assigned
-    const existing = await prisma.userRole.findUnique({
-      where: { userId_roleId: { userId, roleId } },
-    })
-
-    if (existing) {
-      throw new Error('Role is already assigned to user')
-    }
-
-    await prisma.userRole.create({
-      data: { userId, roleId },
-    })
-
-    logger.info('Role assigned to user successfully', { userId, roleId, companyId })
-
-    return { userId, roleId }
-  },
-
-  /**
    * Assign a role to multiple users at once
    * @param companyId - Company ID (for multi-tenancy validation)
-   * @param userIds - Array of user IDs
+   * @param userIds - Array of user IDs (minimum 1 user)
    * @param roleId - Role ID to assign
    * @returns Object with success count, failed assignments, and details
    * @throws Error if role not found or belongs to different company
