@@ -68,6 +68,7 @@ export const PERMISSION = {
 
   // Prizes management permissions (granular)
   PRIZES_CREATE: 'prizes:create',
+  PRIZES_CREATE_GLOBAL: 'prizes:create_global',
   PRIZES_READ: 'prizes:read',
   PRIZES_UPDATE: 'prizes:update',
   PRIZES_DELETE: 'prizes:delete',
@@ -246,6 +247,11 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
   {
     name: PERMISSION.PRIZES_CREATE,
     description: 'Criar novos prêmios',
+    category: 'Gerenciamento de Prêmios',
+  },
+  {
+    name: PERMISSION.PRIZES_CREATE_GLOBAL,
+    description: 'Criar prêmios globais disponíveis para todas as empresas (apenas Valorize)',
     category: 'Gerenciamento de Prêmios',
   },
   {

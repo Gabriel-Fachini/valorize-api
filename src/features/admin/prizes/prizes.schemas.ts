@@ -63,7 +63,17 @@ const paginationSchema = {
  */
 export const createPrizeSchema = {
   tags: ['Admin - Prizes'],
-  description: 'Create a new prize (without images initially)',
+  description: `Create a new prize (without images initially).
+
+Categories:
+- voucher: Digital vouchers (usually global, synced from Tremendous)
+- product: Physical products (can be global or company-specific, requires shipping address)
+- experience: Intangible rewards managed by the company (day-off, mentorship, etc.)
+
+Global Prizes:
+- Set isGlobal=true to create a prize available for all companies
+- Requires 'prizes:create_global' permission (SUPER_ADMIN only)
+- Company admins can only create company-specific prizes (isGlobal=false)`,
   body: {
     type: 'object',
     properties: {

@@ -6,6 +6,8 @@ import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { prizesService } from './prizes.service'
 import { supabaseStorageService } from '@/lib/storage/supabase-storage.service'
+import { rbacService } from '@/features/rbac/rbac.service'
+import { InsufficientPermissionError } from '@/middleware/error-handler'
 import type {
   CreatePrizeRequest,
   UpdatePrizeRequest,
@@ -62,11 +64,38 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
         const companyId = await getCompanyIdFromUser(auth0Id)
         const body = request.body
 
+        // Additional validation: Only SUPER_ADMIN can create global prizes
+        if (body.isGlobal) {
+          const { allowed, userPermissions } = await rbacService.checkPermissionWithDetails(
+            auth0Id,
+            PERMISSION.PRIZES_CREATE_GLOBAL,
+          )
+
+          if (!allowed) {
+            throw new InsufficientPermissionError(
+              PERMISSION.PRIZES_CREATE_GLOBAL,
+              userPermissions,
+              'Only Super Administrators can create global prizes. Set isGlobal to false to create a company-specific prize.',
+            )
+          }
+        }
+
         const prize = await prizesService.createPrize(companyId, body)
 
         return reply.code(201).send({ prize })
       } catch (error) {
         logger.error('Error creating prize', { error })
+
+        // Handle InsufficientPermissionError specifically
+        if (error instanceof InsufficientPermissionError) {
+          return reply.code(403).send({
+            error: 'Insufficient Permission',
+            message: error.message,
+            required: error.required,
+            current: error.current,
+          })
+        }
+
         return reply.code(500).send({
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'Failed to create prize',
