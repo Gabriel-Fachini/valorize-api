@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
 import { requirePermission } from '@/middleware/rbac'
+import { logger } from '@/lib/logger'
 import { User } from '@/features/users/user.model'
 import { redemptionService } from './redemption.service'
 import {
@@ -19,7 +20,79 @@ interface BulkRedeemBody {
   }>
 }
 
+interface SendVoucherBody {
+  userId: string
+  prizeId: string
+}
+
 export default async function redemptionRoutes(fastify: FastifyInstance) {
+  // POST /redemptions/send-to-user - Send single voucher to user - ADMIN ONLY
+  fastify.post<{ Body: SendVoucherBody }>(
+    '/send-to-user',
+    {
+      preHandler: [requirePermission(PERMISSION.STORE_BULK_REDEEM_ADMIN)],
+    },
+    async (request, reply) => {
+      const currentUser = getCurrentUser(request)
+      const user = await User.findByAuth0Id(currentUser.sub)
+
+      if (!user) {
+        return reply.code(404).send({ message: 'User not found' })
+      }
+
+      try {
+        const { userId, prizeId } = request.body
+
+        // Validar que userId e prizeId são fornecidos
+        if (!userId || !prizeId) {
+          return reply.code(400).send({
+            message: 'Both userId and prizeId are required',
+          })
+        }
+
+        // Fase 1: Reservar recursos
+        const { redemption, user: targetUser, prize, voucherPrize } = await redemptionService.sendVoucherToUser(
+          userId,
+          prizeId,
+          user.companyId,
+        )
+
+        logger.info('[RedemptionRoutes] Single voucher reserved', {
+          redemptionId: redemption.id,
+          userId,
+          prizeId,
+        })
+
+        // Fase 2: Processar voucher em background (não bloqueia resposta)
+        redemptionService.completeSendVoucher(
+          redemption,
+          targetUser,
+          prize,
+          voucherPrize,
+          user.companyId,
+        ).catch((error) => {
+          logger.error('[RedemptionRoutes] Background voucher creation failed', {
+            redemptionId: redemption.id,
+            error: error.message,
+          })
+        })
+
+        return reply.code(202).send({
+          message: 'Voucher is being sent to user',
+          redemptionId: redemption.id,
+          userId,
+          prizeId,
+          status: 'processing',
+          notes: 'Voucher is being created. Check status later for completion.',
+        })
+      } catch (error) {
+        return reply.code(400).send({
+          message: error instanceof Error ? error.message : 'Failed to send voucher to user',
+        })
+      }
+    },
+  )
+
   // POST /redemptions/bulk-redeem - Bulk redeem vouchers (max 100 items) - ADMIN ONLY
   fastify.post<{ Body: BulkRedeemBody }>(
     '/bulk-redeem',
