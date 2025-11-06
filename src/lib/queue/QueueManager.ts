@@ -30,7 +30,7 @@ export class QueueManager {
 
     logger.info('Connecting to Redis', {
       host: redisConfig.host,
-      port: redisConfig.port
+      port: redisConfig.port,
     })
 
     // Criar conexão Redis
@@ -96,11 +96,11 @@ export class QueueManager {
       })
 
       queueEvents.on('completed', ({ jobId }) => {
-        logger.info(`Job completed`, { queue: name, jobId })
+        logger.info('Job completed', { queue: name, jobId })
       })
 
       queueEvents.on('failed', ({ jobId, failedReason }) => {
-        logger.error(`Job failed`, { queue: name, jobId, reason: failedReason })
+        logger.error('Job failed', { queue: name, jobId, reason: failedReason })
       })
 
       this.queueEvents.set(name, queueEvents)
@@ -125,17 +125,17 @@ export class QueueManager {
 
     // Fechar todos os workers
     await Promise.all(
-      Array.from(this.workers.values()).map((worker) => worker.close())
+      Array.from(this.workers.values()).map((worker) => worker.close()),
     )
 
     // Fechar todas as filas
     await Promise.all(
-      Array.from(this.queues.values()).map((queue) => queue.close())
+      Array.from(this.queues.values()).map((queue) => queue.close()),
     )
 
     // Fechar queue events
     await Promise.all(
-      Array.from(this.queueEvents.values()).map((qe) => qe.close())
+      Array.from(this.queueEvents.values()).map((qe) => qe.close()),
     )
 
     // Fechar conexão Redis

@@ -1,5 +1,7 @@
 import { VoucherRedemptionJob } from '../queues/voucher-redemption.queue'
 import { logger } from '@/lib/logger'
+import { VoucherProviderFactory } from '@/lib/voucher-providers'
+import { prisma } from '@/lib/prisma'
 
 /**
  * Processor - Função que processa um job de resgate de voucher
@@ -17,7 +19,7 @@ import { logger } from '@/lib/logger'
  * @returns Promise<any> Resultado do processamento
  */
 export async function processVoucherRedemption(
-  job: VoucherRedemptionJob
+  job: VoucherRedemptionJob,
 ): Promise<any> {
   const {
     voucherRedemptionId,
@@ -39,79 +41,91 @@ export async function processVoucherRedemption(
   })
 
   try {
-    // TODO (FASE 3): Implementar a lógica real
-    // Por enquanto, simulando um processamento que demora 2 segundos
-
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // Simular sucesso (80% das vezes) ou falha (20%)
-    const success = Math.random() > 0.2
-
-    if (!success) {
-      throw new Error('Simulated API error - will retry')
-    }
-
-    logger.info('Voucher redemption processed successfully (DUMMY)', {
-      voucherRedemptionId,
+    // 1. Buscar dados do voucher redemption no banco
+    const voucherRedemption = await prisma.voucherRedemption.findUnique({
+      where: { id: voucherRedemptionId },
+      include: {
+        redemption: {
+          include: {
+            user: true,
+            prize: true,
+          },
+        },
+      },
     })
 
-    // Retornar resultado simulado
-    return {
-      success: true,
-      voucherLink: `https://tremendous.com/rewards/${voucherRedemptionId}`,
-      voucherCode: `VOUCHER-${voucherRedemptionId.slice(0, 8).toUpperCase()}`,
-      providerOrderId: `ORDER-${Date.now()}`,
-      providerRewardId: `REWARD-${Date.now()}`,
+    if (!voucherRedemption) {
+      throw new Error(`VoucherRedemption ${voucherRedemptionId} not found`)
     }
 
-    /*
-     * TODO (FASE 3-4): Implementação real ficará assim:
-     *
-     * // 1. Buscar dados do banco
-     * const voucherRedemption = await prisma.voucherRedemption.findUnique({
-     *   where: { id: voucherRedemptionId },
-     *   include: { redemption: { include: { user: true } } },
-     * })
-     *
-     * if (!voucherRedemption) {
-     *   throw new Error(`VoucherRedemption ${voucherRedemptionId} not found`)
-     * }
-     *
-     * // 2. Obter provider adapter
-     * const voucherProvider = VoucherProviderFactory.create(provider)
-     *
-     * // 3. Criar voucher
-     * const result = await voucherProvider.createVoucher({
-     *   externalId: voucherRedemptionId,
-     *   productId,
-     *   amount,
-     *   currency: 'BRL',
-     *   recipient: {
-     *     name: recipientName,
-     *     email: recipientEmail,
-     *   },
-     * })
-     *
-     * // 4. Atualizar banco
-     * await prisma.voucherRedemption.update({
-     *   where: { id: voucherRedemptionId },
-     *   data: {
-     *     status: 'completed',
-     *     providerOrderId: result.orderId,
-     *     providerRewardId: result.rewardId,
-     *     voucherLink: result.link,
-     *     voucherCode: result.code,
-     *     completedAt: new Date(),
-     *   },
-     * })
-     *
-     * await prisma.redemption.update({
-     *   where: { id: redemptionId },
-     *   data: { status: 'completed' },
-     * })
-     *
-     * return result
-     */
+    // Validar se já foi processado (idempotência)
+    if (voucherRedemption.status === 'completed') {
+      logger.info('Voucher redemption already completed, skipping', {
+        voucherRedemptionId,
+      })
+      return {
+        success: true,
+        alreadyCompleted: true,
+        voucherLink: voucherRedemption.voucherLink,
+      }
+    }
+
+    // 2. Obter provider adapter
+    const voucherProvider = VoucherProviderFactory.create(provider)
+
+    // 3. Criar voucher na API do provider
+    const result = await voucherProvider.createVoucher({
+      externalId: voucherRedemptionId,
+      productId,
+      amount,
+      currency: 'BRL',
+      recipient: {
+        name: recipientName,
+        email: recipientEmail,
+      },
+    })
+
+    logger.info('Voucher created successfully in provider', {
+      voucherRedemptionId,
+      orderId: result.orderId,
+      rewardId: result.rewardId,
+    })
+
+    // 4. Atualizar VoucherRedemption no banco
+    await prisma.voucherRedemption.update({
+      where: { id: voucherRedemptionId },
+      data: {
+        status: 'completed',
+        providerOrderId: result.orderId,
+        providerRewardId: result.rewardId,
+        voucherLink: result.link,
+        voucherCode: result.code,
+        expiresAt: result.expiresAt,
+        completedAt: new Date(),
+        errorMessage: null, // Limpar erro anterior
+      },
+    })
+
+    // 5. Atualizar Redemption pai
+    await prisma.redemption.update({
+      where: { id: redemptionId },
+      data: {
+        status: 'completed',
+      },
+    })
+
+    logger.info('Voucher redemption processed successfully', {
+      voucherRedemptionId,
+      redemptionId,
+    })
+
+    return {
+      success: true,
+      voucherLink: result.link,
+      voucherCode: result.code,
+      providerOrderId: result.orderId,
+      providerRewardId: result.rewardId,
+    }
   } catch (error: any) {
     logger.error('Error processing voucher redemption', {
       voucherRedemptionId,
@@ -119,15 +133,22 @@ export async function processVoucherRedemption(
       stack: error.stack,
     })
 
-    // TODO (FASE 4): Atualizar retry count no banco
-    // await prisma.voucherRedemption.update({
-    //   where: { id: voucherRedemptionId },
-    //   data: {
-    //     retryCount: { increment: 1 },
-    //     lastRetryAt: new Date(),
-    //     errorMessage: error.message,
-    //   },
-    // })
+    // Atualizar retry count no banco
+    try {
+      await prisma.voucherRedemption.update({
+        where: { id: voucherRedemptionId },
+        data: {
+          retryCount: { increment: 1 },
+          lastRetryAt: new Date(),
+          errorMessage: error.message?.substring(0, 500), // Limitar tamanho
+        },
+      })
+    } catch (dbError: any) {
+      logger.error('Failed to update retry count', {
+        voucherRedemptionId,
+        error: dbError.message,
+      })
+    }
 
     // Re-lançar erro para o BullMQ fazer retry automático
     throw error

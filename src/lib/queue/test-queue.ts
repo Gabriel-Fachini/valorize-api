@@ -51,7 +51,7 @@ async function testQueue() {
     // 4. Aguardar o processamento (job dummy demora 2 segundos)
     logger.info('Step 3: Waiting for job to be processed...')
     await job.waitUntilFinished(
-      QueueManager.getInstance()['queueEvents'].get('voucher-redemption')!
+      QueueManager.getInstance()['queueEvents'].get('voucher-redemption')!,
     )
 
     logger.info('✅ Job processed successfully!')
@@ -59,7 +59,7 @@ async function testQueue() {
     // 5. Mostrar estatísticas da fila
     logger.info('Step 4: Queue statistics...')
     const stats = await QueueManager.getInstance().getQueueStats(
-      'voucher-redemption'
+      'voucher-redemption',
     )
     logger.info('Queue stats:', stats)
 

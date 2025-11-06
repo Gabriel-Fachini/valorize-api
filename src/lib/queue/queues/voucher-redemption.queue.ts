@@ -56,7 +56,7 @@ export async function addVoucherRedemptionJob(data: VoucherRedemptionJob) {
     {
       jobId: data.voucherRedemptionId, // Usar ID como jobId para evitar duplicatas (idempotência!)
       // Se você tentar adicionar um job com o mesmo jobId, ele vai ignorar
-    }
+    },
   )
 }
 
