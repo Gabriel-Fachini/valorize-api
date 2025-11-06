@@ -72,8 +72,8 @@ async function testTremendousEmail() {
     console.log('✅ Voucher created and email queued!')
     console.log(`   Order ID: ${voucherResult.orderId}`)
     console.log(`   Reward ID: ${voucherResult.rewardId}`)
-    console.log(`   Status: Email delivery in progress (asynchronous)`)
-    console.log(`   ℹ️  Check your email at gabriel.fachini@usevalorize.com.br`)
+    console.log('   Status: Email delivery in progress (asynchronous)')
+    console.log('   ℹ️  Check your email at gabriel.fachini@usevalorize.com.br')
 
     console.log('\n' + '='.repeat(60))
     console.log('✅ Test completed!')

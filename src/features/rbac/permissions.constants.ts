@@ -64,6 +64,7 @@ export const PERMISSION = {
   STORE_VIEW_CATALOG: 'store:view_catalog',
   STORE_REDEEM_PRIZES: 'store:redeem_prizes',
   STORE_MANAGE_CATALOG: 'store:manage_catalog',
+  STORE_BULK_REDEEM_ADMIN: 'store:bulk_redeem_admin',
 } as const
 
 /**
@@ -226,6 +227,11 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
   {
     name: PERMISSION.STORE_MANAGE_CATALOG,
     description: 'Gerenciar catálogo de prêmios',
+    category: 'Sistema de Loja',
+  },
+  {
+    name: PERMISSION.STORE_BULK_REDEEM_ADMIN,
+    description: 'Enviar vouchers em lote para múltiplos usuários (função administrativa)',
     category: 'Sistema de Loja',
   },
 ]

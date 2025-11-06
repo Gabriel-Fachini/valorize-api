@@ -47,7 +47,7 @@ export default tseslint.config(
       // === TYPESCRIPT SPECIFIC ===
       '@typescript-eslint/explicit-function-return-type': 'off', // Don't require return type on functions
       '@typescript-eslint/no-explicit-any': 'warn', // Warn about 'any' usage
-      '@typescript-eslint/prefer-nullish-coalescing': 'error', // Prefer ?? instead of ||
+      '@typescript-eslint/prefer-nullish-coalescing': ['error', { ignoreConditionalTests: false, ignoreMixedLogicalExpressions: false }], // Prefer ?? instead of ||
       '@typescript-eslint/prefer-optional-chain': 'error', // Prefer optional chaining obj?.prop
     },
   },

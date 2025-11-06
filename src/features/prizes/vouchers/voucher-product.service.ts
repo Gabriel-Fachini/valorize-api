@@ -6,11 +6,13 @@
 
 import { VoucherProviderFactory } from '@/lib/voucher-providers'
 import { VoucherProductRepository } from './voucher-product.repository'
+import { VoucherPrizeRepository } from './voucher-prize.repository'
 import { ListVoucherProductsFilters } from './voucher-product.model'
 import { logger } from '@/lib/logger'
 
 export class VoucherProductService {
   private repository = new VoucherProductRepository()
+  private voucherPrizeRepository = new VoucherPrizeRepository()
 
   /**
    * Sincroniza catálogo de produtos do provider
@@ -36,12 +38,13 @@ export class VoucherProductService {
 
       logger.info(`[VoucherProductService] Found ${products.length} products from ${provider}`)
 
-      // 2. Sincronizar cada produto (upsert)
+      // 2. Sincronizar cada produto e criar/reativar Prizes (idempotente)
       const syncedIds: string[] = []
       let syncedCount = 0
 
       for (const product of products) {
         try {
+          // 2a. Sincronizar VoucherProduct no catálogo
           await this.repository.sync({
             provider,
             externalId: product.id,
@@ -57,6 +60,21 @@ export class VoucherProductService {
             isActive: true,
           })
 
+          // 2b. Criar ou reativar Prize associado (idempotente)
+          // Só cria uma vez - próximas execuções não criam duplicatas
+          await this.voucherPrizeRepository.createOrReactivate({
+            provider,
+            externalId: product.id,
+            name: product.name,
+            category: product.category,
+            minValue: Number(product.minValue),
+            maxValue: Number(product.maxValue),
+            currency: product.currency,
+            description: product.description,
+            brand: product.brand,
+            images: product.images,
+          })
+
           syncedIds.push(product.id)
           syncedCount++
         } catch (error) {
@@ -69,8 +87,14 @@ export class VoucherProductService {
         }
       }
 
-      // 3. Desativar produtos que não existem mais no provider
-      const deactivatedCount = await this.repository.deactivateNotSynced(
+      // 3. Desativar produtos VoucherProducts que não existem mais no provider
+      const deactivatedProductCount = await this.repository.deactivateNotSynced(
+        provider,
+        syncedIds,
+      )
+
+      // 4. Desativar Prizes orfãos (cujos VoucherProducts foram removidos)
+      const deactivatedPrizeCount = await this.voucherPrizeRepository.deactivateOrphanPrizes(
         provider,
         syncedIds,
       )
@@ -79,15 +103,17 @@ export class VoucherProductService {
 
       logger.info('[VoucherProductService] Sync completed', {
         provider,
-        synced: syncedCount,
-        deactivated: deactivatedCount,
-        totalActive,
+        syncedProducts: syncedCount,
+        deactivatedProducts: deactivatedProductCount,
+        deactivatedPrizes: deactivatedPrizeCount,
+        totalActiveProducts: totalActive,
       })
 
       return {
-        synced: syncedCount,
-        deactivated: deactivatedCount,
-        total: totalActive,
+        syncedProducts: syncedCount,
+        deactivatedProducts: deactivatedProductCount,
+        deactivatedPrizes: deactivatedPrizeCount,
+        totalActiveProducts: totalActive,
       }
     } catch (error) {
       logger.error('[VoucherProductService] Sync failed', {

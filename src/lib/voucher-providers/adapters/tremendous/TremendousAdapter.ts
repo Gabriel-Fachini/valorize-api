@@ -343,25 +343,47 @@ export class TremendousAdapter implements IVoucherProvider {
 
     logger.debug('Making request to Tremendous', { method, url })
 
-    const response = await fetch(url, options)
+    // Adicionar timeout de 5 segundos para evitar espera indefinida
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout
 
-    // Parse response
-    const data = await response.json()
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
 
-    // Se não for sucesso, lançar erro
-    if (!response.ok) {
-      const errorData = data as TremendousErrorResponse
-      const errorMessage =
-        errorData.errors?.[0]?.message || 'Unknown error from Tremendous'
+      // Parse response
+      const data = await response.json()
 
-      const error = new Error(errorMessage) as any
-      error.statusCode = response.status
-      error.tremendousErrors = errorData.errors
+      // Se não for sucesso, lançar erro
+      if (!response.ok) {
+        const errorData = data as TremendousErrorResponse
+        const errorMessage =
+          errorData.errors?.[0]?.message || 'Unknown error from Tremendous'
 
+        const error = new Error(errorMessage) as any
+        error.statusCode = response.status
+        error.tremendousErrors = errorData.errors
+
+        throw error
+      }
+
+      return data as T
+    } catch (error: any) {
+      clearTimeout(timeoutId)
+
+      // Tratar timeout especificamente
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('Tremendous API timeout after 5s') as any
+        timeoutError.statusCode = 408 // Request Timeout
+        throw timeoutError
+      }
+
+      // Re-lançar outros erros
       throw error
     }
-
-    return data as T
   }
 
   /**
