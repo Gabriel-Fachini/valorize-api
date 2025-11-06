@@ -85,3 +85,7 @@ temp/
 *.sqlite
 *.sqlite3
 *.db
+
+tremendous.json
+postman
+postman/**

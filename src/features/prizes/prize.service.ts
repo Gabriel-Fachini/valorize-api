@@ -140,5 +140,55 @@ export const prizeService = {
       throw error
     }
   },
+
+  async updatePrize(
+    prizeId: string,
+    companyId: string,
+    data: {
+      name?: string
+      description?: string
+      isActive?: boolean
+    },
+  ) {
+    try {
+      // Verificar se o prêmio existe e pertence à empresa
+      const prize = await prizeRepository.findById(prizeId)
+
+      if (!prize) {
+        throw new Error('Prize not found')
+      }
+
+      if (prize.companyId !== companyId) {
+        throw new Error('Prize does not belong to this company')
+      }
+
+      // Validações de negócio
+      if (data.name !== undefined && (!data.name || data.name.trim().length === 0)) {
+        throw new Error('Prize name cannot be empty')
+      }
+
+      if (data.description !== undefined && (!data.description || data.description.trim().length === 0)) {
+        throw new Error('Prize description cannot be empty')
+      }
+
+      // Atualizar prêmio
+      const updatedPrize = await prizeRepository.update(prizeId, {
+        ...(data.name && { name: data.name }),
+        ...(data.description && { description: data.description }),
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      })
+
+      logger.info('Prize updated successfully', {
+        prizeId,
+        companyId,
+        updatedFields: Object.keys(data).filter((key) => data[key as keyof typeof data] !== undefined),
+      })
+
+      return updatedPrize.toJSON()
+    } catch (error) {
+      logger.error('Error updating prize', { error, prizeId, data })
+      throw error
+    }
+  },
 }
 

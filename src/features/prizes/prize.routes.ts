@@ -189,7 +189,7 @@ export default async function prizeRoutes(fastify: FastifyInstance) {
           user.companyId,
           request.body,
         )
-        
+
         return reply.code(201).send({
           message: 'Prize variant added successfully',
           variant,
@@ -198,6 +198,72 @@ export default async function prizeRoutes(fastify: FastifyInstance) {
         return reply.code(400).send({
           message:
             error instanceof Error ? error.message : 'Failed to add variant',
+        })
+      }
+    },
+  )
+
+  // PATCH /prizes/:id - Update prize
+  fastify.patch(
+    '/:id',
+    async (
+      request: FastifyRequest<{
+        Params: { id: string }
+        Body: {
+          name?: string
+          description?: string
+          isActive?: boolean
+        }
+      }>,
+      reply,
+    ) => {
+      const currentUser = getCurrentUser(request)
+      const user = await User.findByAuth0Id(currentUser.sub)
+
+      if (!user) {
+        return reply.code(404).send({ message: 'User not found' })
+      }
+
+      try {
+        const { name, description, isActive } = request.body
+
+        // Validar que pelo menos um campo foi fornecido
+        if (name === undefined && description === undefined && isActive === undefined) {
+          return reply.code(400).send({
+            message: 'At least one field (name, description, or isActive) must be provided',
+          })
+        }
+
+        const updatedPrize = await prizeService.updatePrize(
+          request.params.id,
+          user.companyId,
+          {
+            ...(name && { name }),
+            ...(description && { description }),
+            ...(isActive !== undefined && { isActive }),
+          },
+        )
+
+        return reply.send({
+          message: 'Prize updated successfully',
+          prize: updatedPrize,
+        })
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Prize not found') {
+          return reply.code(404).send({
+            message: error.message,
+          })
+        }
+
+        if (error instanceof Error && error.message === 'Prize does not belong to this company') {
+          return reply.code(403).send({
+            message: error.message,
+          })
+        }
+
+        return reply.code(400).send({
+          message:
+            error instanceof Error ? error.message : 'Failed to update prize',
         })
       }
     },
