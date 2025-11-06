@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyInstance, FastifyRequest } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
 import { requirePermission } from '@/middleware/rbac'
 import { User } from '@/features/users/user.model'

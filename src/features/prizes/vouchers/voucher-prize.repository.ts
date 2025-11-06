@@ -7,6 +7,7 @@
 
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
+import { BRL_TO_COIN_RATE } from '@/features/economy/economy.constants'
 
 export interface CreateVoucherPrizeDTO {
   provider: string
@@ -75,7 +76,7 @@ export class VoucherPrizeRepository {
     })
 
     // Converter valor do voucher em moedas: 1 real = 10 moedas
-    const coinPrice = Math.ceil(data.minValue * 10)
+    const coinPrice = Math.ceil(data.minValue * BRL_TO_COIN_RATE)
 
     const prize = await prisma.prize.create({
       data: {

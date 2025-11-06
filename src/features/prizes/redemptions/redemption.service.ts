@@ -6,6 +6,7 @@ import { WalletModel } from '@/features/wallets/wallet.model'
 import { CompanyWalletModel } from '@/features/wallets/company-wallet.model'
 import { AddressModel } from '@/features/addresses/address.model'
 import { VoucherProviderFactory } from '@/lib/voucher-providers'
+import { COIN_TO_BRL_RATE } from '@/features/economy/economy.constants'
 
 interface RedeemPrizeInput {
   userId: string
@@ -636,7 +637,7 @@ export const redemptionService = {
 
       // 2. Calcular custo total
       const totalCoins = batch.length * prize.coinPrice
-      const totalBRL = totalCoins * 0.06 // Conversão: 1 moeda = R$ 0.06
+      const totalBRL = totalCoins * COIN_TO_BRL_RATE // Conversão: 1 moeda = R$ 0.06
 
       logger.info('[RedemptionService] Batch cost calculated', {
         batchSize: batch.length,
@@ -792,7 +793,7 @@ export const redemptionService = {
       try {
         await prisma.$transaction(async (tx) => {
           // Devolver R$ à empresa
-          const coinsBRL = prize.coinPrice * 0.06
+          const coinsBRL = prize.coinPrice * COIN_TO_BRL_RATE
           await CompanyWalletModel.creditBalance(
             companyId,
             coinsBRL,
