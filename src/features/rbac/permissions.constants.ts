@@ -65,6 +65,13 @@ export const PERMISSION = {
   STORE_REDEEM_PRIZES: 'store:redeem_prizes',
   STORE_MANAGE_CATALOG: 'store:manage_catalog',
   STORE_BULK_REDEEM_ADMIN: 'store:bulk_redeem_admin',
+
+  // Prizes management permissions (granular)
+  PRIZES_CREATE: 'prizes:create',
+  PRIZES_READ: 'prizes:read',
+  PRIZES_UPDATE: 'prizes:update',
+  PRIZES_DELETE: 'prizes:delete',
+  PRIZES_MANAGE_IMAGES: 'prizes:manage_images',
 } as const
 
 /**
@@ -233,6 +240,33 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     name: PERMISSION.STORE_BULK_REDEEM_ADMIN,
     description: 'Enviar vouchers em lote para múltiplos usuários (função administrativa)',
     category: 'Sistema de Loja',
+  },
+
+  // Prizes management permissions (granular)
+  {
+    name: PERMISSION.PRIZES_CREATE,
+    description: 'Criar novos prêmios',
+    category: 'Gerenciamento de Prêmios',
+  },
+  {
+    name: PERMISSION.PRIZES_READ,
+    description: 'Visualizar prêmios',
+    category: 'Gerenciamento de Prêmios',
+  },
+  {
+    name: PERMISSION.PRIZES_UPDATE,
+    description: 'Atualizar prêmios existentes',
+    category: 'Gerenciamento de Prêmios',
+  },
+  {
+    name: PERMISSION.PRIZES_DELETE,
+    description: 'Deletar prêmios (soft delete)',
+    category: 'Gerenciamento de Prêmios',
+  },
+  {
+    name: PERMISSION.PRIZES_MANAGE_IMAGES,
+    description: 'Gerenciar imagens de prêmios (upload e remoção)',
+    category: 'Gerenciamento de Prêmios',
   },
 ]
 

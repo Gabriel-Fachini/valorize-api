@@ -2361,6 +2361,267 @@
 			"description": "Rotas administrativas para gerenciamento de produtos de voucher"
 		},
 		{
+			"name": "Admin - Prizes",
+			"item": [
+				{
+					"name": "Create Prize",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('admin_prize_id', response.prize.id);",
+									"    console.log('✅ Prize criado:', response.prize.name);",
+									"    console.log('Prize ID salvo:', response.prize.id);",
+									"} else {",
+									"    console.log('❌ Erro ao criar prize:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Notebook Gamer XYZ\",\n  \"description\": \"Notebook de alta performance para jogos e trabalho pesado. Processador i7, 16GB RAM, RTX 3060.\",\n  \"category\": \"product\",\n  \"coinPrice\": 50000,\n  \"brand\": \"Dell\",\n  \"stock\": 10,\n  \"specifications\": {\n    \"processor\": \"Intel Core i7-12700H\",\n    \"ram\": \"16GB DDR5\",\n    \"gpu\": \"NVIDIA RTX 3060\",\n    \"storage\": \"512GB SSD\"\n  },\n  \"isGlobal\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/prizes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"prizes"
+							]
+						},
+						"description": "Cria um novo prêmio (sem imagens inicialmente). Requer permissão: prizes:create"
+					},
+					"response": []
+				},
+				{
+					"name": "List Prizes (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/prizes?page=1&limit=20&orderBy=createdAt&order=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"prizes"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Itens por página (max 100)"
+								},
+								{
+									"key": "category",
+									"value": "product",
+									"description": "Filtrar por categoria (voucher, experience, product)",
+									"disabled": true
+								},
+								{
+									"key": "isActive",
+									"value": "true",
+									"description": "Filtrar por status ativo/inativo",
+									"disabled": true
+								},
+								{
+									"key": "isGlobal",
+									"value": "false",
+									"description": "Filtrar prêmios globais ou da empresa",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "notebook",
+									"description": "Buscar em nome, descrição e marca",
+									"disabled": true
+								},
+								{
+									"key": "orderBy",
+									"value": "createdAt",
+									"description": "Ordenar por: createdAt, updatedAt, coinPrice, name"
+								},
+								{
+									"key": "order",
+									"value": "desc",
+									"description": "Ordem: asc ou desc"
+								}
+							]
+						},
+						"description": "Lista prêmios com filtros e paginação. Admin vê prêmios da sua empresa + globais. Requer permissão: prizes:read"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prize by ID (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/prizes/{{admin_prize_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"prizes",
+								"{{admin_prize_id}}"
+							]
+						},
+						"description": "Busca detalhes de um prêmio específico. Requer permissão: prizes:read"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Prize",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Notebook Gamer XYZ - ATUALIZADO\",\n  \"coinPrice\": 45000,\n  \"stock\": 15\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/prizes/{{admin_prize_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"prizes",
+								"{{admin_prize_id}}"
+							]
+						},
+						"description": "Atualiza um prêmio. Apenas prêmios da própria empresa podem ser editados (não globais). Requer permissão: prizes:update"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Prize (Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/prizes/{{admin_prize_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"prizes",
+								"{{admin_prize_id}}"
+							]
+						},
+						"description": "Soft delete de um prêmio (isActive = false). Apenas prêmios da própria empresa. Requer permissão: prizes:delete"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Prize Images",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "images",
+									"description": "Imagem 1 (JPEG, PNG ou WebP - Max 5MB)",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "images",
+									"description": "Imagem 2 (opcional)",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								},
+								{
+									"key": "images",
+									"description": "Imagem 3 (opcional)",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								},
+								{
+									"key": "images",
+									"description": "Imagem 4 (opcional)",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/prizes/{{admin_prize_id}}/images",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"prizes",
+								"{{admin_prize_id}}",
+								"images"
+							]
+						},
+						"description": "Upload de 1-4 imagens para um prêmio. Máximo 4 imagens totais por prêmio. Tipos aceitos: JPEG, PNG, WebP. Tamanho máx: 5MB cada. Requer permissão: prizes:manage_images\n\n⚠️ As imagens são salvas no Supabase Storage."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Prize Image",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/prizes/{{admin_prize_id}}/images/0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"prizes",
+								"{{admin_prize_id}}",
+								"images",
+								"0"
+							]
+						},
+						"description": "Remove uma imagem específica por índice (0-based). Exemplo: 0 = primeira imagem, 1 = segunda, etc. Requer permissão: prizes:manage_images"
+					},
+					"response": []
+				}
+			],
+			"description": "Rotas administrativas para gerenciamento completo de prêmios (CRUD + upload de imagens)"
+		},
+		{
 			"name": "3. Prizes",
 			"item": [
 				{

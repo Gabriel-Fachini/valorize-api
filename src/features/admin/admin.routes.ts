@@ -13,6 +13,7 @@
  * - /admin/company/coin-economy - Coin economy settings
  * - /admin/company/values      - Company values management
  * - /admin/voucher-products/*  - Voucher product catalog management
+ * - /admin/prizes/*            - Prizes management (CRUD with image upload)
  *
  * @module features/admin/admin.routes
  */
@@ -111,6 +112,15 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       await fastify.register(voucherProductRoutes)
     },
     { prefix: '/voucher-products' },
+  )
+
+  // Prizes Management routes - /admin/prizes/*
+  await fastify.register(
+    async function (fastify) {
+      const { default: prizesRoutes } = await import('@/features/admin/prizes/prizes.routes')
+      await fastify.register(prizesRoutes)
+    },
+    { prefix: '/prizes' },
   )
 
   // Future admin routes can be added here
