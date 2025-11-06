@@ -4,13 +4,15 @@ import { RedemptionModel } from './redemption.model'
 import { RedemptionTrackingModel } from './redemption-tracking.model'
 import { WalletModel } from '@/features/wallets/wallet.model'
 import { AddressModel } from '@/features/addresses/address.model'
+import { VoucherProviderFactory } from '@/lib/voucher-providers'
 
 interface RedeemPrizeInput {
   userId: string
   prizeId: string
   variantId?: string
   companyId: string
-  addressId: string
+  addressId?: string // Agora opcional (não precisa para vouchers)
+  campaignId?: string // Opcional: ID da campaign template (apenas para vouchers)
 }
 
 export class InsufficientBalanceError extends Error {
@@ -50,23 +52,16 @@ export class VariantRequiredError extends Error {
 
 export const redemptionService = {
   async redeemPrize(input: RedeemPrizeInput) {
-    const { userId, prizeId, variantId, companyId, addressId } = input
+    const { userId, prizeId, variantId, companyId, addressId, campaignId } = input
 
     return prisma.$transaction(async (tx) => {
-      // 1. Validate address belongs to user
-      const address = await AddressModel.findById(addressId)
-      if (!address) {
-        throw new Error('Address not found')
-      }
-
-      if (address.userId !== userId) {
-        throw new Error('Address does not belong to this user')
-      }
-
-      // 2. Buscar prêmio com lock
+      // 1. Buscar prêmio com lock
       const prize = await tx.prize.findFirst({
         where: { id: prizeId, isActive: true },
-        include: { variants: true },
+        include: {
+          variants: true,
+          voucherPrize: true, // Carregar dados do voucher se existir
+        },
       })
 
       if (!prize) {
@@ -76,6 +71,25 @@ export const redemptionService = {
       // Verificar se prêmio é global ou da empresa
       if (prize.companyId && prize.companyId !== companyId) {
         throw new Error('Prize does not belong to this company')
+      }
+
+      // Detectar categoria do prêmio
+      const isVoucher = prize.category === 'voucher'
+
+      // 2. Validar endereço (obrigatório apenas para produtos físicos)
+      if (!isVoucher) {
+        if (!addressId) {
+          throw new Error('Address is required for physical products')
+        }
+
+        const address = await AddressModel.findById(addressId)
+        if (!address) {
+          throw new Error('Address not found')
+        }
+
+        if (address.userId !== userId) {
+          throw new Error('Address does not belong to this user')
+        }
       }
 
       // Validar regra de negócio: se o prêmio tem variantes, uma deve ser selecionada
@@ -170,21 +184,138 @@ export const redemptionService = {
           variantId: variantId ?? null,
           companyId,
           coinsSpent: finalPrice,
-          addressId,
+          addressId: addressId ?? null, // Pode ser null para vouchers
         },
         tx,
       )
 
-      // 8. Criar primeiro tracking (pending)
-      await RedemptionTrackingModel.create(
-        {
-          redemptionId: redemption.id,
-          status: 'pending',
-          notes: 'Resgate realizado com sucesso',
-          createdBy: userId,
-        },
-        tx,
-      )
+      // 8. Se for voucher, criar DIRETO (síncrono)
+      if (isVoucher) {
+        // Validar campos obrigatórios do voucher
+        if (!prize.voucherPrize) {
+          throw new Error('Prize is missing voucher configuration')
+        }
+
+        // Obter dados do usuário para email
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: { name: true, email: true },
+        })
+
+        if (!user) {
+          throw new Error('User not found')
+        }
+
+        try {
+          logger.info('[RedemptionService] Creating voucher synchronously', {
+            redemptionId: redemption.id,
+            provider: prize.voucherPrize.provider,
+            productId: prize.voucherPrize.externalId,
+          })
+
+          // Criar voucher via provider
+          const voucherProvider = VoucherProviderFactory.create(prize.voucherPrize.provider)
+
+          const voucherResult = await voucherProvider.createVoucher({
+            externalId: redemption.id, // Usar redemptionId para idempotência
+            productId: prize.voucherPrize.externalId,
+            amount: prize.voucherPrize.minValue.toNumber(),
+            currency: prize.voucherPrize.currency,
+            recipient: {
+              name: user.name ?? '',
+              email: user.email,
+            },
+            campaignId,
+          })
+
+          logger.info('[RedemptionService] Voucher created successfully', {
+            redemptionId: redemption.id,
+            orderId: voucherResult.orderId,
+            voucherLink: voucherResult.link,
+          })
+
+          // Criar registro na tabela VoucherRedemption
+          await tx.voucherRedemption.create({
+            data: {
+              redemptionId: redemption.id,
+              provider: prize.voucherPrize.provider,
+              providerOrderId: voucherResult.orderId,
+              providerRewardId: voucherResult.rewardId,
+              voucherLink: voucherResult.link,
+              voucherCode: voucherResult.code ?? null,
+              amount: prize.voucherPrize.minValue,
+              currency: prize.voucherPrize.currency,
+              status: 'completed',
+              completedAt: new Date(),
+              expiresAt: voucherResult.expiresAt ?? null,
+            },
+          })
+
+          // Atualizar status da redemption para completed
+          await tx.redemption.update({
+            where: { id: redemption.id },
+            data: { status: 'completed' },
+          })
+
+          // Criar tracking de sucesso
+          await RedemptionTrackingModel.create(
+            {
+              redemptionId: redemption.id,
+              status: 'completed',
+              notes: 'Voucher criado com sucesso',
+              createdBy: userId,
+            },
+            tx,
+          )
+        } catch (error: any) {
+          logger.error('[RedemptionService] Failed to create voucher', {
+            redemptionId: redemption.id,
+            error: error.message,
+          })
+
+          // Criar registro de falha
+          await tx.voucherRedemption.create({
+            data: {
+              redemptionId: redemption.id,
+              provider: prize.voucherPrize.provider,
+              amount: prize.voucherPrize.minValue,
+              currency: prize.voucherPrize.currency,
+              status: 'failed',
+              errorMessage: error.message,
+            },
+          })
+
+          // Marcar redemption como failed
+          await tx.redemption.update({
+            where: { id: redemption.id },
+            data: { status: 'failed' },
+          })
+
+          // Criar tracking de erro
+          await RedemptionTrackingModel.create(
+            {
+              redemptionId: redemption.id,
+              status: 'failed',
+              notes: `Erro ao criar voucher: ${error.message}`,
+              createdBy: userId,
+            },
+            tx,
+          )
+
+          throw error
+        }
+      } else {
+        // Produto físico: criar tracking pending
+        await RedemptionTrackingModel.create(
+          {
+            redemptionId: redemption.id,
+            status: 'pending',
+            notes: 'Resgate realizado com sucesso',
+            createdBy: userId,
+          },
+          tx,
+        )
+      }
 
       logger.info('Prize redeemed successfully', {
         redemptionId: redemption.id,
@@ -192,10 +323,11 @@ export const redemptionService = {
         prizeId,
         variantId,
         coinsSpent: finalPrice,
+        isVoucher,
       })
 
       return redemption.toJSON()
-    })
+    }, { timeout: 30000 }) // 30s timeout (voucher API pode demorar)
   },
 
   async cancelRedemption(redemptionId: string, userId: string, reason: string) {
