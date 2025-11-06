@@ -1,0 +1,1021 @@
+{
+	"info": {
+		"_postman_id": "d4147631-7b06-4209-bdd6-06669056d575",
+		"name": "Valorize API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47208058"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Script para capturar tokens após login bem-sucedido",
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    ",
+									"    // A API retorna: { success: true, data: { access_token, refresh_token, expires_in } }",
+									"    if (responseJson.success && responseJson.data) {",
+									"        const { access_token, refresh_token, expires_in } = responseJson.data;",
+									"        ",
+									"        // Salvar tokens",
+									"        pm.environment.set(\"auth_token\", access_token);",
+									"        if (refresh_token) {",
+									"            pm.environment.set(\"refresh_token\", refresh_token);",
+									"        }",
+									"        ",
+									"        // Calcular e salvar tempo de expiração",
+									"        const now = new Date().getTime();",
+									"        const expiryTime = now + (expires_in * 1000); // expires_in em segundos",
+									"        pm.environment.set(\"token_expiry\", expiryTime.toString());",
+									"        ",
+									"        console.log(\"✅ Login realizado com sucesso!\");",
+									"        console.log(\"🔑 Token salvo:\", access_token.substring(0, 20) + \"...\");",
+									"        console.log(\"🔄 Refresh token salvo\");",
+									"        console.log(\"⏰ Token expira em:\", new Date(expiryTime).toLocaleString());",
+									"    }",
+									"} else {",
+									"    console.log(\"❌ Erro no login:\", pm.response.json());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"gabriel@valorize.com\",\n    \"password\": \"V@alorize\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Script para capturar tokens após refresh bem-sucedido",
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    ",
+									"    // A API retorna: { success: true, data: { access_token, refresh_token, expires_in } }",
+									"    if (responseJson.success && responseJson.data) {",
+									"        const { access_token, refresh_token, expires_in } = responseJson.data;",
+									"        ",
+									"        // Salvar novos tokens",
+									"        pm.environment.set(\"auth_token\", access_token);",
+									"        if (refresh_token) {",
+									"            pm.environment.set(\"refresh_token\", refresh_token);",
+									"        }",
+									"        ",
+									"        // Calcular e salvar tempo de expiração",
+									"        const now = new Date().getTime();",
+									"        const expiryTime = now + (expires_in * 1000); // expires_in em segundos",
+									"        pm.environment.set(\"token_expiry\", expiryTime.toString());",
+									"        ",
+									"        console.log(\"✅ Token renovado com sucesso!\");",
+									"        console.log(\"🔑 Novo token salvo:\", access_token.substring(0, 20) + \"...\");",
+									"        console.log(\"⏰ Token expira em:\", new Date(expiryTime).toLocaleString());",
+									"    }",
+									"} else {",
+									"    console.log(\"❌ Erro no refresh:\", pm.response.json());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company",
+			"item": [
+				{
+					"name": "Management",
+					"item": [
+						{
+							"name": "Create Company",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Test Company Inc.\",\n    \"domain\": \"test-company.com.br\",\n    \"country\": \"BR\",\n    \"timezone\": \"São Paulo\",\n    \"brasilData\": {}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/companies/create-company",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"companies",
+										"create-company"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Companies",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": ""
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Values",
+					"item": [
+						{
+							"name": "Create Value",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"Demo Value 1\",\n    \"description\": \"Test description\",\n    \"icon\": \"icon1.svg\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/companies/:companyId/create-value",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"companies",
+										":companyId",
+										"create-value"
+									],
+									"variable": [
+										{
+											"key": "companyId",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get all values from a company",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/companies/:companyId/values",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"companies",
+										":companyId",
+										"values"
+									],
+									"variable": [
+										{
+											"key": "companyId",
+											"value": ""
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Balance",
+					"item": [
+						{
+							"name": "Get My Balance",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/wallets/balance",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"wallets",
+										"balance"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Transactions History",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/wallets/transactions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"wallets",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reset Weekly Balance (All)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"companyId\": \"123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/wallets/reset-weekly-balance",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"wallets",
+										"reset-weekly-balance"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Compliments",
+					"item": [
+						{
+							"name": "List receivable users",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"gabriel@valorize.com\",\n    \"password\": \"V@alorize\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/compliments/list-receivable-users",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"compliments",
+										"list-receivable-users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Send Compliment",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"Compliment sent successfully!\",\n    \"compliment\": {\n        \"data\": {\n            \"id\": \"cmhgsymh50005s602vke6vtmb\",\n            \"senderId\": \"cmhgsinsh002rtprm4r2nalhx\",\n            \"receiverId\": \"cmhgsio78002vtprm7k2ch5tu\",\n            \"companyId\": \"demo-company-001\",\n            \"valueId\": 2,\n            \"message\": \"Obrigado por sempre estar disposto a ajudar! Sua colaboração faz toda diferença.\",\n            \"coins\": 25,\n            \"isPublic\": true,\n            \"createdAt\": \"2025-11-01T21:36:53.321Z\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/compliments/send-compliment",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"compliments",
+										"send-compliment"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "History",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/compliments/history?type=sent",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"compliments",
+										"history"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "sent",
+											"description": "sent or received"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Prizes",
+			"item": [
+				{
+					"name": "List Available Prizes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/prizes/catalog",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes",
+								"catalog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prize Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/prizes/catalog/:prizeId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes",
+								"catalog",
+								":prizeId"
+							],
+							"variable": [
+								{
+									"key": "prizeId",
+									"value": "cmgfsbfz90001tm0c37887obt"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/prizes/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Addresses",
+			"item": [
+				{
+					"name": "Create Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Home\",\n  \"street\": \"Av. Paulista\",\n  \"number\": \"1578\",\n  \"complement\": \"Apto 101\",\n  \"neighborhood\": \"Bela Vista\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zipCode\": \"01310-200\",\n  \"country\": \"BR\",\n  \"phone\": \"+5511999999999\",\n  \"isDefault\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/addresses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"addresses"
+							]
+						},
+						"description": "Create a new delivery address. Each user can have up to 3 addresses. The first address is automatically set as default."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Addresses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/addresses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"addresses"
+							]
+						},
+						"description": "Get all addresses for the current user. Addresses are returned ordered by default status first, then by creation date."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Address by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/addresses/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"addresses",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "cmgfwfo130001tmnjm7jsq972"
+								}
+							]
+						},
+						"description": "Get details of a specific address by ID. Users can only access their own addresses."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Address",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Work\",\n  \"street\": \"Rua Augusta\",\n  \"number\": \"2690\",\n  \"complement\": \"10º andar\",\n  \"neighborhood\": \"Cerqueira César\",\n  \"city\": \"São Paulo\",\n  \"state\": \"SP\",\n  \"zipCode\": \"01413-000\",\n  \"phone\": \"+5511988888888\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/addresses/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"addresses",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Update an existing address. All fields are optional. If you set isDefault to true, the previous default address will be unmarked."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Address",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/addresses/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"addresses",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Delete an address. If you delete the default address, another address will automatically become the default."
+					},
+					"response": []
+				},
+				{
+					"name": "Set Default Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/addresses/:id/set-default",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"addresses",
+								":id",
+								"set-default"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "Set an address as the default delivery address. The previous default address will be unmarked automatically."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Redemptions",
+			"item": [
+				{
+					"name": "Redeem Prize",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prizeId\": \"cmgfsbfz90001tm0c37887obt\",\n  \"variantId\": \"cmgfsceoj0003tm0ct54uj47z\",\n  \"addressId\": \"cmgfwfo130001tmnjm7jsq972\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/redemptions/redeem",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"redeem"
+							]
+						},
+						"description": "# Redeem Prize\n\nThis endpoint allows users to redeem a prize by providing the prize ID and delivery information. The system will process the redemption request and update the user's balance accordingly.\n\n## Authentication\n\nThis endpoint requires authentication using a Bearer token in the Authorization header.\n\n## Request Body\n\n```json\n{\n  \"prizeId\": \"string\",\n  \"deliveryInfo\": {\n    \"address\": \"string\",\n    \"city\": \"string\",\n    \"state\": \"string\",\n    \"zipCode\": \"string\",\n    \"phone\": \"string\"\n  }\n}\n```\n\n### Request Body Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| prizeId | string | Yes | The unique identifier of the prize to be redeemed |\n| deliveryInfo | object | Yes | Information about where to deliver the prize |\n| deliveryInfo.address | string | Yes | Street address for delivery |\n| deliveryInfo.city | string | Yes | City name |\n| deliveryInfo.state | string | Yes | State or province code |\n| deliveryInfo.zipCode | string | Yes | Postal/ZIP code |\n| deliveryInfo.phone | string | Yes | Contact phone number with country code |\n\n## Response\n\n### Success Response\n\n**Status Code:** 200 OK\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Prize redeemed successfully\",\n  \"data\": {\n    \"redemptionId\": \"string\",\n    \"prizeId\": \"string\",\n    \"status\": \"processing\",\n    \"estimatedDeliveryDate\": \"2023-06-15\"\n  }\n}\n```\n\n### Error Responses\n\n**Status Code:** 400 Bad Request\n```json\n{\n  \"success\": false,\n  \"message\": \"Invalid request parameters\",\n  \"errors\": [\n    \"prizeId is required\",\n    \"deliveryInfo.address is required\"\n  ]\n}\n```\n\n**Status Code:** 401 Unauthorized\n```json\n{\n  \"success\": false,\n  \"message\": \"Authentication required\"\n}\n```\n\n**Status Code:** 403 Forbidden\n```json\n{\n  \"success\": false,\n  \"message\": \"Insufficient balance to redeem this prize\"\n}\n```\n\n**Status Code:** 404 Not Found\n```json\n{\n  \"success\": false,\n  \"message\": \"Prize not found\"\n}\n```\n\n## Notes\n\n- The user must have sufficient balance to redeem the prize\n- All delivery information fields are required\n- Phone number should include country code (e.g., +5511999999999)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Redemptions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/redemptions/my-redemptions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"my-redemptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Redemption Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/redemptions/my-redemptions/:redemptionId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"my-redemptions",
+								":redemptionId"
+							],
+							"variable": [
+								{
+									"key": "redemptionId"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Redemption",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Mudei de ideia\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/redemptions/my-redemptions/:redemptionId/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"my-redemptions",
+								":redemptionId",
+								"cancel"
+							],
+							"variable": [
+								{
+									"key": "redemptionId"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script Pre-Request Global - Renovação Automática de Token (VERSÃO SÍNCRONA)",
+					"const currentUrl = pm.request.url.toString();",
+					"",
+					"// Pular verificação para requisições de autenticação",
+					"if (currentUrl.includes('/auth/login') || currentUrl.includes('/auth/refresh')) {",
+					"    console.log('🔄 Pulando verificação de token para endpoint de auth');",
+					"    return;",
+					"}",
+					"",
+					"const token = pm.environment.get('auth_token');",
+					"const refreshToken = pm.environment.get('refresh_token');",
+					"const tokenExpiry = pm.environment.get('token_expiry');",
+					"",
+					"console.log('🔍 Verificando token atual:', token ? token.substring(0, 20) + '...' : 'Não encontrado');",
+					"console.log('🔄 Refresh token disponível:', !!refreshToken);",
+					"",
+					"// Verificar se o token é claramente inválido",
+					"const isInvalidToken = !token || ",
+					"    token === 'abc' || ",
+					"    token === 'token_invalido_para_teste' || ",
+					"    token.length < 10;",
+					"",
+					"// Verificar se o token está expirado",
+					"let isExpired = false;",
+					"if (tokenExpiry) {",
+					"    const now = new Date().getTime();",
+					"    const expiryTime = parseInt(tokenExpiry);",
+					"    const timeRemaining = expiryTime - now;",
+					"    isExpired = timeRemaining <= 0;",
+					"    ",
+					"    if (isExpired) {",
+					"        console.log('⏰ Token expirado!');",
+					"    } else {",
+					"        console.log('⏰ Token expira em:', Math.floor(timeRemaining / 1000 / 60), 'minutos');",
+					"    }",
+					"}",
+					"",
+					"// Se o token é inválido ou expirado E temos refresh token",
+					"if ((isInvalidToken || isExpired) && refreshToken) {",
+					"    console.log('🔄 Iniciando renovação do token...');",
+					"    ",
+					"    // Criar requisição de refresh de forma síncrona",
+					"    const refreshRequest = {",
+					"        url: pm.environment.get('base_url') + '/auth/refresh',",
+					"        method: 'POST',",
+					"        header: {",
+					"            'Content-Type': 'application/json',",
+					"        },",
+					"        body: {",
+					"            mode: 'raw',",
+					"            raw: JSON.stringify({",
+					"                refresh_token: refreshToken",
+					"            })",
+					"        }",
+					"    };",
+					"    ",
+					"    // Usar pm.sendRequest de forma síncrona",
+					"    let refreshCompleted = false;",
+					"    let refreshSuccess = false;",
+					"    ",
+					"    pm.sendRequest(refreshRequest, (err, response) => {",
+					"        if (err) {",
+					"            console.log('❌ Erro ao renovar token:', err);",
+					"            refreshCompleted = true;",
+					"            return;",
+					"        }",
+					"        ",
+					"        console.log('📞 Status da renovação:', response.code);",
+					"        ",
+					"        if (response.code === 200) {",
+					"            const responseJson = response.json();",
+					"            console.log('📦 Resposta do refresh:', responseJson);",
+					"            ",
+					"            if (responseJson.success && responseJson.data) {",
+					"                const { access_token, refresh_token: newRefreshToken, expires_in } = responseJson.data;",
+					"                ",
+					"                // Atualizar tokens no ambiente",
+					"                pm.environment.set('auth_token', access_token);",
+					"                if (newRefreshToken) {",
+					"                    pm.environment.set('refresh_token', newRefreshToken);",
+					"                }",
+					"                ",
+					"                // Atualizar tempo de expiração",
+					"                const now = new Date().getTime();",
+					"                const expiryTime = now + (expires_in * 1000);",
+					"                pm.environment.set('token_expiry', expiryTime.toString());",
+					"                ",
+					"                console.log('✅ Token renovado automaticamente!');",
+					"                console.log('🔑 Novo token:', access_token.substring(0, 20) + '...');",
+					"                console.log('⏰ Expira em:', new Date(expiryTime).toLocaleString());",
+					"                ",
+					"                refreshSuccess = true;",
+					"            } else {",
+					"                console.log('❌ Resposta inválida do refresh:', responseJson);",
+					"            }",
+					"        } else {",
+					"            console.log('❌ Falha ao renovar token. Status:', response.code);",
+					"            const errorResponse = response.json();",
+					"            console.log('Erro:', errorResponse);",
+					"        }",
+					"        ",
+					"        refreshCompleted = true;",
+					"    });",
+					"    ",
+					"    // Aguardar a conclusão da renovação (timeout de 5 segundos)",
+					"    const startTime = Date.now();",
+					"    while (!refreshCompleted && (Date.now() - startTime) < 5000) {",
+					"        // Aguardar",
+					"    }",
+					"    ",
+					"    if (!refreshCompleted) {",
+					"        console.log('⏱️ Timeout na renovação do token');",
+					"    } else if (refreshSuccess) {",
+					"        console.log('✅ Renovação concluída com sucesso!');",
+					"    } else {",
+					"        console.log('❌ Renovação falhou');",
+					"    }",
+					"    ",
+					"} else if ((isInvalidToken || isExpired) && !refreshToken) {",
+					"    console.log('❌ Token inválido/expirado e sem refresh token. Faça login novamente.');",
+					"} else {",
+					"    console.log('✅ Token parece válido, prosseguindo com a requisição...');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script Post-Request Global - Tratamento de Erros de Autenticação",
+					"const currentUrl = pm.request.url.toString();",
+					"",
+					"// Pular para requisições de auth",
+					"if (currentUrl.includes('/auth/login') || currentUrl.includes('/auth/refresh')) {",
+					"    return;",
+					"}",
+					"",
+					"// Log da resposta para debug",
+					"console.log('📞 Status da resposta:', pm.response.code);",
+					"",
+					"// Se recebeu 401 Unauthorized",
+					"if (pm.response.code === 401) {",
+					"    const responseJson = pm.response.json();",
+					"    console.log('🚫 Recebido 401 Unauthorized:', responseJson.message || responseJson.error);",
+					"    ",
+					"    // Marcar token como inválido para forçar renovação na próxima requisição",
+					"    pm.environment.set('auth_token', 'token_invalido_401');",
+					"    pm.environment.set('token_expiry', '0');",
+					"    ",
+					"    console.log('⚠️ Token marcado como inválido. Na próxima requisição, será renovado automaticamente.');",
+					"} else if (pm.response.code === 200) {",
+					"    console.log('✅ Requisição bem-sucedida!');",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:4000",
+			"type": "string"
+		}
+	]
+}

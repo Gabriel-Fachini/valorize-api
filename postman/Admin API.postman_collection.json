@@ -1,0 +1,2980 @@
+{
+	"info": {
+		"_postman_id": "80132c0d-50e6-4a94-8330-c5c2fd17bfce",
+		"name": "Admin API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47208058"
+	},
+	"item": [
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Stats",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"gabriel@valorize.com\",\n    \"password\": \"V@alorize\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard Stats - Without Filters",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"stats"
+							]
+						},
+						"description": "Get dashboard statistics without any filters (uses last 30 days by default)"
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard Stats - With Date Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/stats?startDate=2025-01-01&endDate=2025-01-31",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date in ISO 8601 format (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-01-31",
+									"description": "End date in ISO 8601 format (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Get dashboard statistics for a specific date range"
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard Stats - Filter by Department",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/stats?startDate=2025-01-01&endDate=2025-01-31&departmentId=cmhfhy9f0001ptphopfjmr9mb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date in ISO 8601 format"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-01-31",
+									"description": "End date in ISO 8601 format"
+								},
+								{
+									"key": "departmentId",
+									"value": "cmhfhy9f0001ptphopfjmr9mb",
+									"description": "Department ID to filter by"
+								}
+							]
+						},
+						"description": "Get dashboard statistics filtered by department (compliments where sender OR receiver is from that department)"
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard Stats - Filter by Job Title",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/stats?startDate=2025-01-01&endDate=2025-01-31&jobTitleId=JOB_TITLE_ID_HERE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date in ISO 8601 format"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-01-31",
+									"description": "End date in ISO 8601 format"
+								},
+								{
+									"key": "jobTitleId",
+									"value": "JOB_TITLE_ID_HERE",
+									"description": "Job Title ID to filter by"
+								}
+							]
+						},
+						"description": "Get dashboard statistics filtered by job title (compliments where sender OR receiver has that job title)"
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard Stats - Filter by Department AND Job Title",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/stats?startDate=2025-01-01&endDate=2025-01-31&departmentId=DEPARTMENT_ID_HERE&jobTitleId=JOB_TITLE_ID_HERE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date in ISO 8601 format"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-01-31",
+									"description": "End date in ISO 8601 format"
+								},
+								{
+									"key": "departmentId",
+									"value": "DEPARTMENT_ID_HERE",
+									"description": "Department ID to filter by"
+								},
+								{
+									"key": "jobTitleId",
+									"value": "JOB_TITLE_ID_HERE",
+									"description": "Job Title ID to filter by"
+								}
+							]
+						},
+						"description": "Get dashboard statistics filtered by both department AND job title (compliments where sender OR receiver has BOTH attributes)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Settings",
+			"item": [
+				{
+					"name": "Get Settings",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Update all settings",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Empresa X Tecnologia\",\n  \"logo_url\": \"https://storage.example.com/logos/company-logo.png\",\n  \"domains\": [\n    \"empresax.com.br\",\n    \"empresax.com\",\n    \"subsidiaria.com.br\"\n  ],\n  \"weekly_renewal_amount\": 150,\n  \"renewal_day\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update name and logo",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Empresa X Tech Ltda\",\n  \"logo_url\": \"https://storage.example.com/logos/new-logo.png\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/settings/basic-info",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"settings",
+								"basic-info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update SSO Domains",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"domains\": [\n    \"empresax.com.br\",\n    \"empresax.com\",\n    \"empresax.net\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/settings/domains",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"settings",
+								"domains"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Economy",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"weekly_renewal_amount\": 200,\n  \"renewal_day\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/settings/coin-economy",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"settings",
+								"coin-economy"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update logo",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"logo_url\": \"https://storage.example.com/logos/uploaded-logo.png\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/logo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"logo"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Info",
+			"item": [
+				{
+					"name": "Get Company Info",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/company/info",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"info"
+							]
+						},
+						"description": "Get basic company information (name, logo, timezone, country, status)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Company Info",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Acme Corporation\",\n  \"logo_url\": \"https://example.com/logo.png\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/info",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"info"
+							]
+						},
+						"description": "Update basic company information"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Logo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"logo_url\": \"https://example.com/new-logo.png\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/info/logo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"info",
+								"logo"
+							]
+						},
+						"description": "Upload company logo (MOCK - returns the URL provided)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Domains",
+			"item": [
+				{
+					"name": "List Domains",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/company/domains",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"domains"
+							]
+						},
+						"description": "List all allowed domains for SSO"
+					},
+					"response": []
+				},
+				{
+					"name": "Replace All Domains",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"domains\": [\n    \"company.com\",\n    \"company.br\",\n    \"dev.company.com\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/domains",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"domains"
+							]
+						},
+						"description": "Replace all allowed domains (replaces existing ones)"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Single Domain",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"domain\": \"staging.company.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/domains",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"domains"
+							]
+						},
+						"description": "Add a new allowed domain"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Domain by ID",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/company/domains/{{domain_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"domains",
+								"{{domain_id}}"
+							]
+						},
+						"description": "Remove a specific allowed domain by ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Coin Economy",
+			"item": [
+				{
+					"name": "Get Coin Economy Settings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/company/coin-economy",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"coin-economy"
+							]
+						},
+						"description": "Get coin economy settings (weekly renewal amount and day)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Coin Economy Settings",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"weekly_renewal_amount\": 150,\n  \"renewal_day\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/coin-economy",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"coin-economy"
+							]
+						},
+						"description": "Update coin economy settings (weekly_renewal_amount: 50-500, renewal_day: 1-7)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company Values",
+			"item": [
+				{
+					"name": "List Company Values",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/company/values",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"values"
+							]
+						},
+						"description": "List all company values ordered by position"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Company Value",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/company/values/{{value_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"values",
+								"{{value_id}}"
+							]
+						},
+						"description": "Get a specific company value by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Company Value",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Inovação\",\n  \"description\": \"Buscamos soluções criativas e inovadoras\",\n  \"example\": \"Criar novos produtos que transformam o mercado\",\n  \"iconName\": \"lightbulb\",\n  \"iconColor\": \"#FFD700\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/values",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"values"
+							]
+						},
+						"description": "Create a new company value"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Company Value",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Inovação e Criatividade\",\n  \"description\": \"Buscamos soluções criativas, inovadoras e transformadoras\",\n  \"iconColor\": \"#FFA500\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/values/{{value_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"values",
+								"{{value_id}}"
+							]
+						},
+						"description": "Update an existing company value"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Company Value",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/company/values/{{value_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"values",
+								"{{value_id}}"
+							]
+						},
+						"description": "Delete a company value (soft delete via isActive = false)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reorder Company Values",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth0_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ordered_ids\": [3, 1, 2]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/company/values/reorder",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"company",
+								"values",
+								"reorder"
+							]
+						},
+						"description": "Reorder company values by providing ordered array of IDs"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Bulk Actions",
+					"item": [
+						{
+							"name": "Bulk Activate Users",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"userIds\": [\"user_1\", \"user_2\"],\n  \"action\": \"activate\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/admin/users/bulk/actions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"users",
+										"bulk",
+										"actions"
+									]
+								},
+								"description": "Activate multiple users at once"
+							},
+							"response": []
+						},
+						{
+							"name": "Bulk Deactivate Users",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"userIds\": [\"user_1\", \"user_2\"],\n  \"action\": \"deactivate\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/admin/users/bulk/actions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"users",
+										"bulk",
+										"actions"
+									]
+								},
+								"description": "Deactivate multiple users at once"
+							},
+							"response": []
+						},
+						{
+							"name": "Bulk Export Users",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"userIds\": [\"user_1\", \"user_2\"],\n  \"action\": \"export\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/admin/users/bulk/actions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"users",
+										"bulk",
+										"actions"
+									]
+								},
+								"description": "Export multiple users to CSV"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "CSV Import",
+					"item": [
+						{
+							"name": "1. Download CSV Template",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/admin/users/csv/template",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"users",
+										"csv",
+										"template"
+									]
+								},
+								"description": "Download CSV template for bulk import"
+							},
+							"response": []
+						},
+						{
+							"name": "2. Preview CSV Import",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"fileContent\": \"bm9tZSxlbWFpbCxkZXBhcnRhbWVudG8sY2FyZ28KSm/Dh28gU2lsdmEsam9hb0BlbXByZXNhLmNvbS5icixUZWNub2xvZ2lhLERlc2Vudm9sdmVkb3IKTWFyaWEgU2FudG9zLG1hcmlhQGVtcHJlc2EuY29tLmJyLFJILEFuYWxpc3Rh\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/admin/users/csv/preview",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"users",
+										"csv",
+										"preview"
+									]
+								},
+								"description": "Preview CSV and validate data before import. The fileContent should be a base64 encoded CSV file."
+							},
+							"response": []
+						},
+						{
+							"name": "3. Confirm CSV Import",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"previewId\": \"preview-1705849200000-abc123def456\",\n  \"confirmedRows\": [1, 2]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/admin/users/csv/import",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"admin",
+										"users",
+										"csv",
+										"import"
+									]
+								},
+								"description": "Confirm and process CSV import. Use previewId from preview step."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "List Users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/users?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (1-based)"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Items per page (1-100)"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search by name or email",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Filter: active | inactive",
+									"disabled": true
+								},
+								{
+									"key": "departmentId",
+									"value": "",
+									"description": "Filter by department",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt",
+									"description": "Sort field"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"description": "Sort direction: asc | desc"
+								}
+							]
+						},
+						"description": "Retrieve a paginated list of users with optional filters and search"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Detail",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/users/:user_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								":user_id"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "cmhgsrg1w0033tp70ibwyyodr"
+								}
+							]
+						},
+						"description": "Get complete user details including statistics"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@empresa.com.br\",\n  \"departmentId\": \"dept_123\",\n  \"jobTitleId\": \"job_456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						},
+						"description": "Create a new user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva Updated\",\n  \"email\": \"joao.updated@empresa.com.br\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/users/:user_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								":user_id"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "cmhgsj5n70033tpubzptb3z4q"
+								}
+							]
+						},
+						"description": "Update user information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/users/:user_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								":user_id"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "cmhgsj5n70033tpubzptb3z4q"
+								}
+							]
+						},
+						"description": "Deactivate a user (soft delete)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/users/:user_id/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								":user_id",
+								"reset-password"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "cmhgvbd4y000ltprnk5uayiuw"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Prizes",
+			"item": [
+				{
+					"name": "Create Prize (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"iPhone 15 Pro\",\n  \"description\": \"Smartphone Apple iPhone 15 Pro 256GB\",\n  \"category\": \"Electronics\",\n  \"images\": [\"https://example.com/iphone.jpg\"],\n  \"coinPrice\": 5000,\n  \"brand\": \"Apple\",\n  \"stock\": 10,\n  \"isGlobal\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/prizes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Prize Variant (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Color\",\n  \"value\": \"Black\",\n  \"stock\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/prizes/:prizeId/variants",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes",
+								":prizeId",
+								"variants"
+							],
+							"variable": [
+								{
+									"key": "prizeId",
+									"value": "cmgfsbfz90001tm0c37887obt"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Job Titles",
+			"item": [
+				{
+					"name": "Get Job Titles by Department",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/job-titles/by-department?departmentId=cmhguznmq001rtpqy12dmf5rx",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"job-titles",
+								"by-department"
+							],
+							"query": [
+								{
+									"key": "departmentId",
+									"value": "cmhguznmq001rtpqy12dmf5rx",
+									"description": "Department ID to filter job titles (REQUIRED)"
+								}
+							]
+						},
+						"description": "Retrieve all job titles for a specific department with user counts.\n\n**Query Parameters:**\n- `departmentId` (required): The ID of the department to filter job titles\n\n**Response:** Array of job titles with their IDs, names, and user counts in the department\n\n**Permissions Required:** USERS_READ"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job Titles by Department (Example with Real ID)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/job-titles/by-department?departmentId=dept_engineering",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"job-titles",
+								"by-department"
+							],
+							"query": [
+								{
+									"key": "departmentId",
+									"value": "dept_engineering",
+									"description": "Example: Engineering department ID"
+								}
+							]
+						},
+						"description": "Example request with a sample department ID. Replace 'dept_engineering' with your actual department ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Job Titles List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/job-titles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"job-titles"
+							]
+						},
+						"description": "Get list of all job titles in your company with user counts"
+					},
+					"response": []
+				}
+			],
+			"description": "Job Titles filtering endpoints"
+		},
+		{
+			"name": "Departments",
+			"item": [
+				{
+					"name": "Get Departments List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_AUTH0_JWT_TOKEN",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/departments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"departments"
+							]
+						},
+						"description": "Get list of all departments in your company with user counts"
+					},
+					"response": []
+				}
+			],
+			"description": "Departments management endpoints"
+		},
+		{
+			"name": "Economy Dashboard",
+			"item": [
+				{
+					"name": "Get Economy Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/economy",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"economy"
+							]
+						},
+						"description": "Retorna o dashboard completo de economia com 5 seções de métricas, alertas e sugestões de aporte"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Wallet History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/economy/wallet-history?limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"dashboard",
+								"economy",
+								"wallet-history"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Retorna o histórico de depósitos/carregamentos da carteira com paginação"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Roles Management",
+			"item": [
+				{
+					"name": "Get Me Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}"
+							]
+						},
+						"description": "Retrieve detailed information about a specific role.\n\n**Required Permission**: `roles:read`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role"
+					},
+					"response": []
+				},
+				{
+					"name": "All system permissions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}"
+							]
+						},
+						"description": "Retrieve detailed information about a specific role.\n\n**Required Permission**: `roles:read`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role"
+					},
+					"response": []
+				},
+				{
+					"name": "All system permissions Copy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}"
+							]
+						},
+						"description": "Retrieve detailed information about a specific role.\n\n**Required Permission**: `roles:read`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role"
+					},
+					"response": []
+				},
+				{
+					"name": "List All Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles?limit=50&offset=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Maximum number of roles to return (default: 50, max: 100)"
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Number of roles to skip (default: 0)"
+								}
+							]
+						},
+						"description": "Retrieve a paginated list of all roles for the company.\n\n**Required Permission**: `roles:read`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Role by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}"
+							]
+						},
+						"description": "Retrieve detailed information about a specific role.\n\n**Required Permission**: `roles:read`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Role",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set('role_id', jsonData.data.id);",
+									"    console.log('Role ID saved:', jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Content Manager\",\n  \"description\": \"Manages company content and documents\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles"
+							]
+						},
+						"description": "Create a new role for the company.\n\n**Required Permission**: `roles:create`\n\n**Request Body**:\n- `name` (string, required): Unique name of the role\n- `description` (string, optional): Description of the role's purpose"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Role",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Senior Content Manager\",\n  \"description\": \"Manages company content, documents, and approves publications\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles/:role_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								":role_id"
+							],
+							"variable": [
+								{
+									"key": "role_id",
+									"value": "cmhj12tjc0001tp94smfzhmns"
+								}
+							]
+						},
+						"description": "Update an existing role's name and/or description.\n\n**Required Permission**: `roles:update`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role to update\n\n**Request Body**:\n- `name` (string, optional): New name for the role\n- `description` (string, optional): New description for the role"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Role",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/:role_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								":role_id"
+							],
+							"variable": [
+								{
+									"key": "role_id",
+									"value": "cmhj12tjc0001tp94smfzhmns"
+								}
+							]
+						},
+						"description": "Delete a role. The role must not have any users assigned to it.\n\n**Required Permission**: `roles:delete`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role to delete\n\n**Error Codes**:\n- `ROLE_HAS_USERS`: Cannot delete a role that has users assigned to it"
+					},
+					"response": []
+				},
+				{
+					"name": "Set Role Permissions (Replace All)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionNames\": [\n    \"roles:read\",\n    \"roles:update\",\n    \"users:read\",\n    \"users:update\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles/:role_id/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								":role_id",
+								"permissions"
+							],
+							"variable": [
+								{
+									"key": "role_id",
+									"value": "cmhj14uwz0003tp94qus2penz"
+								}
+							]
+						},
+						"description": "Set all permissions for a role. This replaces all existing permissions.\n\n**Required Permission**: `roles:update`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role\n\n**Request Body**:\n- `permissions` (array of strings, required): List of permission codes to assign\n\n**Note**: Use this to replace all permissions at once."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Permission to Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionNames\": \"users:read\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles/:role_id/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								":role_id",
+								"permissions"
+							],
+							"variable": [
+								{
+									"key": "role_id",
+									"value": "cmhj14uwz0003tp94qus2penz"
+								}
+							]
+						},
+						"description": "Add a single permission to a role.\n\n**Required Permission**: `roles:update`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role\n\n**Request Body**:\n- `permission` (string, required): The permission code to add"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Permission from Role",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permissionNames\": \"prizes:read\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles/:role_id/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								":role_id",
+								"permissions"
+							],
+							"variable": [
+								{
+									"key": "role_id",
+									"value": "cmhj14uwz0003tp94qus2penz"
+								}
+							]
+						},
+						"description": "Remove a single permission from a role.\n\n**Required Permission**: `roles:update`\n\n**Path Parameters**:\n- `role_id`: The unique identifier of the role\n\n**Request Body**:\n- `permission` (string, required): The permission code to remove"
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Role to Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roleId\": \"cmhj14uwz0003tp94qus2penz\",\n  \"userIds\": [\"\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/users/assign-role",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"assign-role"
+							]
+						},
+						"description": "Assign a role to a user.\n\n**Required Permission**: `users:manage_roles`\n\n**Path Parameters**:\n- `user_id`: The unique identifier of the user\n\n**Request Body**:\n- `roleId` (string, required): The unique identifier of the role to assign"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Role from User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles/users/:user_id:/roles/:role_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"users",
+								":user_id:",
+								"roles",
+								":role_id"
+							],
+							"variable": [
+								{
+									"key": "user_id:",
+									"value": "cmhj14uwz0003tp94qus2penz"
+								},
+								{
+									"key": "role_id",
+									"value": "cmhj14uwz0003tp94qus2penz"
+								}
+							]
+						},
+						"description": "Remove a role from a user.\n\n**Required Permission**: `users:manage_roles`\n\n**Path Parameters**:\n- `user_id`: The unique identifier of the user\n- `role_id`: The unique identifier of the role to remove"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/users/{{user_id}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"users",
+								"{{user_id}}",
+								"roles"
+							]
+						},
+						"description": "Get all roles assigned to a specific user.\n\n**Required Permission**: `users:read`\n\n**Path Parameters**:\n- `user_id`: The unique identifier of the user"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Voucher Products",
+			"item": [
+				{
+					"name": "Sync Catalog from Tremendous",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Sincronização concluída!');",
+									"    console.log('Produtos sincronizados:', response.result.syncedProducts);",
+									"    console.log('Produtos desativados:', response.result.deactivatedProducts);",
+									"    console.log('Total ativos:', response.result.totalActiveProducts);",
+									"    console.log('Prizes desativados:', response.result.deactivatedPrizes);",
+									"} else {",
+									"    console.log('❌ Erro na sincronização:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/voucher-products/sync",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"voucher-products",
+								"sync"
+							]
+						},
+						"description": "Sincroniza catálogo de vouchers da Tremendous e cria/atualiza Prizes automaticamente. Esta é a rota principal que você precisa executar após db:reset."
+					},
+					"response": []
+				},
+				{
+					"name": "List Voucher Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Produtos listados:', response.total);",
+									"    if (response.products && response.products.length > 0) {",
+									"        console.log('Primeiro produto:', response.products[0].name);",
+									"    }",
+									"} else {",
+									"    console.log('❌ Erro ao listar:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/voucher-products?provider=tremendous&currency=BRL&country=BR&isActive=true&limit=50&offset=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"voucher-products"
+							],
+							"query": [
+								{
+									"key": "provider",
+									"value": "tremendous",
+									"description": "Filtrar por provider (tremendous)"
+								},
+								{
+									"key": "currency",
+									"value": "BRL",
+									"description": "Filtrar por moeda"
+								},
+								{
+									"key": "country",
+									"value": "BR",
+									"description": "Filtrar por país"
+								},
+								{
+									"key": "isActive",
+									"value": "true",
+									"description": "Apenas produtos ativos"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limite de resultados"
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Offset para paginação"
+								}
+							]
+						},
+						"description": "Lista produtos de voucher com filtros opcionais"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Voucher Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/voucher-products/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"voucher-products",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "",
+									"description": "ID do produto voucher"
+								}
+							]
+						},
+						"description": "Busca produto específico por ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Rotas administrativas para gerenciamento de produtos de voucher"
+		},
+		{
+			"name": "3. Prizes",
+			"item": [
+				{
+					"name": "List Prizes Catalog",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Prizes listados:', response.prizes.length);",
+									"    if (response.prizes && response.prizes.length > 0) {",
+									"        const firstPrize = response.prizes[0];",
+									"        pm.collectionVariables.set('prize_id', firstPrize.id);",
+									"        console.log('Prize salvo para testes:', firstPrize.name, '(', firstPrize.coinPrice, 'moedas)');",
+									"    }",
+									"} else {",
+									"    console.log('❌ Erro ao listar prizes:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/prizes/catalog?category=voucher",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes",
+								"catalog"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "voucher",
+									"description": "Filtrar por categoria"
+								},
+								{
+									"key": "minPrice",
+									"value": "",
+									"description": "Preço mínimo em moedas",
+									"disabled": true
+								},
+								{
+									"key": "maxPrice",
+									"value": "",
+									"description": "Preço máximo em moedas",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lista prêmios disponíveis no catálogo. Automaticamente salva o primeiro prize_id para usar nos testes."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prize Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/prizes/catalog/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes",
+								"catalog",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{prize_id}}",
+									"description": "ID do prize"
+								}
+							]
+						},
+						"description": "Busca detalhes de um prize específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prize Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/prizes/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"prizes",
+								"categories"
+							]
+						},
+						"description": "Lista categorias disponíveis de prizes"
+					},
+					"response": []
+				}
+			],
+			"description": "Rotas públicas (autenticadas) para catálogo de prêmios"
+		},
+		{
+			"name": "4. Redemptions",
+			"item": [
+				{
+					"name": "Bulk Redeem Vouchers (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 207) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Bulk redemption concluído!');",
+									"    console.log('Total:', response.summary.total);",
+									"    console.log('Sucessos:', response.summary.successful);",
+									"    console.log('Falhas:', response.summary.failed);",
+									"    console.log('Taxa de sucesso:', ((response.summary.successful / response.summary.total) * 100).toFixed(1) + '%');",
+									"    ",
+									"    // Salvar primeiro redemption_id de sucesso",
+									"    const firstSuccess = response.results.find(r => r.success);",
+									"    if (firstSuccess && firstSuccess.redemptionId) {",
+									"        pm.collectionVariables.set('redemption_id', firstSuccess.redemptionId);",
+									"        console.log('Redemption ID salvo:', firstSuccess.redemptionId);",
+									"    }",
+									"} else {",
+									"    console.log('❌ Erro no bulk redeem:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\n    {\n      \"userId\": \"{{test_user_id}}\",\n      \"prizeId\": \"{{prize_id}}\"\n    },\n    {\n      \"userId\": \"{{test_user_id}}\",\n      \"prizeId\": \"{{prize_id}}\"\n    },\n    {\n      \"userId\": \"{{test_user_id}}\",\n      \"prizeId\": \"{{prize_id}}\"\n    },\n    {\n      \"userId\": \"{{test_user_id}}\",\n      \"prizeId\": \"{{prize_id}}\"\n    },\n    {\n      \"userId\": \"{{test_user_id}}\",\n      \"prizeId\": \"{{prize_id}}\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/redemptions/bulk-redeem",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"bulk-redeem"
+							]
+						},
+						"description": "**Função ADMINISTRATIVA**: Resgata vouchers em lote para múltiplos usuários. A EMPRESA paga, usuários recebem de graça.\n\n⚠️ Requer permissão: `STORE_BULK_REDEEM_ADMIN`\n\n- Máximo: 100 items por requisição\n- Processa em batches de 10\n- Rate limit: 10 req/s (Tremendous API)\n- Debita CompanyWallet uma vez por batch\n- Status code: 207 Multi-Status\n\n📝 Edite o body para enviar 100 items se quiser testar o limite."
+					},
+					"response": []
+				},
+				{
+					"name": "Redeem Prize (User)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Prize resgatado com sucesso!');",
+									"    pm.collectionVariables.set('redemption_id', response.redemption.id);",
+									"    console.log('Redemption ID:', response.redemption.id);",
+									"} else {",
+									"    console.log('❌ Erro ao resgatar:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prizeId\": \"{{prize_id}}\",\n  \"addressId\": \"address_id_aqui\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/redemptions/redeem",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"redeem"
+							]
+						},
+						"description": "Resgatar um prêmio individualmente. O usuário paga com suas moedas.\n\n⚠️ Para vouchers digitais, addressId não é necessário."
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Redemptions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Redemptions listados:', response.redemptions.length);",
+									"    if (response.redemptions && response.redemptions.length > 0) {",
+									"        const firstRedemption = response.redemptions[0];",
+									"        pm.collectionVariables.set('redemption_id', firstRedemption.id);",
+									"        console.log('Redemption ID salvo:', firstRedemption.id);",
+									"        console.log('Status:', firstRedemption.status);",
+									"    }",
+									"} else {",
+									"    console.log('❌ Erro ao listar:', pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/redemptions/my-redemptions?limit=20&offset=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"my-redemptions"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Limite de resultados (padrão: 20)"
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Offset para paginação (padrão: 0)"
+								}
+							]
+						},
+						"description": "Lista os resgates do usuário autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Redemption Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/redemptions/my-redemptions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"my-redemptions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{redemption_id}}",
+									"description": "ID do redemption"
+								}
+							]
+						},
+						"description": "Busca detalhes de um resgate específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Redemption",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Cancelamento por teste\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/redemptions/my-redemptions/:id/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"redemptions",
+								"my-redemptions",
+								":id",
+								"cancel"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{redemption_id}}",
+									"description": "ID do redemption"
+								}
+							]
+						},
+						"description": "Cancela um resgate. Retorna as moedas ao usuário.\n\n⚠️ Não é possível cancelar pedidos já enviados ou fora do prazo de cancelamento."
+					},
+					"response": []
+				}
+			],
+			"description": "Rotas de resgate de prêmios"
+		},
+		{
+			"name": "5. Wallets",
+			"item": [
+				{
+					"name": "Get My Balance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wallets/balance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"wallets",
+								"balance"
+							]
+						},
+						"description": "Consulta o saldo do usuário autenticado"
+					},
+					"response": []
+				}
+			],
+			"description": "Rotas relacionadas a carteiras e saldo"
+		},
+		{
+			"name": "Admin Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Script para capturar tokens após login bem-sucedido",
+							"if (pm.response.code === 200) {",
+							"    const responseJson = pm.response.json();",
+							"    ",
+							"    // A API retorna: { success: true, data: { access_token, refresh_token, expires_in } }",
+							"    if (responseJson.success && responseJson.data) {",
+							"        const { access_token, refresh_token, expires_in } = responseJson.data;",
+							"        ",
+							"        // Salvar tokens",
+							"        pm.environment.set(\"auth_token\", access_token);",
+							"        if (refresh_token) {",
+							"            pm.environment.set(\"refresh_token\", refresh_token);",
+							"        }",
+							"        ",
+							"        // Calcular e salvar tempo de expiração",
+							"        const now = new Date().getTime();",
+							"        const expiryTime = now + (expires_in * 1000); // expires_in em segundos",
+							"        pm.environment.set(\"token_expiry\", expiryTime.toString());",
+							"        ",
+							"        console.log(\"✅ Login realizado com sucesso!\");",
+							"        console.log(\"🔑 Token salvo:\", access_token.substring(0, 20) + \"...\");",
+							"        console.log(\"🔄 Refresh token salvo\");",
+							"        console.log(\"⏰ Token expira em:\", new Date(expiryTime).toLocaleString());",
+							"    }",
+							"} else {",
+							"    console.log(\"❌ Erro no login:\", pm.response.json());",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"gabriel@valorize.com\",\n    \"password\": \"V@alorize\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/admin/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"admin",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script Pre-Request Global - Renovação Automática de Token (VERSÃO SÍNCRONA)",
+					"const currentUrl = pm.request.url.toString();",
+					"",
+					"// Pular verificação para requisições de autenticação",
+					"if (currentUrl.includes('/auth/login') || currentUrl.includes('/auth/refresh')) {",
+					"    console.log('🔄 Pulando verificação de token para endpoint de auth');",
+					"    return;",
+					"}",
+					"",
+					"const token = pm.environment.get('auth_token');",
+					"const refreshToken = pm.environment.get('refresh_token');",
+					"const tokenExpiry = pm.environment.get('token_expiry');",
+					"",
+					"console.log('🔍 Verificando token atual:', token ? token.substring(0, 20) + '...' : 'Não encontrado');",
+					"console.log('🔄 Refresh token disponível:', !!refreshToken);",
+					"",
+					"// Verificar se o token é claramente inválido",
+					"const isInvalidToken = !token || ",
+					"    token === 'abc' || ",
+					"    token === 'token_invalido_para_teste' || ",
+					"    token.length < 10;",
+					"",
+					"// Verificar se o token está expirado",
+					"let isExpired = false;",
+					"if (tokenExpiry) {",
+					"    const now = new Date().getTime();",
+					"    const expiryTime = parseInt(tokenExpiry);",
+					"    const timeRemaining = expiryTime - now;",
+					"    isExpired = timeRemaining <= 0;",
+					"    ",
+					"    if (isExpired) {",
+					"        console.log('⏰ Token expirado!');",
+					"    } else {",
+					"        console.log('⏰ Token expira em:', Math.floor(timeRemaining / 1000 / 60), 'minutos');",
+					"    }",
+					"}",
+					"",
+					"// Se o token é inválido ou expirado E temos refresh token",
+					"if ((isInvalidToken || isExpired) && refreshToken) {",
+					"    console.log('🔄 Iniciando renovação do token...');",
+					"    ",
+					"    // Criar requisição de refresh de forma síncrona",
+					"    const refreshRequest = {",
+					"        url: pm.environment.get('base_url') + '/auth/refresh',",
+					"        method: 'POST',",
+					"        header: {",
+					"            'Content-Type': 'application/json',",
+					"        },",
+					"        body: {",
+					"            mode: 'raw',",
+					"            raw: JSON.stringify({",
+					"                refresh_token: refreshToken",
+					"            })",
+					"        }",
+					"    };",
+					"    ",
+					"    // Usar pm.sendRequest de forma síncrona",
+					"    let refreshCompleted = false;",
+					"    let refreshSuccess = false;",
+					"    ",
+					"    pm.sendRequest(refreshRequest, (err, response) => {",
+					"        if (err) {",
+					"            console.log('❌ Erro ao renovar token:', err);",
+					"            refreshCompleted = true;",
+					"            return;",
+					"        }",
+					"        ",
+					"        console.log('📞 Status da renovação:', response.code);",
+					"        ",
+					"        if (response.code === 200) {",
+					"            const responseJson = response.json();",
+					"            console.log('📦 Resposta do refresh:', responseJson);",
+					"            ",
+					"            if (responseJson.success && responseJson.data) {",
+					"                const { access_token, refresh_token: newRefreshToken, expires_in } = responseJson.data;",
+					"                ",
+					"                // Atualizar tokens no ambiente",
+					"                pm.environment.set('auth_token', access_token);",
+					"                if (newRefreshToken) {",
+					"                    pm.environment.set('refresh_token', newRefreshToken);",
+					"                }",
+					"                ",
+					"                // Atualizar tempo de expiração",
+					"                const now = new Date().getTime();",
+					"                const expiryTime = now + (expires_in * 1000);",
+					"                pm.environment.set('token_expiry', expiryTime.toString());",
+					"                ",
+					"                console.log('✅ Token renovado automaticamente!');",
+					"                console.log('🔑 Novo token:', access_token.substring(0, 20) + '...');",
+					"                console.log('⏰ Expira em:', new Date(expiryTime).toLocaleString());",
+					"                ",
+					"                refreshSuccess = true;",
+					"            } else {",
+					"                console.log('❌ Resposta inválida do refresh:', responseJson);",
+					"            }",
+					"        } else {",
+					"            console.log('❌ Falha ao renovar token. Status:', response.code);",
+					"            const errorResponse = response.json();",
+					"            console.log('Erro:', errorResponse);",
+					"        }",
+					"        ",
+					"        refreshCompleted = true;",
+					"    });",
+					"    ",
+					"    // Aguardar a conclusão da renovação (timeout de 5 segundos)",
+					"    const startTime = Date.now();",
+					"    while (!refreshCompleted && (Date.now() - startTime) < 5000) {",
+					"        // Aguardar",
+					"    }",
+					"    ",
+					"    if (!refreshCompleted) {",
+					"        console.log('⏱️ Timeout na renovação do token');",
+					"    } else if (refreshSuccess) {",
+					"        console.log('✅ Renovação concluída com sucesso!');",
+					"    } else {",
+					"        console.log('❌ Renovação falhou');",
+					"    }",
+					"    ",
+					"} else if ((isInvalidToken || isExpired) && !refreshToken) {",
+					"    console.log('❌ Token inválido/expirado e sem refresh token. Faça login novamente.');",
+					"} else {",
+					"    console.log('✅ Token parece válido, prosseguindo com a requisição...');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script Post-Request Global - Tratamento de Erros de Autenticação",
+					"const currentUrl = pm.request.url.toString();",
+					"",
+					"// Pular para requisições de auth",
+					"if (currentUrl.includes('/auth/login') || currentUrl.includes('/auth/refresh')) {",
+					"    return;",
+					"}",
+					"",
+					"// Log da resposta para debug",
+					"console.log('📞 Status da resposta:', pm.response.code);",
+					"",
+					"// Se recebeu 401 Unauthorized",
+					"if (pm.response.code === 401) {",
+					"    const responseJson = pm.response.json();",
+					"    console.log('🚫 Recebido 401 Unauthorized:', responseJson.message || responseJson.error);",
+					"    ",
+					"    // Marcar token como inválido para forçar renovação na próxima requisição",
+					"    pm.environment.set('auth_token', 'token_invalido_401');",
+					"    pm.environment.set('token_expiry', '0');",
+					"    ",
+					"    console.log('⚠️ Token marcado como inválido. Na próxima requisição, será renovado automaticamente.');",
+					"} else if (pm.response.code === 200) {",
+					"    console.log('✅ Requisição bem-sucedida!');",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:4000",
+			"type": "string"
+		},
+		{
+			"key": "prize_id",
+			"value": ""
+		}
+	]
+}

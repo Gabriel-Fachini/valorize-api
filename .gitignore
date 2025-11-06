@@ -87,5 +87,3 @@ temp/
 *.db
 
 tremendous.json
-postman
-postman/**
