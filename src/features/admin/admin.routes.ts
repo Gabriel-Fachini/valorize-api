@@ -12,6 +12,7 @@
  * - /admin/company/domains     - Allowed domains for SSO
  * - /admin/company/coin-economy - Coin economy settings
  * - /admin/company/values      - Company values management
+ * - /admin/voucher-products/*  - Voucher product catalog management
  *
  * @module features/admin/admin.routes
  */
@@ -99,6 +100,17 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       await fastify.register(companyValuesRoutes)
     },
     { prefix: '/company/values' },
+  )
+
+  // Voucher Products routes - /admin/voucher-products
+  await fastify.register(
+    async function (fastify) {
+      const { default: voucherProductRoutes } = await import(
+        '@/features/prizes/vouchers/voucher-product.routes'
+      )
+      await fastify.register(voucherProductRoutes)
+    },
+    { prefix: '/voucher-products' },
   )
 
   // Future admin routes can be added here

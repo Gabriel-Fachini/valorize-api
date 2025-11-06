@@ -93,7 +93,7 @@ export const redemptionService = {
       }
 
       // Validar regra de negócio: se o prêmio tem variantes, uma deve ser selecionada
-      const hasVariants = prize.variants && prize.variants.length > 0
+      const hasVariants = (prize.variants as any[]) && (prize.variants as any[]).length > 0
       if (hasVariants && !variantId) {
         throw new VariantRequiredError()
       }
@@ -125,7 +125,7 @@ export const redemptionService = {
 
       if (variantId) {
         // Resgatar variante específica
-        const variant = prize.variants.find((v) => v.id === variantId)
+        const variant = (prize.variants as any[]).find((v: any) => v.id === variantId)
         if (!variant) {
           throw new Error('Variant not found')
         }
@@ -192,7 +192,8 @@ export const redemptionService = {
       // 8. Se for voucher, criar DIRETO (síncrono)
       if (isVoucher) {
         // Validar campos obrigatórios do voucher
-        if (!prize.voucherPrize) {
+        const voucherPrize = (prize as any).voucherPrize
+        if (!voucherPrize) {
           throw new Error('Prize is missing voucher configuration')
         }
 
@@ -209,18 +210,18 @@ export const redemptionService = {
         try {
           logger.info('[RedemptionService] Creating voucher synchronously', {
             redemptionId: redemption.id,
-            provider: prize.voucherPrize.provider,
-            productId: prize.voucherPrize.externalId,
+            provider: voucherPrize.provider,
+            productId: voucherPrize.externalId,
           })
 
           // Criar voucher via provider
-          const voucherProvider = VoucherProviderFactory.create(prize.voucherPrize.provider)
+          const voucherProvider = VoucherProviderFactory.create(voucherPrize.provider)
 
           const voucherResult = await voucherProvider.createVoucher({
             externalId: redemption.id, // Usar redemptionId para idempotência
-            productId: prize.voucherPrize.externalId,
-            amount: prize.voucherPrize.minValue.toNumber(),
-            currency: prize.voucherPrize.currency,
+            productId: voucherPrize.externalId,
+            amount: voucherPrize.minValue.toNumber(),
+            currency: voucherPrize.currency,
             recipient: {
               name: user.name ?? '',
               email: user.email,
@@ -238,13 +239,13 @@ export const redemptionService = {
           await tx.voucherRedemption.create({
             data: {
               redemptionId: redemption.id,
-              provider: prize.voucherPrize.provider,
+              provider: voucherPrize.provider,
               providerOrderId: voucherResult.orderId,
               providerRewardId: voucherResult.rewardId,
               voucherLink: voucherResult.link,
               voucherCode: voucherResult.code ?? null,
-              amount: prize.voucherPrize.minValue,
-              currency: prize.voucherPrize.currency,
+              amount: voucherPrize.minValue,
+              currency: voucherPrize.currency,
               status: 'completed',
               completedAt: new Date(),
               expiresAt: voucherResult.expiresAt ?? null,
@@ -277,9 +278,9 @@ export const redemptionService = {
           await tx.voucherRedemption.create({
             data: {
               redemptionId: redemption.id,
-              provider: prize.voucherPrize.provider,
-              amount: prize.voucherPrize.minValue,
-              currency: prize.voucherPrize.currency,
+              provider: voucherPrize.provider,
+              amount: voucherPrize.minValue,
+              currency: voucherPrize.currency,
               status: 'failed',
               errorMessage: error.message,
             },

@@ -4,7 +4,7 @@
  * Operações de banco de dados para VoucherProduct (catálogo de produtos)
  */
 
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/database'
 import {
   ListVoucherProductsFilters,
   SyncVoucherProductDTO,
@@ -16,7 +16,7 @@ export class VoucherProductRepository {
    * Sincroniza/atualiza produto do provider (upsert)
    */
   async sync(data: SyncVoucherProductDTO): Promise<VoucherProduct> {
-    return prisma.voucherProduct.upsert({
+    const result = await prisma.voucherProduct.upsert({
       where: {
         provider_externalId: {
           provider: data.provider,
@@ -52,22 +52,24 @@ export class VoucherProductRepository {
         lastSyncAt: new Date(),
       },
     })
+    return this.mapToVoucherProduct(result)
   }
 
   /**
    * Busca produto por ID
    */
   async findById(id: string): Promise<VoucherProduct | null> {
-    return prisma.voucherProduct.findUnique({
+    const result = await prisma.voucherProduct.findUnique({
       where: { id },
     })
+    return result ? this.mapToVoucherProduct(result) : null
   }
 
   /**
    * Busca produto por provider + externalId
    */
   async findByExternalId(provider: string, externalId: string): Promise<VoucherProduct | null> {
-    return prisma.voucherProduct.findUnique({
+    const result = await prisma.voucherProduct.findUnique({
       where: {
         provider_externalId: {
           provider,
@@ -75,6 +77,7 @@ export class VoucherProductRepository {
         },
       },
     })
+    return result ? this.mapToVoucherProduct(result) : null
   }
 
   /**
@@ -139,7 +142,18 @@ export class VoucherProductRepository {
       prisma.voucherProduct.count({ where }),
     ])
 
-    return { items, total }
+    return { items: items.map((item) => this.mapToVoucherProduct(item)), total }
+  }
+
+  /**
+   * Mapeia resultado do Prisma para VoucherProduct
+   */
+  private mapToVoucherProduct(data: any): VoucherProduct {
+    return {
+      ...data,
+      minValue: typeof data.minValue === 'number' ? data.minValue : Number(data.minValue),
+      maxValue: typeof data.maxValue === 'number' ? data.maxValue : Number(data.maxValue),
+    }
   }
 
   /**
