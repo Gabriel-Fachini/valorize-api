@@ -328,7 +328,7 @@ export const redemptionService = {
       })
 
       return redemption.toJSON()
-    }, { timeout: 30000 }) // 30s timeout (voucher API pode demorar)
+    }, { timeout: 8000 }) // 8s timeout (voucher API pode demorar)
   },
 
   async cancelRedemption(redemptionId: string, userId: string, reason: string) {
