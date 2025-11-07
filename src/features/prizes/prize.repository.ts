@@ -44,6 +44,7 @@ export const prizeRepository = {
   async findAvailable(
     companyId: string,
     filters?: {
+      type?: string
       category?: string
       minPrice?: number
       maxPrice?: number
@@ -54,6 +55,10 @@ export const prizeRepository = {
         isActive: true,
         stock: { gt: 0 },
         OR: [{ companyId }, { companyId: null }],
+      }
+
+      if (filters?.type) {
+        where.type = filters.type
       }
 
       if (filters?.category) {

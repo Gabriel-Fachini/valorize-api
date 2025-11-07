@@ -32,7 +32,8 @@ const prizeResponseSchema = {
     companyId: { type: ['string', 'null'] },
     name: { type: 'string' },
     description: { type: 'string' },
-    category: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+    type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+    category: { type: ['string', 'null'] },
     images: {
       type: 'array',
       items: { type: 'string' },
@@ -84,14 +85,15 @@ Global Prizes:
     properties: {
       name: { type: 'string', minLength: 3, maxLength: 200 },
       description: { type: 'string', minLength: 10, maxLength: 2000 },
-      category: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      category: { type: 'string', maxLength: 100 },
       coinPrice: { type: 'integer', minimum: 1 },
       brand: { type: 'string', maxLength: 100 },
       stock: { type: 'integer', minimum: 0 },
       specifications: { type: 'object', additionalProperties: true },
       isGlobal: { type: 'boolean', default: false },
     },
-    required: ['name', 'description', 'category', 'coinPrice', 'stock'],
+    required: ['name', 'description', 'type', 'coinPrice', 'stock'],
     additionalProperties: false,
   },
   response: {
@@ -119,7 +121,8 @@ export const listPrizesSchema = {
     properties: {
       page: { type: 'integer', minimum: 1, default: 1 },
       limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
-      category: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      category: { type: 'string', maxLength: 100 },
       isActive: { type: 'boolean' },
       isGlobal: { type: 'boolean' },
       search: { type: 'string', minLength: 1 },
@@ -194,7 +197,8 @@ export const updatePrizeSchema = {
     properties: {
       name: { type: 'string', minLength: 3, maxLength: 200 },
       description: { type: 'string', minLength: 10, maxLength: 2000 },
-      category: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      category: { type: 'string', maxLength: 100 },
       coinPrice: { type: 'integer', minimum: 1 },
       brand: { type: 'string', maxLength: 100 },
       stock: { type: 'integer', minimum: 0 },

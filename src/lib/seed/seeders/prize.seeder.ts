@@ -40,6 +40,7 @@ export class PrizeSeeder extends BaseSeeder {
           companyId: null, // null means global prize
           name: prizeData.name,
           description: prizeData.description,
+          type: prizeData.type,
           category: prizeData.category,
           images: prizeData.images,
           coinPrice: prizeData.coinPrice,
@@ -77,6 +78,7 @@ export class PrizeSeeder extends BaseSeeder {
             companyId: valorizeCompany.id,
             name: prizeData.name,
             description: prizeData.description,
+            type: prizeData.type,
             category: prizeData.category,
             images: prizeData.images,
             coinPrice: prizeData.coinPrice,

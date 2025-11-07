@@ -1,9 +1,9 @@
 import { Prize, PrizeVariant } from '@prisma/client'
 
 /**
- * Prize category types
+ * Prize type (delivery format)
  */
-export type PrizeCategory = 'voucher' | 'experience' | 'product'
+export type PrizeType = 'voucher' | 'experience' | 'product'
 
 /**
  * Prize sort/order options
@@ -17,7 +17,8 @@ export type SortOrder = 'asc' | 'desc'
 export interface CreatePrizeRequest {
   name: string
   description: string
-  category: PrizeCategory
+  type: PrizeType
+  category?: string
   coinPrice: number
   brand?: string
   stock: number
@@ -31,7 +32,8 @@ export interface CreatePrizeRequest {
 export interface UpdatePrizeRequest {
   name?: string
   description?: string
-  category?: PrizeCategory
+  type?: PrizeType
+  category?: string
   coinPrice?: number
   brand?: string
   stock?: number
@@ -45,7 +47,8 @@ export interface UpdatePrizeRequest {
 export interface ListPrizesQuery {
   page?: number
   limit?: number
-  category?: PrizeCategory
+  type?: PrizeType
+  category?: string
   isActive?: boolean
   isGlobal?: boolean
   search?: string

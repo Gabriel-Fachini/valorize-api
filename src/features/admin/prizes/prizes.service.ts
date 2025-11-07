@@ -25,6 +25,7 @@ class PrizesService {
           companyId: data.isGlobal ? null : companyId,
           name: data.name,
           description: data.description,
+          type: data.type,
           category: data.category,
           coinPrice: data.coinPrice,
           brand: data.brand ?? null,
@@ -68,6 +69,10 @@ class PrizesService {
       }
 
       // Apply filters
+      if (query.type) {
+        where.type = query.type
+      }
+
       if (query.category) {
         where.category = query.category
       }
@@ -207,6 +212,7 @@ class PrizesService {
       const updateData: Prisma.PrizeUpdateInput = {}
       if (data.name !== undefined) updateData.name = data.name
       if (data.description !== undefined) updateData.description = data.description
+      if (data.type !== undefined) updateData.type = data.type
       if (data.category !== undefined) updateData.category = data.category
       if (data.coinPrice !== undefined) updateData.coinPrice = data.coinPrice
       if (data.brand !== undefined) updateData.brand = data.brand

@@ -20,6 +20,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Cartão Presente Amazon R$ 50',
     description: 'Resgate para qualquer produto na Amazon.com.br. Perfeito para compras, livros, eletrônicos e muito mais.',
+    type: 'voucher',
     category: PRIZE_CATEGORIES.GIFT_CARDS,
     images: ['https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=500'],
     coinPrice: 250,
@@ -38,6 +39,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Cartão Presente Amazon R$ 100',
     description: 'Dobre o valor, dobre as possibilidades. Compre o que precisar na Amazon.',
+    type: 'voucher',
     category: PRIZE_CATEGORIES.GIFT_CARDS,
     images: ['https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=500'],
     coinPrice: 500,
@@ -56,6 +58,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Spotify Premium - 3 Meses',
     description: 'Aproveite música sem anúncios, escuta offline e pulos ilimitados com Spotify Premium.',
+    type: 'voucher',
     category: PRIZE_CATEGORIES.GIFT_CARDS,
     images: ['https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=500'],
     coinPrice: 300,
@@ -74,6 +77,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Fones Bluetooth Sem Fio',
     description: 'Fones de alta qualidade com cancelamento de ruído e bateria de 30 horas.',
+    type: 'product',
     category: PRIZE_CATEGORIES.ELECTRONICS,
     images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500'],
     coinPrice: 800,
@@ -93,6 +97,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Cartão Presente Starbucks R$ 50',
     description: 'Aproveite seu café, chá ou lanche favorito em qualquer loja Starbucks.',
+    type: 'voucher',
     category: PRIZE_CATEGORIES.FOOD,
     images: ['https://images.unsplash.com/photo-1559496417-e7f25c5fb10d?w=500'],
     coinPrice: 250,
@@ -112,6 +117,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Curso de Culinária Online',
     description: 'Aprenda a cozinhar uma nova culinária com chefs profissionais nesta aula online ao vivo.',
+    type: 'experience',
     category: PRIZE_CATEGORIES.EXPERIENCES,
     images: ['https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500'],
     coinPrice: 400,
@@ -132,6 +138,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Kindle Paperwhite',
     description: 'Leitor digital à prova d\'água com tela sem reflexo. Perfeito para ler em qualquer lugar.',
+    type: 'product',
     category: PRIZE_CATEGORIES.ELECTRONICS,
     images: ['https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=500'],
     coinPrice: 1200,
@@ -151,6 +158,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Tapete de Yoga Premium',
     description: 'Tapete de yoga ecológico com aderência superior e amortecimento. Inclui alça de transporte.',
+    type: 'product',
     category: PRIZE_CATEGORIES.WELLNESS,
     images: ['https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=500'],
     coinPrice: 350,
@@ -171,6 +179,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Doação para Educação',
     description: 'Faça a diferença! Doe para programas educacionais de crianças carentes.',
+    type: 'voucher',
     category: PRIZE_CATEGORIES.CHARITY,
     images: ['https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=500'],
     coinPrice: 200,
@@ -195,6 +204,7 @@ export const VALORIZE_COMPANY_PRIZES = [
   {
     name: 'Moletom Valorize',
     description: 'Moletom de qualidade premium com o logo da Valorize. Confortável e estiloso.',
+    type: 'product',
     category: PRIZE_CATEGORIES.MERCHANDISE,
     images: ['https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500'],
     coinPrice: 600,
@@ -216,6 +226,7 @@ export const VALORIZE_COMPANY_PRIZES = [
   {
     name: 'Vale Almoço da Equipe',
     description: 'Presenteie sua equipe com um almoço! Vale para restaurantes locais (até 5 pessoas).',
+    type: 'experience',
     category: PRIZE_CATEGORIES.EXPERIENCES,
     images: ['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500'],
     coinPrice: 1000,
@@ -234,6 +245,7 @@ export const VALORIZE_COMPANY_PRIZES = [
   {
     name: 'Dia de Folga Extra',
     description: 'Aproveite um dia de folga remunerado extra! Perfeito para um fim de semana prolongado ou tempo pessoal.',
+    type: 'experience',
     category: PRIZE_CATEGORIES.EXPERIENCES,
     images: ['https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500'],
     coinPrice: 1500,
@@ -252,6 +264,7 @@ export const VALORIZE_COMPANY_PRIZES = [
   {
     name: 'Garrafa Valorize - Térmica',
     description: 'Mantenha suas bebidas quentes ou frias o dia todo. Garrafa térmica premium.',
+    type: 'product',
     category: PRIZE_CATEGORIES.MERCHANDISE,
     images: ['https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500'],
     coinPrice: 200,

@@ -99,8 +99,8 @@ export const redemptionService = {
         throw new Error('Prize does not belong to this company')
       }
 
-      // Detectar categoria do prêmio
-      const isVoucher = prize.category === 'voucher'
+      // Detectar tipo do prêmio
+      const isVoucher = prize.type === 'voucher'
 
       // 2. Validar endereço (obrigatório apenas para produtos físicos)
       if (!isVoucher) {

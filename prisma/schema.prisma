@@ -318,7 +318,8 @@ model Prize {
   companyId      String?  @map("company_id")
   name           String
   description    String
-  category       String // "voucher", "experience", "product"
+  type           String // "voucher", "experience", "product" - Prize delivery type
+  category       String? // Business category (e.g., "Alimentação", "Tecnologia", "Gastronomia")
   images         String[]
   coinPrice      Int      @map("coin_price")
   brand          String?
@@ -333,10 +334,11 @@ model Prize {
   redemptions Redemption[]
 
   // Relacionamentos específicos por tipo (1:1 opcional)
-  voucherPrize VoucherPrize? // Se category = "voucher"
-  // productPrize ProductPrize? // FUTURO: Se category = "product"
+  voucherPrize VoucherPrize? // Se type = "voucher"
+  // productPrize ProductPrize? // FUTURO: Se type = "product"
 
   @@index([companyId, isActive, stock])
+  @@index([type])
   @@index([category])
   @@map("prizes")
 }
