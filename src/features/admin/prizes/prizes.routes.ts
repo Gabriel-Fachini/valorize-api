@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/rbac/permissions.constants'
-import { getAuth0Id, getCurrentUser } from '@/middleware/auth'
+import { getAuth0Id } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { prizesService } from './prizes.service'
@@ -41,7 +41,7 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
       select: { companyId: true },
     })
 
-    if (!user || !user.companyId) {
+    if (!user?.companyId) {
       throw new Error('User or company not found')
     }
 
@@ -91,8 +91,8 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
           return reply.code(403).send({
             error: 'Insufficient Permission',
             message: error.message,
-            required: error.required,
-            current: error.current,
+            required: error.requiredPermission,
+            current: error.userPermissions,
           })
         }
 

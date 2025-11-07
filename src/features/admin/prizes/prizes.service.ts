@@ -27,9 +27,9 @@ class PrizesService {
           description: data.description,
           category: data.category,
           coinPrice: data.coinPrice,
-          brand: data.brand || null,
+          brand: data.brand ?? null,
           stock: data.stock,
-          specifications: data.specifications || Prisma.JsonNull,
+          specifications: (data.specifications ?? Prisma.JsonNull) as Prisma.InputJsonValue,
           images: [], // Start with empty array, images will be added later
           isActive: true,
         },
@@ -53,8 +53,8 @@ class PrizesService {
    */
   async listPrizes(companyId: string, query: ListPrizesQuery): Promise<ListPrizesResponse> {
     try {
-      const page = query.page || 1
-      const limit = Math.min(query.limit || 20, 100)
+      const page = query.page ?? 1
+      const limit = Math.min(query.limit ?? 20, 100)
       const skip = (page - 1) * limit
 
       logger.info('Listing prizes', { companyId, query })
@@ -97,8 +97,8 @@ class PrizesService {
 
       // Build orderBy clause
       const orderBy: Prisma.PrizeOrderByWithRelationInput = {}
-      const sortBy = query.orderBy || 'createdAt'
-      const order = query.order || 'desc'
+      const sortBy = query.orderBy ?? 'createdAt'
+      const order = query.order ?? 'desc'
       orderBy[sortBy] = order
 
       // Execute queries
@@ -166,7 +166,7 @@ class PrizesService {
         throw new Error('Prize not found or you do not have access to it')
       }
 
-      logger.info('Prize retrieved successfully', { prizeId })
+      logger.info('Prize retrieved successfully', { prizeId: prize.id })
       return prize
     } catch (error) {
       logger.error('Error getting prize', { error, prizeId })
@@ -203,19 +203,21 @@ class PrizesService {
         )
       }
 
+      // Build update data - only include defined fields
+      const updateData: Prisma.PrizeUpdateInput = {}
+      if (data.name !== undefined) updateData.name = data.name
+      if (data.description !== undefined) updateData.description = data.description
+      if (data.category !== undefined) updateData.category = data.category
+      if (data.coinPrice !== undefined) updateData.coinPrice = data.coinPrice
+      if (data.brand !== undefined) updateData.brand = data.brand
+      if (data.stock !== undefined) updateData.stock = data.stock
+      if (data.isActive !== undefined) updateData.isActive = data.isActive
+      if (data.specifications !== undefined) updateData.specifications = data.specifications as Prisma.InputJsonValue
+
       // Update prize
       const prize = await prisma.prize.update({
         where: { id: prizeId },
-        data: {
-          name: data.name,
-          description: data.description,
-          category: data.category,
-          coinPrice: data.coinPrice,
-          brand: data.brand,
-          stock: data.stock,
-          specifications: data.specifications,
-          isActive: data.isActive,
-        },
+        data: updateData,
         include: {
           variants: true,
         },

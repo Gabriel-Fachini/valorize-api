@@ -21,7 +21,7 @@ export interface CreatePrizeRequest {
   coinPrice: number
   brand?: string
   stock: number
-  specifications?: Record<string, any>
+  specifications?: Record<string, unknown>
   isGlobal?: boolean // If true, companyId will be null (available to all companies)
 }
 
@@ -35,7 +35,7 @@ export interface UpdatePrizeRequest {
   coinPrice?: number
   brand?: string
   stock?: number
-  specifications?: Record<string, any>
+  specifications?: Record<string, unknown>
   isActive?: boolean
 }
 
