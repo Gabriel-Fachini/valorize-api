@@ -122,6 +122,79 @@ class SupabaseStorageService {
   }
 
   /**
+   * Upload a company logo to Supabase Storage
+   * @param file - File buffer
+   * @param fileName - Original file name
+   * @param mimeType - MIME type of the file
+   * @returns Public URL and storage path
+   */
+  async uploadCompanyLogo(
+    file: Buffer,
+    fileName: string,
+    mimeType: string,
+  ): Promise<UploadResult> {
+    this.ensureConfigured()
+
+    try {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+      if (!allowedTypes.includes(mimeType)) {
+        throw new Error(
+          `Invalid file type: ${mimeType}. Allowed types: ${allowedTypes.join(', ')}`,
+        )
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024 // 5MB in bytes
+      if (file.length > maxSize) {
+        throw new Error(`File size exceeds maximum allowed size of 5MB. File size: ${(file.length / 1024 / 1024).toFixed(2)}MB`)
+      }
+
+      // Generate unique file name
+      const timestamp = Date.now()
+      const randomString = Math.random().toString(36).substring(2, 8)
+      const extension = fileName.split('.').pop()
+      const uniqueFileName = `company-logo-${timestamp}-${randomString}.${extension}`
+      const filePath = `company-logos/${uniqueFileName}`
+
+      logger.info(`Uploading company logo to Supabase: ${filePath}`, {
+        originalName: fileName,
+        mimeType,
+        size: file.length,
+      })
+
+      // Upload to Supabase Storage
+      const { data, error } = await this.client!.storage
+        .from(this.bucket)
+        .upload(filePath, file, {
+          contentType: mimeType,
+          cacheControl: '3600',
+          upsert: false,
+        })
+
+      if (error) {
+        logger.error('Supabase upload error', { error, filePath })
+        throw new Error(`Upload failed: ${error.message}`)
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = this.client!.storage.from(this.bucket).getPublicUrl(data.path)
+
+      logger.info(`Company logo uploaded successfully: ${publicUrl}`)
+
+      return {
+        publicUrl,
+        path: data.path,
+      }
+    } catch (error) {
+      logger.error('Error uploading company logo to Supabase', { error, fileName })
+      throw error
+    }
+  }
+
+  /**
    * Delete a prize image from Supabase Storage
    * @param imagePath - Storage path of the image (e.g., "prizes/prize-123.jpg")
    */
@@ -141,6 +214,30 @@ class SupabaseStorageService {
       logger.info(`Image deleted successfully: ${imagePath}`)
     } catch (error) {
       logger.error('Error deleting image from Supabase', { error, imagePath })
+      throw error
+    }
+  }
+
+  /**
+   * Delete a company logo from Supabase Storage
+   * @param imagePath - Storage path of the logo (e.g., "company-logos/company-logo-123.jpg")
+   */
+  async deleteCompanyLogo(imagePath: string): Promise<void> {
+    this.ensureConfigured()
+
+    try {
+      logger.info(`Deleting company logo from Supabase: ${imagePath}`)
+
+      const { error } = await this.client!.storage.from(this.bucket).remove([imagePath])
+
+      if (error) {
+        logger.error('Supabase delete error', { error, imagePath })
+        throw new Error(`Delete failed: ${error.message}`)
+      }
+
+      logger.info(`Company logo deleted successfully: ${imagePath}`)
+    } catch (error) {
+      logger.error('Error deleting company logo from Supabase', { error, imagePath })
       throw error
     }
   }

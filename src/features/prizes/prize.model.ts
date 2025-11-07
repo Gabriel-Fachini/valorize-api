@@ -17,6 +17,7 @@ export class PrizeModel {
   get companyId() { return this.data.companyId }
   get name() { return this.data.name }
   get description() { return this.data.description }
+  get type() { return this.data.type }
   get category() { return this.data.category }
   get images() { return this.data.images }
   get coinPrice() { return this.data.coinPrice }
@@ -34,6 +35,7 @@ export class PrizeModel {
       companyId: this.companyId,
       name: this.name,
       description: this.description,
+      type: this.type,
       category: this.category,
       images: this.images,
       coinPrice: this.coinPrice,

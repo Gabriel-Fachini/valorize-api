@@ -72,29 +72,68 @@ export const updateCompanyInfoSchema = {
 
 /**
  * POST /admin/company/info/logo
+ * Upload company logo (multipart/form-data)
  */
 export const uploadLogoSchema = {
   tags: ['Admin - Company Info'],
-  description: 'Upload company logo (MOCK - to be implemented)',
-  body: {
-    type: 'object',
-    properties: {
-      logo_url: {
-        type: 'string',
-        format: 'uri',
-      },
-    },
-    required: ['logo_url'],
-    additionalProperties: false,
-  },
+  description:
+    'Upload company logo. Accepts a single image file (JPEG, PNG, WEBP). Max size: 5MB.',
   response: {
     200: {
       type: 'object',
       properties: {
         logo_url: { type: 'string' },
       },
+      required: ['logo_url'],
     },
     400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+      },
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+      },
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+      },
+    },
+  },
+}
+
+/**
+ * DELETE /admin/company/info/logo
+ * Delete company logo
+ */
+export const deleteLogoSchema = {
+  tags: ['Admin - Company Info'],
+  description: 'Delete company logo and remove it from storage',
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' },
+      },
+      required: ['success', 'message'],
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+      },
+    },
+    500: {
       type: 'object',
       properties: {
         error: { type: 'string' },
