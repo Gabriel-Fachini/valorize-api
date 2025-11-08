@@ -82,6 +82,7 @@ export class VoucherPrizeRepository {
       data: {
         name: data.name,
         description: data.description ?? `${data.brand ?? data.name} - ${data.minValue} ${data.currency}`,
+        type: 'voucher',
         category: 'voucher',
         images: data.images ?? [],
         coinPrice,
@@ -102,7 +103,7 @@ export class VoucherPrizeRepository {
         maxValue: Math.round(data.maxValue * 100) / 100,
         currency: data.currency,
         metadata: {
-          category: data.category,
+          category: 'Voucher',
           syncedAt: new Date().toISOString(),
         },
       },
@@ -191,6 +192,6 @@ export class VoucherPrizeRepository {
       },
     })
 
-    return voucherPrize?.prize || null
+    return voucherPrize?.prize ?? null
   }
 }
