@@ -19,7 +19,7 @@ export const DEMO_USERS: UserData[] = [
   // Valorize Corp users
   {
     auth0Id: 'auth0|688aa3e7f3f1dbd119c3b600',
-    email: 'gabriel@valorize.com',
+    email: 'gabriel.fachini@usevalorize.com.br',
     name: 'Gabriel Fachini',
     avatarUrl: 'https://avatars.githubusercontent.com/u/72563021?v=4',
     companyId: 'demo-company-001',

@@ -9,9 +9,9 @@ import axios from 'axios'
 
 // Configuração
 const API_BASE_URL = 'http://localhost:4000'
-const TEST_EMAIL = 'gabriel@valorize.com'
+const TEST_EMAIL = 'gabriel.fachini@usevalorize.com.br'
 const TEST_PASSWORD = 'V@alorize'
-const TEST_USER_ID = 'cmhnjq22m002rtpnjhr75eeda' // ID do usuário gabriel@valorize.com
+const TEST_USER_ID = 'cmhnjq22m002rtpnjhr75eeda' // ID do usuário gabriel.fachini@usevalorize.com.br
 
 // Estatísticas
 interface TestStats {

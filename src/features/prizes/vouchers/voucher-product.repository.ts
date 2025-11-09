@@ -142,7 +142,33 @@ export class VoucherProductRepository {
       prisma.voucherProduct.count({ where }),
     ])
 
-    return { items: items.map((item) => this.mapToVoucherProduct(item)), total }
+    // Buscar os prizeIds associados (via VoucherPrize)
+    const voucherPrizes = await prisma.voucherPrize.findMany({
+      where: {
+        provider: filters.provider ?? undefined,
+        externalId: {
+          in: items.map((item) => item.externalId),
+        },
+      },
+      select: {
+        externalId: true,
+        prizeId: true,
+      },
+    })
+
+    // Mapear prizeIds por externalId para fácil lookup
+    const prizeIdMap = new Map(
+      voucherPrizes.map((vp) => [vp.externalId, vp.prizeId]),
+    )
+
+    // Enriquecer items com prizeId
+    const enrichedItems = items.map((item) => {
+      const mappedItem = this.mapToVoucherProduct(item)
+      mappedItem.prizeId = prizeIdMap.get(item.externalId)
+      return mappedItem
+    })
+
+    return { items: enrichedItems, total }
   }
 
   /**

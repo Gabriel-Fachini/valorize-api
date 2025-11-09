@@ -18,6 +18,7 @@ export interface VoucherProduct {
   currency: string
   countries: string[]
   isActive: boolean
+  prizeId?: string // ID da Prize associada (se existir)
   lastSyncAt: Date
   createdAt: Date
   updatedAt: Date

@@ -56,7 +56,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"gabriel@valorize.com\",\n    \"password\": \"V@alorize\"\n}",
+							"raw": "{\n    \"email\": \"gabriel.fachini@usevalorize.com.br\",\n    \"password\": \"V@alorize\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -355,7 +355,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"email\": \"gabriel@valorize.com\",\n    \"password\": \"V@alorize\"\n}"
+									"raw": "{\n    \"email\": \"gabriel.fachini@usevalorize.com.br\",\n    \"password\": \"V@alorize\"\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/compliments/list-receivable-users",

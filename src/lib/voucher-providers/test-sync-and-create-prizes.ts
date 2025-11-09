@@ -9,7 +9,7 @@ import axios from 'axios'
 
 // Configuração
 const API_BASE_URL = 'http://localhost:4000'
-const TEST_EMAIL = 'gabriel@valorize.com'
+const TEST_EMAIL = 'gabriel.fachini@usevalorize.com.br'
 const TEST_PASSWORD = 'V@alorize'
 
 /**

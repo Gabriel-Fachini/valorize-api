@@ -1,0 +1,409 @@
+{
+  "info": {
+    "name": "Redemptions API",
+    "description": "Prize redemption and voucher management endpoints\n\n**Base URL**: `{{base_url}}`\n\n**Auth**: Bearer token in `Authorization` header (from Auth0)\n\n**Features**:\n- Individual prize redemption\n- Admin voucher distribution (single user)\n- Admin bulk voucher distribution\n- User redemption history",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin - Send Single Voucher",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"clh1234567890abcdefghijk\",\n  \"email\": \"user@company.com\",\n  \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n  \"customAmount\": 50.00\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/redemptions/send-to-user",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "admin",
+            "redemptions",
+            "send-to-user"
+          ]
+        },
+        "description": "Send a single voucher to a user via email\n\n**Required Permissions**: `vouchers:send_to_users`\n\n**Request Body**:\n- `userId` (string): CUID of the target user\n- `email` (string): Email must match user's registered email\n- `prizeId` (string): CUID of a voucher prize\n- `customAmount` (number): Amount must be within voucher's minValue/maxValue range\n\n**Note**: Campaign ID is set to a fixed constant on the server side.\n\n**Response**: 202 Accepted (async processing)\n- `redemptionId`: Reservation ID for tracking\n- `status`: \"processing\"\n- Email delivery happens in background"
+      },
+      "response": [
+        {
+          "name": "202 Accepted - Voucher Reserved",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/redemptions/send-to-user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "redemptions",
+                "send-to-user"
+              ]
+            }
+          },
+          "status": "Accepted",
+          "code": 202,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Voucher is being sent via email\",\n  \"redemptionId\": \"cl123456789abcdefghijklm\",\n  \"userId\": \"clh1234567890abcdefghijk\",\n  \"email\": \"user@company.com\",\n  \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n  \"customAmount\": 50.00,\n  \"status\": \"processing\",\n  \"notes\": \"Voucher email is being sent. Check status later for completion.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Admin - Bulk Redeem Vouchers",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n  \"customAmount\": 50.00,\n  \"campaignId\": \"optional-campaign-id\",\n  \"users\": [\n    {\n      \"userId\": \"clh1111111111111111111111\",\n      \"email\": \"user1@company.com\"\n    },\n    {\n      \"userId\": \"clh2222222222222222222222\",\n      \"email\": \"user2@company.com\"\n    },\n    {\n      \"userId\": \"clh3333333333333333333333\",\n      \"email\": \"user3@company.com\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/redemptions/bulk-redeem",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "admin",
+            "redemptions",
+            "bulk-redeem"
+          ]
+        },
+        "description": "Send vouchers to multiple users (up to 100) via email\n\n**Required Permissions**: `vouchers:send_to_users`\n\n**Request Body**:\n- `prizeId` (string): Single CUID for all vouchers\n- `customAmount` (number): Same amount for all users (must be within voucher range)\n- `campaignId` (string, optional): Tremendous campaign template ID\n- `users` (array): Array of {userId, email} objects (1-100 items)\n  - Each email must match the user's registered email\n\n**Response**: 207 Multi-Status\n- `summary`: Overall success/failure counts\n- `results`: Array with status for each user\n- Email delivery happens in background"
+      },
+      "response": [
+        {
+          "name": "207 Multi-Status - Bulk Initiated",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/redemptions/bulk-redeem",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "redemptions",
+                "bulk-redeem"
+              ]
+            }
+          },
+          "status": "Multi-Status",
+          "code": 207,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Bulk redemption initiated\",\n  \"summary\": {\n    \"total\": 3,\n    \"successful\": 3,\n    \"failed\": 0\n  },\n  \"results\": [\n    {\n      \"userId\": \"clh1111111111111111111111\",\n      \"email\": \"user1@company.com\",\n      \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n      \"success\": true,\n      \"redemptionId\": \"clr1111111111111111111111\",\n      \"voucherCode\": \"voucher-code-123\"\n    },\n    {\n      \"userId\": \"clh2222222222222222222222\",\n      \"email\": \"user2@company.com\",\n      \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n      \"success\": true,\n      \"redemptionId\": \"clr2222222222222222222222\",\n      \"voucherCode\": \"voucher-code-456\"\n    },\n    {\n      \"userId\": \"clh3333333333333333333333\",\n      \"email\": \"user3@company.com\",\n      \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n      \"success\": true,\n      \"redemptionId\": \"clr3333333333333333333333\",\n      \"voucherCode\": \"voucher-code-789\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "User - Redeem Prize",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n  \"variantId\": \"variant-id-optional\",\n  \"addressId\": \"clh5555555555555555555555\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/redemptions/redeem",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "redemptions",
+            "redeem"
+          ]
+        },
+        "description": "User redeems a prize using their redeemable balance\n\n**Request Body**:\n- `prizeId` (string): CUID of the prize\n- `variantId` (string, optional): For prizes with variants\n- `addressId` (string): Address for shipping/delivery\n\n**Response**: 201 Created\n- `redemption`: Full redemption object with status, coins spent, etc.\n\n**Possible Errors**:\n- 400: Insufficient balance\n- 409: Insufficient stock\n- 400: Variant required for this prize"
+      },
+      "response": [
+        {
+          "name": "201 Created - Prize Redeemed",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/redemptions/redeem",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "redemptions",
+                "redeem"
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Prize redeemed successfully\",\n  \"redemption\": {\n    \"id\": \"clr1234567890abcdefghijkl\",\n    \"userId\": \"clh1234567890abcdefghijk\",\n    \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n    \"coinsSpent\": 100,\n    \"status\": \"completed\",\n    \"createdAt\": \"2025-11-09T10:30:00Z\",\n    \"updatedAt\": \"2025-11-09T10:30:00Z\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "User - Get My Redemptions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/redemptions/my-redemptions?limit=20&offset=0",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "redemptions",
+            "my-redemptions"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20",
+              "type": "text"
+            },
+            {
+              "key": "offset",
+              "value": "0",
+              "type": "text"
+            }
+          ]
+        },
+        "description": "Get the authenticated user's redemption history\n\n**Query Parameters**:\n- `limit` (number, default: 20): Results per page (max: 100)\n- `offset` (number, default: 0): Pagination offset\n\n**Response**: 200 OK\n- `redemptions`: Array of redemption objects\n- `meta`: Pagination metadata"
+      },
+      "response": [
+        {
+          "name": "200 OK - Redemptions List",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/redemptions/my-redemptions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "redemptions",
+                "my-redemptions"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"redemptions\": [\n    {\n      \"id\": \"clr1111111111111111111111\",\n      \"userId\": \"clh1234567890abcdefghijk\",\n      \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n      \"coinsSpent\": 100,\n      \"status\": \"completed\",\n      \"createdAt\": \"2025-11-08T15:00:00Z\",\n      \"updatedAt\": \"2025-11-08T15:00:00Z\"\n    },\n    {\n      \"id\": \"clr2222222222222222222222\",\n      \"userId\": \"clh1234567890abcdefghijk\",\n      \"prizeId\": \"clh1111111111111111111111\",\n      \"coinsSpent\": 50,\n      \"status\": \"cancelled\",\n      \"createdAt\": \"2025-11-07T10:30:00Z\",\n      \"updatedAt\": \"2025-11-08T09:00:00Z\"\n    }\n  ],\n  \"meta\": {\n    \"limit\": 20,\n    \"offset\": 0,\n    \"count\": 2\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "User - Get Redemption Details",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/redemptions/my-redemptions/clr1234567890abcdefghijkl",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "redemptions",
+            "my-redemptions",
+            "clr1234567890abcdefghijkl"
+          ]
+        },
+        "description": "Get details of a specific redemption\n\n**Path Parameters**:\n- `id` (string): Redemption ID\n\n**Response**: 200 OK with full redemption details\n\n**Possible Errors**:\n- 404: Redemption not found or unauthorized access"
+      },
+      "response": [
+        {
+          "name": "200 OK - Redemption Details",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/redemptions/my-redemptions/clr1234567890abcdefghijkl",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "redemptions",
+                "my-redemptions",
+                "clr1234567890abcdefghijkl"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"redemption\": {\n    \"id\": \"clr1234567890abcdefghijkl\",\n    \"userId\": \"clh1234567890abcdefghijk\",\n    \"prizeId\": \"clh9876543210zyxwvutsrqp\",\n    \"coinsSpent\": 100,\n    \"status\": \"completed\",\n    \"prize\": {\n      \"id\": \"clh9876543210zyxwvutsrqp\",\n      \"name\": \"iFood R$50\",\n      \"type\": \"voucher\",\n      \"coinPrice\": 100,\n      \"description\": \"Digital voucher for iFood\"\n    },\n    \"voucherRedemption\": {\n      \"provider\": \"tremendous\",\n      \"providerOrderId\": \"ord-123456789\",\n      \"voucherLink\": \"https://tremendous.com/claim/xyz\",\n      \"voucherCode\": \"CODE123\",\n      \"amount\": 50.00,\n      \"currency\": \"BRL\",\n      \"status\": \"completed\",\n      \"completedAt\": \"2025-11-08T15:00:00Z\",\n      \"expiresAt\": \"2026-11-08T23:59:59Z\"\n    },\n    \"createdAt\": \"2025-11-08T15:00:00Z\",\n    \"updatedAt\": \"2025-11-08T15:00:00Z\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "User - Cancel Redemption",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Changed my mind about this reward\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/redemptions/my-redemptions/clr1234567890abcdefghijkl/cancel",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "redemptions",
+            "my-redemptions",
+            "clr1234567890abcdefghijkl",
+            "cancel"
+          ]
+        },
+        "description": "Cancel a redemption within 3 days of creation\n\n**Path Parameters**:\n- `id` (string): Redemption ID\n\n**Request Body**:\n- `reason` (string): Cancellation reason for audit trail\n\n**Response**: 200 OK with cancellation details\n- Refunds coins back to user's redeemable balance\n- Updates redemption status to \"cancelled\"\n\n**Possible Errors**:\n- 400: Cannot cancel shipped orders\n- 400: 3-day cancellation window expired"
+      },
+      "response": [
+        {
+          "name": "200 OK - Cancelled",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/redemptions/my-redemptions/clr1234567890abcdefghijkl/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "redemptions",
+                "my-redemptions",
+                "clr1234567890abcdefghijkl",
+                "cancel"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Redemption cancelled successfully\",\n  \"redemption\": {\n    \"id\": \"clr1234567890abcdefghijkl\",\n    \"status\": \"cancelled\",\n    \"cancelledAt\": \"2025-11-09T10:30:00Z\",\n    \"cancellationReason\": \"Changed my mind about this reward\",\n    \"coinsRefunded\": 100\n  }\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string",
+      "description": "Base URL of the API (local dev)"
+    },
+    {
+      "key": "auth_token",
+      "value": "your-auth0-jwt-token-here",
+      "type": "string",
+      "description": "Auth0 JWT token - replace with your actual token"
+    }
+  ]
+}

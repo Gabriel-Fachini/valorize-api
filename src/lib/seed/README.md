@@ -204,7 +204,7 @@ export const PERMISSIONS: PermissionData[] = [
 // src/lib/seed/data/users.ts
 {
   auth0Id: 'auth0|688aa3e7f3f1dbd119c3b600',
-  email: 'gabriel@valorize.com',
+  email: 'gabriel.fachini@usevalorize.com.br',
   name: 'Gabriel Fachini',
   companyId: 'demo-company-001',
   roles: ['super_admin', 'company_admin'], // Multiple roles

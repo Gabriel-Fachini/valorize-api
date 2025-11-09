@@ -22,6 +22,7 @@ export default async function prizeRoutes(fastify: FastifyInstance) {
       request: FastifyRequest<{
         Querystring: {
           category?: string
+          type?: string
           minPrice?: number
           maxPrice?: number
         }

@@ -9,6 +9,7 @@ export const prizeService = {
     companyId: string,
     filters?: {
       category?: string
+      type?: string
       minPrice?: number
       maxPrice?: number
     },

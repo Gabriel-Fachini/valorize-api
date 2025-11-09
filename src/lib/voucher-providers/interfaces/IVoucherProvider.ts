@@ -20,13 +20,25 @@ export interface IVoucherProvider {
   getName(): string
 
   /**
-   * Cria um voucher na API do provider
+   * Cria um voucher na API do provider com entrega via LINK
    *
    * @param request Dados do voucher a ser criado
-   * @returns Promise com os dados do voucher criado
+   * @returns Promise com os dados do voucher criado (retorna um link para o voucher)
    * @throws Error se a criação falhar
    */
   createVoucher(request: CreateVoucherRequest): Promise<CreateVoucherResponse>
+
+  /**
+   * Cria um voucher na API do provider com entrega via EMAIL
+   *
+   * O provider envia o voucher diretamente para o email do destinatário.
+   * Este é o método recomendado para envios a usuários específicos.
+   *
+   * @param request Dados do voucher a ser criado (deve incluir recipientEmail e recipientName)
+   * @returns Promise com os dados do voucher criado
+   * @throws Error se a criação falhar
+   */
+  createVoucherViaEmail(request: CreateVoucherRequest): Promise<CreateVoucherResponse>
 
   /**
    * Lista produtos disponíveis no provider

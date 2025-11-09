@@ -64,7 +64,7 @@ export const PERMISSION = {
   STORE_VIEW_CATALOG: 'store:view_catalog',
   STORE_REDEEM_PRIZES: 'store:redeem_prizes',
   STORE_MANAGE_CATALOG: 'store:manage_catalog',
-  STORE_BULK_REDEEM_ADMIN: 'store:bulk_redeem_admin',
+  VOUCHERS_SEND_TO_USERS: 'vouchers:send_to_users',
 
   // Prizes management permissions (granular)
   PRIZES_CREATE: 'prizes:create',
@@ -238,9 +238,9 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     category: 'Sistema de Loja',
   },
   {
-    name: PERMISSION.STORE_BULK_REDEEM_ADMIN,
-    description: 'Enviar vouchers em lote para múltiplos usuários (função administrativa)',
-    category: 'Sistema de Loja',
+    name: PERMISSION.VOUCHERS_SEND_TO_USERS,
+    description: 'Enviar vouchers para usuários (individual ou em massa) via email',
+    category: 'Vouchers',
   },
 
   // Prizes management permissions (granular)

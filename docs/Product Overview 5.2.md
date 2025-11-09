@@ -722,4 +722,4 @@ Aportes Iniciais Recomendados:
 
 **Desenvolvido por:** Gabriel Fachini
 
-**Contato:** gabriel@valorize.com.br
+**Contato:** gabriel.fachini@usevalorize.com.br

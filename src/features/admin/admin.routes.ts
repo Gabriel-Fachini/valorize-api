@@ -123,6 +123,18 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     { prefix: '/prizes' },
   )
 
+  // Admin Redemptions routes - /admin/redemptions/*
+  // Send single vouchers or bulk redeem to users via email
+  await fastify.register(
+    async function (fastify) {
+      const { default: adminRedemptionRoutes } = await import(
+        '@/features/admin/redemptions/redemptions.routes'
+      )
+      await fastify.register(adminRedemptionRoutes)
+    },
+    { prefix: '/redemptions' },
+  )
+
   // Future admin routes can be added here
   // Example:
   // await fastify.register(

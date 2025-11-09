@@ -25,6 +25,7 @@ interface BulkRedeemVoucherItem {
 
 interface BulkRedeemVoucherResult {
   userId: string
+  email?: string
   prizeId: string
   success: boolean
   redemptionId?: string
@@ -77,6 +78,41 @@ export class VariantRequiredError extends Error {
 }
 
 export const redemptionService = {
+  /**
+   * Validate that a user's email matches their database record
+   */
+  async validateUserEmailMatch(userId: string, email: string, companyId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    })
+
+    if (!user) {
+      throw new Error(`User ${userId} not found`)
+    }
+
+    if (user.email !== email) {
+      throw new Error('Email does not match user record')
+    }
+
+    if (user.companyId !== companyId) {
+      throw new Error('User does not belong to this company')
+    }
+
+    return user
+  },
+
+  /**
+   * Validate that a custom amount is within the voucher's min/max range
+   */
+  validateCustomAmount(amount: number, voucherPrize: any) {
+    const min = Number(voucherPrize.minValue)
+    const max = Number(voucherPrize.maxValue)
+
+    if (amount < min || amount > max) {
+      throw new Error(`Amount must be between ${min} and ${max} ${voucherPrize.currency}`)
+    }
+  },
+
   async redeemPrize(input: RedeemPrizeInput) {
     const { userId, prizeId, variantId, companyId, addressId, campaignId } = input
 
@@ -485,107 +521,165 @@ export const redemptionService = {
     }
   },
 
-  async bulkRedeemVouchers(items: BulkRedeemVoucherItem[], companyId: string): Promise<BulkRedeemVoucherResult[]> {
+  async bulkRedeemVouchers(
+    prizeId: string,
+    customAmount: number,
+    companyId: string,
+    users: Array<{ userId: string; email: string }>,
+    campaignId?: string,
+  ): Promise<BulkRedeemVoucherResult[]> {
     /**
-     * Bulk redemption ADMINISTRATIVA para vouchers digitais
+     * Bulk redemption ADMINISTRATIVA para vouchers digitais (versão refatorada)
      *
      * ATENÇÃO: Esta é uma função ADMINISTRATIVA onde a EMPRESA paga pelos vouchers,
      * NÃO os usuários individuais. Os usuários recebem os vouchers gratuitamente.
      *
-     * Arquitetura Two-Phase:
-     * FASE 1: Transação única por batch - debita CompanyWallet, cria redemptions
-     * FASE 2: Processa vouchers em paralelo - chamadas à API externa
+     * Novo formato:
+     * - Um único prizeId para todos os usuários
+     * - Um customAmount válido (dentro de minValue/maxValue do voucher)
+     * - Array de usuários com userId + email para validação
+     * - campaignId opcional para Tremendous template
      *
      * Estratégia:
-     * - Máximo 100 items por requisição
-     * - Processa em batches de 10
-     * - Fase 1: Transação DB rápida (~500ms) debita company wallet UMA VEZ
-     * - Fase 2: 10 chamadas paralelas à API Tremendous (~2s)
-     * - Aguarda 1 segundo entre batches (rate limit: 10 req/s)
+     * - Máximo 100 usuários por requisição
+     * - Processa em batches de 10 com rate limiting
+     * - Valida todos os usuários antes de iniciar
+     * - Para cada usuário, chama completeSendVoucher() em background
      *
-     * Timeline esperada para 100 items:
-     * - 10 batches × (0.5s DB + 2s API) + 9 sleeps × 1s ≈ 34s
+     * Timeline esperada para 100 usuários:
+     * - Validação inicial: ~500ms
+     * - 10 batches × 1s sleep ≈ 10s
+     * - Processamento async (não bloqueia resposta)
      */
 
-    // Validar quantidade máxima (1-100 items)
-    if (items.length === 0 || items.length > 100) {
-      throw new Error('Bulk redemption accepts between 1 and 100 items')
+    // Validar quantidade (1-100 usuários)
+    if (users.length === 0 || users.length > 100) {
+      throw new Error('Bulk redemption accepts between 1 and 100 users')
+    }
+
+    logger.info('[RedemptionService] Starting ADMIN bulk voucher redemption (NEW FORMAT)', {
+      userCount: users.length,
+      prizeId,
+      customAmount,
+      companyId,
+    })
+
+    // Validar o prêmio uma vez
+    const prize = await prisma.prize.findFirst({
+      where: { id: prizeId, isActive: true },
+      include: { voucherPrize: true },
+    })
+
+    if (!prize) {
+      throw new Error('Prize not found or is not active')
+    }
+
+    if (prize.type !== 'voucher') {
+      throw new Error('Prize is not a voucher')
+    }
+
+    if (!prize.voucherPrize) {
+      throw new Error('Prize is missing voucher configuration')
+    }
+
+    // Validar customAmount dentro do range
+    this.validateCustomAmount(customAmount, prize.voucherPrize)
+
+    // Buscar todos os usuários de uma vez
+    const userIds = users.map(u => u.userId)
+    const dbUsers = await prisma.user.findMany({
+      where: {
+        id: { in: userIds },
+        companyId,
+      },
+      select: { id: true, name: true, email: true },
+    })
+
+    if (dbUsers.length !== users.length) {
+      throw new Error('One or more users not found in your company')
+    }
+
+    // Validar que email matches para todos
+    for (const reqUser of users) {
+      const dbUser = dbUsers.find(u => u.id === reqUser.userId)
+      if (!dbUser || dbUser.email !== reqUser.email) {
+        throw new Error(`Email mismatch for user ${reqUser.userId}`)
+      }
     }
 
     const batchSize = 10
-    const sleepMs = 1000 // 1 segundo entre batches (rate limit)
-
-    logger.info('[RedemptionService] Starting ADMIN bulk voucher redemption', {
-      itemCount: items.length,
-      companyId,
-      strategy: 'two_phase_company_wallet',
-      batchSize,
-      sleepMs,
-    })
-
+    const sleepMs = 1000
     const results: BulkRedeemVoucherResult[] = []
-    const totalBatches = Math.ceil(items.length / batchSize)
 
-    // Processar batches de 10 com sleep de 1s entre eles
-    for (let i = 0; i < items.length; i += batchSize) {
-      const batch = items.slice(i, i + batchSize)
+    // Processar em batches para rate limiting
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize)
       const batchNumber = Math.floor(i / batchSize) + 1
+      const totalBatches = Math.ceil(users.length / batchSize)
 
-      logger.info('[RedemptionService] Processing batch', {
+      logger.info('[RedemptionService] Processing bulk batch', {
         batchNumber,
         totalBatches,
         itemsInBatch: batch.length,
       })
 
-      try {
-        // ===========================================
-        // FASE 1: Reservar recursos (transação única)
-        // ===========================================
-        const reservations = await this.batchReserveResourcesAdmin(batch, companyId)
+      // Processar cada usuário do batch
+      for (const user of batch) {
+        try {
+          // Chamar sendVoucherToUser para cada usuário (já inclui validação)
+          const result = await this.sendVoucherToUser(
+            user.userId,
+            prizeId,
+            companyId,
+            customAmount,
+            campaignId,
+          )
 
-        logger.info('[RedemptionService] Batch resources reserved', {
-          batchNumber,
-          reservedCount: reservations.length,
-        })
-
-        // ===========================================
-        // FASE 2: Processar vouchers em paralelo
-        // ===========================================
-        const batchResults = await Promise.all(
-          reservations.map(async (reservation) => {
-            return this.processVoucherAdmin(reservation, companyId)
-          }),
-        )
-
-        // Adicionar resultados do batch ao resultado total
-        results.push(...batchResults)
-
-        logger.info('[RedemptionService] Batch completed', {
-          batchNumber,
-          successCount: batchResults.filter(r => r.success).length,
-          failureCount: batchResults.filter(r => !r.success).length,
-        })
-
-      } catch (error: any) {
-        // Se a fase 1 falhar (reserva de recursos), TODO o batch falha
-        logger.error('[RedemptionService] Batch reservation failed - entire batch failed', {
-          batchNumber,
-          error: error.message,
-        })
-
-        // Marcar todos os items do batch como falha
-        for (const item of batch) {
           results.push({
-            userId: item.userId,
-            prizeId: item.prizeId,
+            userId: user.userId,
+            email: user.email,
+            prizeId,
+            success: true,
+            redemptionId: result.redemption.id,
+            voucherCode: result.voucherPrize?.externalId,
+          })
+
+          // Chamar completeSendVoucher em background (não bloqueia)
+          this.completeSendVoucher(
+            result.redemption,
+            result.user,
+            result.prize,
+            result.voucherPrize,
+            companyId,
+            customAmount,
+            campaignId,
+          ).catch((error) => {
+            logger.error('[RedemptionService] Background bulk voucher send failed', {
+              redemptionId: result.redemption.id,
+              userId: user.userId,
+              error: error.message,
+            })
+          })
+
+        } catch (error: any) {
+          logger.error('[RedemptionService] Bulk voucher send failed for user', {
+            userId: user.userId,
+            prizeId,
+            error: error.message,
+          })
+
+          results.push({
+            userId: user.userId,
+            email: user.email,
+            prizeId,
             success: false,
-            error: `Batch reservation failed: ${error.message}`,
+            error: error.message,
           })
         }
       }
 
-      // Sleep 1 segundo antes do próximo batch (exceto no último)
-      if (i + batchSize < items.length) {
+      // Sleep 1s antes do próximo batch (exceto no último)
+      if (i + batchSize < users.length) {
         logger.info('[RedemptionService] Sleeping before next batch', {
           currentBatch: batchNumber,
           nextBatch: batchNumber + 1,
@@ -599,11 +693,10 @@ export const redemptionService = {
     const failureCount = results.filter(r => !r.success).length
 
     logger.info('[RedemptionService] ADMIN bulk voucher redemption completed', {
-      totalItems: items.length,
-      totalBatches,
+      totalUsers: users.length,
       successCount,
       failureCount,
-      successRate: `${((successCount / items.length) * 100).toFixed(1)}%`,
+      successRate: `${((successCount / users.length) * 100).toFixed(1)}%`,
     })
 
     return results
@@ -627,7 +720,7 @@ export const redemptionService = {
       }
 
       // Validar que é voucher
-      if (prize.category !== 'voucher') {
+      if (prize.type !== 'voucher') {
         throw new Error('Prize is not a voucher')
       }
 
@@ -862,33 +955,74 @@ export const redemptionService = {
    *
    * Similar ao bulkRedeemVouchers mas para um único usuário
    */
-  async sendVoucherToUser(userId: string, prizeId: string, companyId: string) {
+  async sendVoucherToUser(
+    userId: string,
+    prizeId: string,
+    companyId: string,
+    customAmount?: number,
+    campaignId?: string,
+  ) {
     return prisma.$transaction(async (tx) => {
-      // 1. Buscar o prize
+      // 1. Resolver ID: aceita tanto VoucherProduct ID quanto Prize ID
+      let actualPrizeId = prizeId
+
+      const voucherProduct = await tx.voucherProduct.findUnique({
+        where: { id: prizeId },
+      })
+
+      if (voucherProduct) {
+        // ID passado é de VoucherProduct, resolver para Prize ID
+        const voucherPrize = await tx.voucherPrize.findFirst({
+          where: {
+            provider: voucherProduct.provider,
+            externalId: voucherProduct.externalId,
+          },
+        })
+
+        if (!voucherPrize) {
+          throw new Error(`Voucher product "${voucherProduct.name}" não possui prize associado. Execute a sincronização primeiro.`)
+        }
+
+        actualPrizeId = voucherPrize.prizeId
+      }
+
+      // 2. Buscar o prize com ID resolvido
       const prize = await tx.prize.findFirst({
-        where: { id: prizeId, isActive: true },
+        where: { id: actualPrizeId, isActive: true },
         include: { voucherPrize: true },
       })
 
       if (!prize) {
-        throw new Error('Prize not found or is not active')
+        throw new Error(`Prize not found or is not active (ID: ${actualPrizeId}). Verifique se o voucher está ativo e foi sincronizado.`)
       }
 
       // Validar que é voucher
-      if (prize.category !== 'voucher') {
+      if (prize.type !== 'voucher') {
         throw new Error('Prize is not a voucher')
+      }
+
+      // Validar que é global ou da mesma empresa
+      if (prize.companyId && prize.companyId !== companyId) {
+        throw new Error('Prize does not belong to this company')
       }
 
       if (!prize.voucherPrize) {
         throw new Error('Prize is missing voucher configuration')
       }
 
-      // 2. Calcular custo
+      // Validar customAmount se fornecido
+      if (customAmount !== undefined) {
+        this.validateCustomAmount(customAmount, prize.voucherPrize)
+      }
+
+      // 2. Calcular custo - usar customAmount ou coinPrice como fallback
+      const amount = customAmount ?? Number(prize.voucherPrize.minValue)
       const totalBRL = prize.coinPrice * COIN_TO_BRL_RATE
 
       logger.info('[RedemptionService] Sending single voucher to user', {
         userId,
-        prizeId,
+        prizeId: actualPrizeId,
+        originalInputId: prizeId,
         companyId,
         totalBRL,
       })
@@ -916,11 +1050,11 @@ export const redemptionService = {
         throw new Error(`User not found: ${userId}`)
       }
 
-      // 5. Criar redemption
+      // 5. Criar redemption com Prize ID resolvido
       const redemption = await RedemptionModel.create(
         {
           userId,
-          prizeId,
+          prizeId: actualPrizeId,
           variantId: null,
           companyId,
           coinsSpent: prize.coinPrice,
@@ -929,19 +1063,63 @@ export const redemptionService = {
         tx,
       )
 
-      // 6. Criar tracking inicial
+      // 6. Criar voucher na Tremendous com envio via EMAIL
+      const voucherProvider = VoucherProviderFactory.create(prize.voucherPrize.provider)
+
+      const voucherResult = await voucherProvider.createVoucherViaEmail({
+        externalId: redemption.id,
+        productId: prize.voucherPrize.externalId,
+        amount: customAmount ?? Number(prize.voucherPrize.minValue),
+        currency: prize.voucherPrize.currency,
+        recipient: {
+          name: user.name ?? '',
+          email: user.email,
+        },
+        campaignId,
+      })
+
+      // 7. Registrar voucher redemption
+      await tx.voucherRedemption.create({
+        data: {
+          redemptionId: redemption.id,
+          provider: prize.voucherPrize.provider,
+          providerOrderId: voucherResult.orderId,
+          providerRewardId: voucherResult.rewardId,
+          voucherLink: voucherResult.link,
+          voucherCode: voucherResult.code ?? null,
+          amount: customAmount ?? Number(prize.voucherPrize.minValue),
+          currency: prize.voucherPrize.currency,
+          status: 'completed',
+          completedAt: new Date(),
+          expiresAt: voucherResult.expiresAt ?? null,
+        },
+      })
+
+      // 8. Atualizar redemption para 'sent'
+      await tx.redemption.update({
+        where: { id: redemption.id },
+        data: { status: 'sent' },
+      })
+
+      // 9. Criar tracking final
       await RedemptionTrackingModel.create(
         {
           redemptionId: redemption.id,
-          status: 'processing',
-          notes: 'Voucher administrativo - empresa pagou, aguardando criação',
+          status: 'sent',
+          notes: 'Voucher enviado com sucesso via email pela Tremendous API',
           createdBy: userId,
         },
         tx,
       )
 
-      return { redemption, user, prize, voucherPrize: prize.voucherPrize }
-    }, { timeout: 5000 })
+      logger.info('[RedemptionService] Single voucher created successfully (EMAIL delivery)', {
+        redemptionId: redemption.id,
+        orderId: voucherResult.orderId,
+        userId,
+      })
+
+      return { redemption, user, prize, voucherPrize: prize.voucherPrize, voucherResult }
+    }, { timeout: 15000 })
   },
 
   /**
@@ -953,20 +1131,25 @@ export const redemptionService = {
     prize: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     voucherPrize: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     companyId: string,
+    customAmount?: number,
+    campaignId?: string,
   ) {
     try {
-      // Chamar API Tremendous
+      // Chamar API Tremendous com envio direto por email
       const voucherProvider = VoucherProviderFactory.create(voucherPrize.provider)
+
+      const amount = customAmount ?? Number(voucherPrize.minValue)
 
       const voucherResult = await voucherProvider.createVoucher({
         externalId: redemption.id,
         productId: voucherPrize.externalId,
-        amount: voucherPrize.minValue.toNumber(),
+        amount,
         currency: voucherPrize.currency,
         recipient: {
           name: user.name ?? '',
           email: user.email,
         },
+        campaignId,
       })
 
       logger.info('[RedemptionService] Single voucher created successfully', {

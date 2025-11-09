@@ -1,2 +1,2 @@
-export const email = "gabriel@valorize.com"
+export const email = "gabriel.fachini@usevalorize.com.br"
 export const password = "V@alorize"

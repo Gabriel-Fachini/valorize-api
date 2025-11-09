@@ -112,6 +112,7 @@ class PrizesService {
           where,
           include: {
             variants: true,
+            voucherPrize: true,
           },
           orderBy,
           skip,

@@ -16,7 +16,7 @@ export class WalletSeeder extends BaseSeeder {
     
     for (const user of users) {
       // Give Gabriel (main demo user) a generous balance for testing
-      const isGabriel = user.email === 'gabriel@valorize.com'
+      const isGabriel = user.email === 'gabriel.fachini@usevalorize.com.br'
       
       await this.prisma.wallet.upsert({
         where: { userId: user.id },
