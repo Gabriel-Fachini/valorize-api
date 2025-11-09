@@ -26,25 +26,25 @@ export class WalletDepositSeeder extends BaseSeeder {
         continue
       }
 
-      // Create deposit history - last 3 deposits
+      // Create deposit history - 3 monthly recharges of R$ 10,000 each
       const deposits = [
         {
-          amount: new Decimal('20000.00'),
+          amount: new Decimal('10000.00'),
           status: 'completed' as const,
           paymentMethod: 'pix',
-          depositedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+          depositedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // ~90 days ago (month 1)
         },
         {
-          amount: new Decimal('15000.00'),
+          amount: new Decimal('10000.00'),
+          status: 'completed' as const,
+          paymentMethod: 'pix',
+          depositedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // ~60 days ago (month 2)
+        },
+        {
+          amount: new Decimal('10000.00'),
           status: 'completed' as const,
           paymentMethod: 'boleto',
-          depositedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
-        },
-        {
-          amount: new Decimal('15000.00'),
-          status: 'completed' as const,
-          paymentMethod: 'pix',
-          depositedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+          depositedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // ~30 days ago (month 3)
         },
       ]
 

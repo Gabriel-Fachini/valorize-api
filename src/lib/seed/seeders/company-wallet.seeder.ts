@@ -16,20 +16,26 @@ export class CompanyWalletSeeder extends BaseSeeder {
     const companies = await this.prisma.company.findMany()
 
     for (const company of companies) {
+      // Calculate totalSpent: simulate ~109k moedas spent = R$ 6.550 (0.06/coin)
+      // Valorize Corp gets more realistic spending for economy dashboard
+      const totalSpent = company.id === 'demo-company-001'
+        ? new Decimal('26550.00')  // +R$ 6.550 for ~109k moedas consumed
+        : new Decimal('20000.00')   // other companies unchanged
+
       await this.prisma.companyWallet.upsert({
         where: { companyId: company.id },
         update: {},
         create: {
           companyId: company.id,
-          balance: new Decimal('37655.00'),
-          totalDeposited: new Decimal('50000.00'),
-          totalSpent: new Decimal('12345.00'),
-          overdraftLimit: new Decimal('45186.00'), // 120% do ideal
+          balance: new Decimal('10000.00'),
+          totalDeposited: new Decimal('30000.00'),
+          totalSpent,
+          overdraftLimit: new Decimal('12000.00'), // 120% do saldo atual
         },
       })
 
       this.logInfo(
-        `   💰 Company "${company.name}" wallet initialized with R$ 37.655,00 balance`,
+        `   💰 Company "${company.name}" wallet initialized with R$ 10.000,00 balance (spent R$ 20.000,00)`,
       )
     }
 

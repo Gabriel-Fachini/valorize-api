@@ -1,427 +1,487 @@
 /**
  * Redemption seed data
  * Sample prize redemptions with various statuses
+ * ~280 redemptions totaling ~80,000 coins for realistic 3-month scenario
+ * Redemption rate: ~40% of distributed coins (80k / 200k)
  */
 
 /**
  * Redemption status enum
  */
 export const REDEMPTION_STATUS = {
-  PENDING: 'pending',           // Just redeemed, awaiting processing
-  PROCESSING: 'processing',     // Being prepared/ordered
-  SHIPPED: 'shipped',           // In transit
-  DELIVERED: 'delivered',       // Successfully delivered
-  CANCELLED: 'cancelled',       // Cancelled by user or admin
-  REFUNDED: 'refunded',         // Coins returned to user
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  SHIPPED: 'shipped',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
 }
 
 /**
- * Sample redemptions for Gabriel
- * Distributed over the last 60 days for dashboard visualization
+ * Prize types for distribution
+ */
+const PRIZE_TYPES = [
+  { name: 'Cartão Presente Amazon', values: ['R$ 30', 'R$ 50', 'R$ 75', 'R$ 100'] },
+  { name: 'Cartão Presente iFood', values: ['R$ 30', 'R$ 50', 'R$ 75', 'R$ 100'] },
+  { name: 'Cartão Presente Uber', values: ['R$ 25', 'R$ 50', 'R$ 75'] },
+  { name: 'Spotify Premium', values: ['1 mês', '3 meses'] },
+  { name: 'Netflix Premium', values: ['1 mês', '3 meses'] },
+]
+
+/**
+ * Coin costs for each prize (estimated)
+ */
+const COIN_COSTS = {
+  'Cartão Presente Amazon R$ 30': 150,
+  'Cartão Presente Amazon R$ 50': 250,
+  'Cartão Presente Amazon R$ 75': 375,
+  'Cartão Presente Amazon R$ 100': 500,
+  'Cartão Presente iFood R$ 30': 150,
+  'Cartão Presente iFood R$ 50': 250,
+  'Cartão Presente iFood R$ 75': 375,
+  'Cartão Presente iFood R$ 100': 500,
+  'Cartão Presente Uber R$ 25': 125,
+  'Cartão Presente Uber R$ 50': 250,
+  'Cartão Presente Uber R$ 75': 375,
+  'Spotify Premium 1 mês': 250,
+  'Spotify Premium 3 meses': 600,
+  'Netflix Premium 1 mês': 200,
+  'Netflix Premium 3 meses': 500,
+}
+
+/**
+ * Generate redemptions dynamically
+ * ~280 redemptions over 90 days = ~3 per day
+ * Total: ~80,000 coins
+ */
+function generateRedemptions() {
+  const redemptions = []
+  const statuses = [
+    REDEMPTION_STATUS.PENDING,
+    REDEMPTION_STATUS.PROCESSING,
+    REDEMPTION_STATUS.SHIPPED,
+    REDEMPTION_STATUS.DELIVERED,
+    REDEMPTION_STATUS.DELIVERED,
+    REDEMPTION_STATUS.DELIVERED,
+  ]
+
+  let totalCoins = 0
+
+  for (let day = 0; day < 90; day++) {
+    // ~3 redemptions per day
+    for (let redemptionIndex = 0; redemptionIndex < 3; redemptionIndex++) {
+      const prizeType = PRIZE_TYPES[redemptionIndex % PRIZE_TYPES.length]
+      const variantValue = prizeType.values[day % prizeType.values.length]
+      const prizeName = `${prizeType.name} - ${variantValue}`
+      const coinsSpent = COIN_COSTS[prizeName as keyof typeof COIN_COSTS] || 300
+
+      // Distribute statuses with more delivered at the beginning
+      const statusIndex = (day * 2 + redemptionIndex) % statuses.length
+      const status = statuses[statusIndex]
+
+      // Generate tracking code
+      const trackingCode = status === REDEMPTION_STATUS.PENDING ? null : `TRK-${day.toString().padStart(3, '0')}-${redemptionIndex}`
+
+      // Build tracking history based on status
+      const tracking = []
+      tracking.push({ status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' })
+
+      if (status === REDEMPTION_STATUS.PROCESSING || status === REDEMPTION_STATUS.SHIPPED || status === REDEMPTION_STATUS.DELIVERED) {
+        tracking.push({ status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' })
+      }
+
+      if (status === REDEMPTION_STATUS.SHIPPED || status === REDEMPTION_STATUS.DELIVERED) {
+        tracking.push({ status: REDEMPTION_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' })
+      }
+
+      if (status === REDEMPTION_STATUS.DELIVERED) {
+        tracking.push({ status: REDEMPTION_STATUS.DELIVERED, notes: 'Entregue ao usuário.', createdBy: 'system' })
+      }
+
+      totalCoins += coinsSpent
+
+      redemptions.push({
+        prizeName,
+        variantValue,
+        coinsSpent,
+        status,
+        trackingCode,
+        daysAgo: 90 - day,
+        tracking,
+      })
+    }
+  }
+
+  return redemptions
+}
+
+/**
+ * Gabriel's specific redemptions (smaller set for narrative)
  */
 export const GABRIEL_REDEMPTIONS = [
   {
-    // Recent redemption - still pending (1 day ago)
-    prizeName: 'Cartão Presente Amazon R$ 50',
-    variantValue: 'R$ 50',
-    coinsSpent: 250,
+    prizeName: 'Cartão Presente Amazon R$ 100',
+    variantValue: 'R$ 100',
+    coinsSpent: 500,
     status: REDEMPTION_STATUS.PENDING,
     trackingCode: null,
     daysAgo: 1,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida. O processamento começará em breve.',
-        createdBy: 'system',
-      },
-    ],
+    tracking: [{ status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' }],
   },
   {
-    // In progress - being processed (5 days ago)
-    prizeName: 'Fones Bluetooth Sem Fio',
-    variantValue: 'Preto',
-    coinsSpent: 800,
-    status: REDEMPTION_STATUS.PROCESSING,
-    trackingCode: null,
-    daysAgo: 5,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Pedido realizado com fornecedor. Aguardando preparação para envio.',
-        createdBy: 'admin',
-      },
-    ],
-  },
-  {
-    // Shipped - on the way (8 days ago)
-    prizeName: 'Tapete de Yoga Premium',
-    variantValue: 'Roxo',
-    coinsSpent: 350,
-    status: REDEMPTION_STATUS.SHIPPED,
-    trackingCode: 'YM2025101234',
-    daysAgo: 8,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Pedido confirmado e sendo preparado.',
-        createdBy: 'admin',
-      },
-      {
-        status: REDEMPTION_STATUS.SHIPPED,
-        notes: 'Pacote enviado via Correios. Código de rastreamento: YM2025101234',
-        createdBy: 'admin',
-      },
-    ],
-  },
-  {
-    // Delivered - recent (12 days ago)
     prizeName: 'Spotify Premium - 3 Meses',
     variantValue: '3 meses',
-    coinsSpent: 300,
+    coinsSpent: 600,
     status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'SPOT-CODE-ABC123',
-    daysAgo: 12,
+    trackingCode: 'SPOT-001',
+    daysAgo: 5,
     tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Gerando código digital.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Código digital entregue por email. Código: SPOT-CODE-ABC123',
-        createdBy: 'system',
-      },
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
     ],
   },
   {
-    // Delivered (20 days ago)
     prizeName: 'Cartão Presente Starbucks R$ 50',
     variantValue: 'Digital',
     coinsSpent: 250,
     status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'SB-DIGITAL-XYZ789',
-    daysAgo: 20,
+    trackingCode: 'STAR-001',
+    daysAgo: 10,
     tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Processando cartão presente digital.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Cartão presente digital enviado para o email cadastrado.',
-        createdBy: 'system',
-      },
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
     ],
   },
   {
-    // Delivered (28 days ago)
-    prizeName: 'Netflix Premium - 1 Mês',
-    variantValue: '1 mês',
-    coinsSpent: 200,
-    status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'NETFLIX-2025-VLZ',
-    daysAgo: 28,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Gerando código de assinatura.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Código de assinatura enviado com sucesso.',
-        createdBy: 'system',
-      },
-    ],
-  },
-  {
-    // Delivered (35 days ago)
-    prizeName: 'Garrafa Térmica Personalizada',
-    variantValue: 'Azul',
-    coinsSpent: 400,
-    status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'GT-2025-0421',
-    daysAgo: 35,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Pedido em produção.',
-        createdBy: 'admin',
-      },
-      {
-        status: REDEMPTION_STATUS.SHIPPED,
-        notes: 'Produto enviado via transportadora.',
-        createdBy: 'admin',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Produto entregue e confirmado pelo destinatário.',
-        createdBy: 'system',
-      },
-    ],
-  },
-  {
-    // Delivered (45 days ago)
-    prizeName: 'Curso Online Udemy',
-    variantValue: 'Qualquer curso',
-    coinsSpent: 600,
-    status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'UDEMY-VLZ-2025',
-    daysAgo: 45,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Processando voucher de curso.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Voucher enviado por email com instruções de uso.',
-        createdBy: 'system',
-      },
-    ],
-  },
-]
-
-/**
- * Sample redemptions for other users (distributed over time)
- */
-export const COMPANY_REDEMPTIONS = [
-  {
-    // Ana Costa - company prize (15 days ago - delivered)
-    userAuth0Id: 'auth0|demo-employee-valorize-1',
-    prizeName: 'Moletom Valorize',
-    variantValue: 'M',
-    coinsSpent: 600,
-    status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'MERCH-2025-001',
+    prizeName: 'Fones Bluetooth Sem Fio',
+    variantValue: 'Preto',
+    coinsSpent: 800,
+    status: REDEMPTION_STATUS.SHIPPED,
+    trackingCode: 'FONE-001',
     daysAgo: 15,
     tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Preparando pedido de produtos.',
-        createdBy: 'admin',
-      },
-      {
-        status: REDEMPTION_STATUS.SHIPPED,
-        notes: 'Enviado via Correios. Rastreamento: MERCH-2025-001',
-        createdBy: 'admin',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Pacote entregue e confirmado pelo destinatário.',
-        createdBy: 'system',
-      },
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' },
     ],
   },
   {
-    // Pedro Lima - global prize (7 days ago - shipped)
-    userAuth0Id: 'auth0|demo-employee-valorize-2',
-    prizeName: 'Kindle Paperwhite',
-    variantValue: '8GB',
-    coinsSpent: 1200,
-    status: REDEMPTION_STATUS.SHIPPED,
-    trackingCode: 'AMZN-KINDLE-456',
-    daysAgo: 7,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Pedido realizado na Amazon.',
-        createdBy: 'admin',
-      },
-      {
-        status: REDEMPTION_STATUS.SHIPPED,
-        notes: 'Em trânsito. Entrega esperada em 3-5 dias úteis.',
-        createdBy: 'admin',
-      },
-    ],
-  },
-  {
-    // João Santos (Admin) - old redemption (30 days ago - delivered)
-    userAuth0Id: 'auth0|demo-company-admin-valorize',
-    prizeName: 'Cartão Presente Amazon R$ 50',
-    variantValue: 'R$ 50',
-    coinsSpent: 250,
+    prizeName: 'Curso de Culinária Online',
+    variantValue: 'Italiana',
+    coinsSpent: 350,
     status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'AMZ-DIGITAL-789',
-    daysAgo: 30,
+    trackingCode: 'CULI-001',
+    daysAgo: 20,
     tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Processando código de presente digital.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Código digital enviado por email.',
-        createdBy: 'system',
-      },
-    ],
-  },
-  {
-    // Maria Silva (HR) - recent redemption (3 days ago - processing)
-    userAuth0Id: 'auth0|demo-hr-manager-valorize',
-    prizeName: 'Garrafa Térmica Personalizada',
-    variantValue: 'Rosa',
-    coinsSpent: 400,
-    status: REDEMPTION_STATUS.PROCESSING,
-    trackingCode: null,
-    daysAgo: 3,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Pedido em produção. Previsão de envio em 2-3 dias.',
-        createdBy: 'admin',
-      },
-    ],
-  },
-  {
-    // Carlos Souza (Team Lead) - old redemption (42 days ago - delivered)
-    userAuth0Id: 'auth0|demo-team-lead-valorize',
-    prizeName: 'Spotify Premium - 3 Meses',
-    variantValue: '3 meses',
-    coinsSpent: 300,
-    status: REDEMPTION_STATUS.DELIVERED,
-    trackingCode: 'SPOT-VLZ-2025-02',
-    daysAgo: 42,
-    tracking: [
-      {
-        status: REDEMPTION_STATUS.PENDING,
-        notes: 'Solicitação de resgate recebida.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.PROCESSING,
-        notes: 'Gerando código de assinatura.',
-        createdBy: 'system',
-      },
-      {
-        status: REDEMPTION_STATUS.DELIVERED,
-        notes: 'Código de assinatura ativado com sucesso.',
-        createdBy: 'system',
-      },
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Acesso entregue.', createdBy: 'system' },
     ],
   },
 ]
 
 /**
- * Sample address data for Gabriel
- * Used to create addresses for redemptions
+ * Expanded employee redemptions - dynamically generated
  */
-export const GABRIEL_ADDRESS = {
-  name: 'Gabriel Fachini',
-  street: 'Rua das Flores',
-  number: '123',
-  complement: 'Apto 456',
-  neighborhood: 'Centro',
-  city: 'São Paulo',
-  state: 'SP',
-  zipCode: '01234-567',
-  country: 'BR',
-  phone: '+55 11 99999-9999',
-  isDefault: true,
-}
+export const EXPANDED_EMPLOYEE_REDEMPTIONS = generateRedemptions()
 
 /**
- * Sample addresses for other users
- */
-export const SAMPLE_ADDRESSES = [
-  {
-    userAuth0Id: 'auth0|demo-employee-valorize-1',
-    address: {
-      name: 'Ana Costa',
-      street: 'Rua Augusta',
-      number: '456',
-      complement: 'Apto 22',
-      neighborhood: 'Consolação',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01305-000',
-      country: 'BR',
-      phone: '+55 11 91234-5678',
-      isDefault: true,
-    },
-  },
-  {
-    userAuth0Id: 'auth0|demo-employee-valorize-2',
-    address: {
-      name: 'Pedro Lima',
-      street: 'Avenida Paulista',
-      number: '1578',
-      complement: null,
-      neighborhood: 'Bela Vista',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01310-200',
-      country: 'BR',
-      phone: '+55 11 98765-4321',
-      isDefault: true,
-    },
-  },
-]
-
-/**
- * Helper function to calculate dates in the past
+ * Helper function to create dates in the past
  */
 export function daysAgo(days: number): Date {
   const date = new Date()
   date.setDate(date.getDate() - days)
   return date
 }
+
+/**
+ * Gabriel's address for redemptions
+ */
+export const GABRIEL_ADDRESS = {
+  name: 'Meu Endereço',
+  street: 'Rua das Flores',
+  number: '123',
+  complement: 'Apt 45',
+  neighborhood: 'Centro',
+  city: 'São Paulo',
+  state: 'SP',
+  zipCode: '01310-100',
+  country: 'Brazil',
+  phone: '(11) 98765-4321',
+  isDefault: true,
+}
+
+/**
+ * Company redemptions for other users
+ * Using 50 users (17 real + 33 temp) with diverse redemptions
+ */
+export const COMPANY_REDEMPTIONS = [
+  {
+    userAuth0Id: 'auth0|demo-company-admin-valorize',
+    prizeName: 'Cartão Presente Amazon R$ 50',
+    variantValue: 'R$ 50',
+    coinsSpent: 250,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'AMZ-COM-001',
+    daysAgo: 10,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-hr-manager-valorize',
+    prizeName: 'Spotify Premium - 3 Meses',
+    variantValue: '3 meses',
+    coinsSpent: 600,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'SPOT-COM-001',
+    daysAgo: 20,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-team-lead-valorize',
+    prizeName: 'Cartão Presente Starbucks R$ 50',
+    variantValue: 'Cartão Físico',
+    coinsSpent: 250,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'STAR-COM-001',
+    daysAgo: 30,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-1',
+    prizeName: 'Fones Bluetooth Sem Fio',
+    variantValue: 'Prata',
+    coinsSpent: 800,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'FONE-COM-001',
+    daysAgo: 40,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Fone entregue.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-2',
+    prizeName: 'Kindle Paperwhite',
+    variantValue: '8GB',
+    coinsSpent: 1200,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'KIN-COM-001',
+    daysAgo: 50,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Kindle entregue.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-3',
+    prizeName: 'Cartão Presente iFood R$ 50',
+    variantValue: 'R$ 50',
+    coinsSpent: 250,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'IFD-COM-002',
+    daysAgo: 35,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-4',
+    prizeName: 'Netflix Premium - 1 Mês',
+    variantValue: '1 mês',
+    coinsSpent: 200,
+    status: REDEMPTION_STATUS.DELIVERED,
+    trackingCode: 'NET-COM-002',
+    daysAgo: 25,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-5',
+    prizeName: 'Cartão Presente Uber R$ 50',
+    variantValue: 'R$ 50',
+    coinsSpent: 250,
+    status: REDEMPTION_STATUS.PROCESSING,
+    trackingCode: 'UBR-COM-002',
+    daysAgo: 15,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+    ],
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-6',
+    prizeName: 'Cartão Presente Amazon R$ 75',
+    variantValue: 'R$ 75',
+    coinsSpent: 375,
+    status: REDEMPTION_STATUS.SHIPPED,
+    trackingCode: 'AMZ-COM-002',
+    daysAgo: 8,
+    tracking: [
+      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+      { status: REDEMPTION_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' },
+    ],
+  },
+]
+
+/**
+ * Sample addresses for users
+ */
+export const SAMPLE_ADDRESSES = [
+  {
+    userAuth0Id: 'auth0|demo-company-admin-valorize',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Av. Paulista',
+      number: '1000',
+      complement: '',
+      neighborhood: 'Bela Vista',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01311-100',
+      country: 'Brazil',
+      phone: '(11) 91234-5678',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-hr-manager-valorize',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Rua Oscar Freire',
+      number: '500',
+      complement: 'Suite 200',
+      neighborhood: 'Cerqueira César',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01426-100',
+      country: 'Brazil',
+      phone: '(11) 92345-6789',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-team-lead-valorize',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Rua Augusta',
+      number: '2500',
+      complement: '',
+      neighborhood: 'Consolação',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01305-100',
+      country: 'Brazil',
+      phone: '(11) 93456-7890',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-1',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Rua Haddock Lobo',
+      number: '350',
+      complement: 'Apt 1001',
+      neighborhood: 'Higienópolis',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01414-002',
+      country: 'Brazil',
+      phone: '(11) 94567-8901',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-2',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Alameda Franca',
+      number: '1200',
+      complement: '',
+      neighborhood: 'Jardins',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01422-002',
+      country: 'Brazil',
+      phone: '(11) 95678-9012',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-3',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Rua Vergueiro',
+      number: '2000',
+      complement: 'Bloco B',
+      neighborhood: 'Vila Mariana',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '04101-000',
+      country: 'Brazil',
+      phone: '(11) 96789-0123',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-4',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Av. Rebouças',
+      number: '3000',
+      complement: '',
+      neighborhood: 'Pinheiros',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '05402-600',
+      country: 'Brazil',
+      phone: '(11) 97890-1234',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-5',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Rua dos Três Irmãos',
+      number: '500',
+      complement: 'Casa 3',
+      neighborhood: 'Vila Progredior',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '05615-190',
+      country: 'Brazil',
+      phone: '(11) 98901-2345',
+      isDefault: true,
+    },
+  },
+  {
+    userAuth0Id: 'auth0|demo-employee-valorize-6',
+    address: {
+      name: 'Meu Endereço',
+      street: 'Rua Fidalga',
+      number: '700',
+      complement: 'Apt 501',
+      neighborhood: 'Vila Madalena',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '05432-070',
+      country: 'Brazil',
+      phone: '(11) 99012-3456',
+      isDefault: true,
+    },
+  },
+]
