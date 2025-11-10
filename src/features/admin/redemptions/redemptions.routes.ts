@@ -177,7 +177,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
         )
 
         const response: BulkRedemptionResponse = {
-          message: 'Bulk redemption initiated',
+          message: 'Vouchers enviados com sucesso para os usuários',
           summary: {
             total: results.length,
             successful: results.filter((r) => r.success).length,
@@ -195,13 +195,13 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
           })),
         }
 
-        logger.info('[AdminRedemptionRoutes] Bulk redeem completed', {
+        logger.info('[AdminRedemptionRoutes] Bulk redemption completed successfully', {
           total: response.summary.total,
           successful: response.summary.successful,
           failed: response.summary.failed,
         })
 
-        return reply.code(207).send(response)
+        return reply.code(200).send(response)
       } catch (error) {
         logger.error('[AdminRedemptionRoutes] Error in bulk redeem', { error })
 

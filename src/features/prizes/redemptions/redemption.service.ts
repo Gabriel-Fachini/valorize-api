@@ -564,14 +564,37 @@ export const redemptionService = {
       companyId,
     })
 
-    // Validar o prêmio uma vez
+    // 1. Resolver ID: aceita tanto VoucherProduct ID quanto Prize ID
+    let actualPrizeId = prizeId
+
+    const voucherProduct = await prisma.voucherProduct.findUnique({
+      where: { id: prizeId },
+    })
+
+    if (voucherProduct) {
+      // ID passado é de VoucherProduct, resolver para Prize ID
+      const voucherPrize = await prisma.voucherPrize.findFirst({
+        where: {
+          provider: voucherProduct.provider,
+          externalId: voucherProduct.externalId,
+        },
+      })
+
+      if (!voucherPrize) {
+        throw new Error(`Voucher product "${voucherProduct.name}" não possui prize associado. Execute a sincronização primeiro.`)
+      }
+
+      actualPrizeId = voucherPrize.prizeId
+    }
+
+    // 2. Validar o prêmio uma vez com ID resolvido
     const prize = await prisma.prize.findFirst({
-      where: { id: prizeId, isActive: true },
+      where: { id: actualPrizeId, isActive: true },
       include: { voucherPrize: true },
     })
 
     if (!prize) {
-      throw new Error('Prize not found or is not active')
+      throw new Error(`Prize not found or is not active (ID: ${actualPrizeId}). Verifique se o voucher está ativo e foi sincronizado.`)
     }
 
     if (prize.type !== 'voucher') {
@@ -626,10 +649,10 @@ export const redemptionService = {
       // Processar cada usuário do batch
       for (const user of batch) {
         try {
-          // Chamar sendVoucherToUser para cada usuário (já inclui validação)
+          // Chamar sendVoucherToUser para cada usuário com Prize ID resolvido
           const result = await this.sendVoucherToUser(
             user.userId,
-            prizeId,
+            actualPrizeId,
             companyId,
             customAmount,
             campaignId,
@@ -642,23 +665,6 @@ export const redemptionService = {
             success: true,
             redemptionId: result.redemption.id,
             voucherCode: result.voucherPrize?.externalId,
-          })
-
-          // Chamar completeSendVoucher em background (não bloqueia)
-          this.completeSendVoucher(
-            result.redemption,
-            result.user,
-            result.prize,
-            result.voucherPrize,
-            companyId,
-            customAmount,
-            campaignId,
-          ).catch((error) => {
-            logger.error('[RedemptionService] Background bulk voucher send failed', {
-              redemptionId: result.redemption.id,
-              userId: user.userId,
-              error: error.message,
-            })
           })
 
         } catch (error: any) {
@@ -1120,157 +1126,6 @@ export const redemptionService = {
 
       return { redemption, user, prize, voucherPrize: prize.voucherPrize, voucherResult }
     }, { timeout: 15000 })
-  },
-
-  /**
-   * Completar o envio do voucher (fase 2 - fora da transação)
-   */
-  async completeSendVoucher(
-    redemption: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    user: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    prize: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    voucherPrize: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    companyId: string,
-    customAmount?: number,
-    campaignId?: string,
-  ) {
-    try {
-      // Chamar API Tremendous com envio direto por email
-      const voucherProvider = VoucherProviderFactory.create(voucherPrize.provider)
-
-      const amount = customAmount ?? Number(voucherPrize.minValue)
-
-      const voucherResult = await voucherProvider.createVoucher({
-        externalId: redemption.id,
-        productId: voucherPrize.externalId,
-        amount,
-        currency: voucherPrize.currency,
-        recipient: {
-          name: user.name ?? '',
-          email: user.email,
-        },
-        campaignId,
-      })
-
-      logger.info('[RedemptionService] Single voucher created successfully', {
-        redemptionId: redemption.id,
-        orderId: voucherResult.orderId,
-        userId: redemption.userId,
-      })
-
-      // Atualizar para 'completed'
-      await prisma.$transaction(async (tx) => {
-        await tx.voucherRedemption.create({
-          data: {
-            redemptionId: redemption.id,
-            provider: voucherPrize.provider,
-            providerOrderId: voucherResult.orderId,
-            providerRewardId: voucherResult.rewardId,
-            voucherLink: voucherResult.link,
-            voucherCode: voucherResult.code ?? null,
-            amount: voucherPrize.minValue,
-            currency: voucherPrize.currency,
-            status: 'completed',
-            completedAt: new Date(),
-            expiresAt: voucherResult.expiresAt ?? null,
-          },
-        })
-
-        await tx.redemption.update({
-          where: { id: redemption.id },
-          data: { status: 'completed' },
-        })
-
-        await RedemptionTrackingModel.create(
-          {
-            redemptionId: redemption.id,
-            status: 'completed',
-            notes: 'Voucher criado com sucesso',
-            createdBy: redemption.userId,
-          },
-          tx,
-        )
-      })
-
-      return {
-        success: true,
-        redemptionId: redemption.id,
-        userId: redemption.userId,
-        voucherLink: voucherResult.link,
-        voucherCode: voucherResult.code ?? undefined,
-      }
-
-    } catch (error: any) {
-      logger.error('[RedemptionService] Single voucher creation failed - rolling back', {
-        redemptionId: redemption.id,
-        userId: redemption.userId,
-        error: error.message,
-      })
-
-      // Rollback: devolver dinheiro à CompanyWallet e marcar como failed
-      try {
-        await prisma.$transaction(async (tx) => {
-          // Devolver R$ à empresa
-          const coinsBRL = prize.coinPrice * COIN_TO_BRL_RATE
-          await CompanyWalletModel.creditBalance(
-            companyId,
-            coinsBRL,
-            tx,
-            `Rollback: single voucher creation failed for ${redemption.userId}`,
-            {
-              redemptionId: redemption.id,
-              originalError: error.message,
-            },
-          )
-
-          // Marcar redemption como 'failed'
-          await tx.redemption.update({
-            where: { id: redemption.id },
-            data: { status: 'failed' },
-          })
-
-          await tx.voucherRedemption.create({
-            data: {
-              redemptionId: redemption.id,
-              provider: voucherPrize.provider,
-              amount: voucherPrize.minValue,
-              currency: voucherPrize.currency,
-              status: 'failed',
-              errorMessage: error.message,
-            },
-          })
-
-          await RedemptionTrackingModel.create(
-            {
-              redemptionId: redemption.id,
-              status: 'failed',
-              notes: `Erro ao criar voucher: ${error.message}`,
-              createdBy: redemption.userId,
-            },
-            tx,
-          )
-        })
-
-        logger.info('[RedemptionService] Rollback completed successfully', {
-          redemptionId: redemption.id,
-          userId: redemption.userId,
-        })
-
-      } catch (rollbackError: any) {
-        logger.error('[RedemptionService] CRITICAL: Rollback failed!', {
-          redemptionId: redemption.id,
-          userId: redemption.userId,
-          originalError: error.message,
-          rollbackError: rollbackError.message,
-        })
-      }
-
-      return {
-        success: false,
-        userId: redemption.userId,
-        error: error.message,
-      }
-    }
   },
 }
 
