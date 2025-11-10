@@ -130,16 +130,54 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const { prizeId, customAmount, campaignId, users } = request.body
+        const { prizeId, customAmount, campaignId, allUsersSelected, users: providedUsers } = request.body
 
-        logger.info('[AdminRedemptionRoutes] Bulk redeem request', {
-          adminId: adminUser.id,
-          prizeId,
-          customAmount,
-          userCount: users.length,
-        })
+        // 1. Determine users list
+        let users: Array<{ userId: string; email: string }>
 
-        // Validate all users exist and belong to same company
+        if (allUsersSelected) {
+          // Fetch all active users from the company
+          const companyUsers = await prisma.user.findMany({
+            where: {
+              companyId: adminUser.companyId,
+              isActive: true,
+            },
+            select: { id: true, email: true },
+          })
+
+          if (companyUsers.length === 0) {
+            return reply.code(400).send({
+              message: 'No active users found in your company',
+            })
+          }
+
+          users = companyUsers.map((u) => ({ userId: u.id, email: u.email }))
+
+          logger.info('[AdminRedemptionRoutes] Bulk redeem request (all users)', {
+            adminId: adminUser.id,
+            prizeId,
+            customAmount,
+            userCount: users.length,
+          })
+        } else {
+          // Use provided users list
+          if (!providedUsers || providedUsers.length === 0) {
+            return reply.code(400).send({
+              message: 'Either provide users array or set allUsersSelected to true',
+            })
+          }
+
+          users = providedUsers
+
+          logger.info('[AdminRedemptionRoutes] Bulk redeem request', {
+            adminId: adminUser.id,
+            prizeId,
+            customAmount,
+            userCount: users.length,
+          })
+        }
+
+        // 2. Validate all users exist and belong to same company
         const userIds = users.map((u) => u.userId)
         const dbUsers = await prisma.user.findMany({
           where: {
@@ -155,17 +193,19 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
           })
         }
 
-        // Validate email matches for all users
-        const emailMismatches = users.filter((reqUser) => {
-          const dbUser = dbUsers.find((u: any) => u.id === reqUser.userId)
-          return dbUser && dbUser.email !== reqUser.email
-        })
-
-        if (emailMismatches.length > 0) {
-          return reply.code(400).send({
-            message: `Email mismatch for ${emailMismatches.length} user(s)`,
-            mismatches: emailMismatches,
+        // 3. Validate email matches for all users (only if they were provided)
+        if (!allUsersSelected) {
+          const emailMismatches = users.filter((reqUser) => {
+            const dbUser = dbUsers.find((u: any) => u.id === reqUser.userId)
+            return dbUser && dbUser.email !== reqUser.email
           })
+
+          if (emailMismatches.length > 0) {
+            return reply.code(400).send({
+              message: `Email mismatch for ${emailMismatches.length} user(s)`,
+              mismatches: emailMismatches,
+            })
+          }
         }
 
         const results = await redemptionService.bulkRedeemVouchers(
@@ -177,7 +217,9 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
         )
 
         const response: BulkRedemptionResponse = {
-          message: 'Vouchers enviados com sucesso para os usuários',
+          message: allUsersSelected
+            ? `Vouchers enviados com sucesso para todos os ${results.length} usuários da empresa`
+            : 'Vouchers enviados com sucesso para os usuários',
           summary: {
             total: results.length,
             successful: results.filter((r) => r.success).length,
@@ -189,8 +231,6 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
             prizeId,
             success: r.success,
             redemptionId: r.redemptionId,
-            voucherLink: r.voucherLink,
-            voucherCode: r.voucherCode,
             error: r.error,
           })),
         }

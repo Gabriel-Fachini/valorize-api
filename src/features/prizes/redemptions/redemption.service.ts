@@ -29,8 +29,6 @@ interface BulkRedeemVoucherResult {
   prizeId: string
   success: boolean
   redemptionId?: string
-  voucherLink?: string
-  voucherCode?: string
   error?: string
 }
 
@@ -664,7 +662,6 @@ export const redemptionService = {
             prizeId,
             success: true,
             redemptionId: result.redemption.id,
-            voucherCode: result.voucherPrize?.externalId,
           })
 
         } catch (error: any) {

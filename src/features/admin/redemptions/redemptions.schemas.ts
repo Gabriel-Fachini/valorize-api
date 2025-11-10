@@ -45,6 +45,10 @@ export const bulkRedeemVouchersSchema = {
         type: 'string',
         description: 'Optional campaign ID (uses server default if not provided)',
       },
+      allUsersSelected: {
+        type: 'boolean',
+        description: 'If true, sends vouchers to all users in the company. If false or not provided, uses the users array',
+      },
       users: {
         type: 'array',
         items: {
@@ -65,10 +69,10 @@ export const bulkRedeemVouchersSchema = {
         },
         minItems: 1,
         maxItems: 100,
-        description: 'Array of users to receive vouchers (1-100 users)',
+        description: 'Array of users to receive vouchers (1-100 users). Not required if allUsersSelected is true',
       },
     },
-    required: ['prizeId', 'customAmount', 'users'],
+    required: ['prizeId', 'customAmount'],
     additionalProperties: false,
   },
 }

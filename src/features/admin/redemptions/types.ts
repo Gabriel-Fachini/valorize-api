@@ -9,7 +9,8 @@ export interface BulkRedeemVouchersRequest {
   prizeId: string
   customAmount: number
   campaignId?: string
-  users: Array<{
+  allUsersSelected?: boolean
+  users?: Array<{
     userId: string
     email: string
   }>
