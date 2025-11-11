@@ -140,12 +140,16 @@ export default async function prizeRoutes(fastify: FastifyInstance) {
 
       try {
         const { isGlobal, ...prizeData } = request.body
-        
+
         // Se isGlobal = true, companyId será null (prêmio disponível para todos)
         // Se isGlobal = false ou undefined, prêmio é específico da empresa
         const companyId = isGlobal ? null : user.companyId
 
-        const prize = await prizeService.createPrize(companyId, prizeData)
+        // Set prize type based on global flag
+        const prizeType = isGlobal ? 'voucher' : 'physical'
+        const prizeDataWithType = { ...prizeData, type: prizeType }
+
+        const prize = await prizeService.createPrize(companyId, prizeDataWithType)
         
         return reply.code(201).send({
           message: 'Prize created successfully',

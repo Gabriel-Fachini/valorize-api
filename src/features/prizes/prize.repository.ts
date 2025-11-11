@@ -102,7 +102,9 @@ export const prizeRepository = {
         distinct: ['category'],
       })
 
-      return categories.map((c) => c.category)
+      return categories
+        .filter((c) => c.category !== null)
+        .map((c) => c.category as string)
     } catch (error) {
       logger.error('Error getting available categories', { error, companyId })
       throw new Error('Failed to get categories')

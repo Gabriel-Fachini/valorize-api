@@ -374,7 +374,7 @@ export class ComplimentSeeder extends BaseSeeder {
     // ============================================================================
     const generatedCompliments = ComplimentFactory.generateBulkCompliments(
       users.map(u => ({ auth0Id: u.auth0Id, id: u.id })),
-      values.map(v => v.id),
+      values.map((v, index) => index.toString()),
       targetComplimentCount,
       activityDistributionMap,
     )
@@ -389,7 +389,7 @@ export class ComplimentSeeder extends BaseSeeder {
       senderId: string
       receiverId: string
       companyId: string
-      valueId: string
+      valueId: number
       message: string
       coins: number
       isPublic: boolean

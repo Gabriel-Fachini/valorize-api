@@ -1,0 +1,4 @@
+- Rever estratégia de saldo
+- Pensar em mais estratégias de gamificação.
+- Rever notificações
+- Validar custo por usuário/mes

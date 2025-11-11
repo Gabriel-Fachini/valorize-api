@@ -10,9 +10,9 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 
 **Modelo:** Desenvolvimento ágil, SaaS Multi-Tenant, foco em Sales-Assisted GTM
 
-**Mercado:** B2B \- Empresas de médio e grande porte (100-5000 funcionários)
+**Mercado:** B2B \- Empresas de médio e grande porte (50-5000 funcionários)
 
-**Diferencial:** Foco exclusivo em valores empresariais \+ Analytics robusto \+ Modelo de recompensas escalável (Experiências & Vouchers)
+**Diferencial:** Foco exclusivo em valores empresariais \+ Analytics robusto \+ Modelo de recompensas escalável (Vouchers)
 
 ## **🚨 Problemas do Mercado**
 
@@ -22,7 +22,7 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 
 * **Problema:** Funcionários desconectados das atividades e valores da empresa  
 * **Impacto:** Produtividade reduzida, alta rotatividade (turnover), clima organizacional ruim  
-* **Realidade:** Engajamento é prioridade crescente para CEOs no mercado atual
+* **Realidade:** Engajamento é prioridade crescente para CEOs no mercado atual, principalmente em empresas com home office.
 
 #### **2\. Falta de Reconhecimento Estruturado**
 
@@ -45,7 +45,7 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 #### **5\. Falta de Visibilidade para RH**
 
 * **Problema:** RH não tem dados concretos sobre cultura e engajamento  
-* **Impacto:** Decisões baseadas em intuição, dificuldade de demonstrar ROI  
+* **Impacto:** Decisões baseadas em intuição, dificuldade de demonstrar ROI
 * **Realidade:** Ferramentas de RH tradicionais focam em processos, não em cultura
 
 ## **💡 Nossa Solução**
@@ -65,6 +65,7 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 **Saldo de Elogios (Renovável):**
 
 * 100 moedas renovadas semanalmente  
+  * Aqui cada empresa pode definir quantas moedas querem distribuir por semana, porém o padrão (e recomendado) é 100.
 * Uso exclusivo: enviar elogios  
 * **NÃO converte em dinheiro real**  
 * Expira se não utilizado
@@ -81,17 +82,17 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 #### **3\. Analytics para Tomadores de Decisão (ROI)**
 
 * **O que fazemos:** Dashboard executivo com métricas de cultura e engajamento  
-* **Como funciona:** Dados em tempo real sobre valores praticados, padrões de reconhecimento, previsibilidade de gastos  
+* **Como funciona:** Dados em tempo real sobre valores praticados, padrões de reconhecimento, previsibilidade de gastos (podemos também adicionar métricas calculadas em um horário estabelecido também, sem necessariamente ser em tempo real, caso seja relevante)
 * **Resultado:** RH demonstra ROI e toma decisões baseadas em dados  
 * **Diferencial:** Primeira plataforma que torna cultura mensurável e visível
 
 #### **4\. Recompensas Escaláveis (Sem Logística Física)**
 
-* **O que fazemos:** Catálogo híbrido focado em Vouchers (via API) e Experiências (gerenciadas pelo cliente)  
+* **O que fazemos:** Catálogo focado em Vouchers (via API)
 * **Como funciona:** Removemos 100% da complexidade logística (compra, NF-e, frete) da Valorize e do cliente, focando em resgates instantâneos e de alto valor  
 * **Resultado:** Motivação sustentável sem complexidade operacional
 
-#### **5\. Modelo Financeiro de CustódIA (Viabilidade)**
+#### **5\. Modelo Financeiro de Custódia (Viabilidade)**
 
 * **O que fazemos:** Separação total entre a receita de SaaS e o dinheiro dos prêmios  
 * **Como funciona:** Clientes fazem aportes em uma "Carteira de Prêmios" pré-paga (custódia via fintech), que é usada para pagar (via API) os parceiros de vouchers. Este saldo é legalmente do cliente (crédito de terceiros) e estornado em caso de rescisão.  
@@ -103,7 +104,7 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 
 #### **1\. Empresas B2B (Médio/Grande Porte)**
 
-* **Perfil:** 100-5000 funcionários  
+* **Perfil:** 50-5000 funcionários  
 * **Setores:** Tecnologia, Consultoria, Serviços, Indústria, Saúde  
 * **Dores:** Alta rotatividade, baixo engajamento, cultura fragmentada, trabalho remoto/híbrido
 
@@ -117,7 +118,7 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 
 * **Perfil:** Funcionários de todos os níveis  
 * **Necessidades:** Reconhecimento genuíno, conexão com valores, recompensas desejáveis e de fácil resgate  
-* **Expectativa:** Ferramenta simples, não "mais uma plataforma chata de RH"
+* **Expectativa:** Ferramenta simples gamificada, não "mais uma plataforma chata de RH"
 
 ## **🏆 Diferencial Competitivo**
 
@@ -177,7 +178,7 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 * 100 moedas renovadas semanalmente  
 * Só para enviar elogios  
 * Expira se não usado  
-* **Métrica de sucesso:** Taxa de uso \> 70% (moedas usadas / distribuídas)
+* **Métrica de sucesso:** Taxa de uso \> 50% (moedas usadas / distribuídas)
 
 **Saldo de Resgate:**
 
@@ -190,34 +191,19 @@ Valorize é uma plataforma B2B SaaS focada em cultura empresarial e engajamento 
 
 **Filosofia:** Foco total em recompensas de alto valor percebido e zero complexidade logística/fiscal para a Valorize
 
-**Modelo Híbrido:**
-
-#### **A. Catálogo de Experiências (Custo-Zero p/ Valorize)**
-
-* **O que são:** Prêmios intangíveis gerenciados 100% pelo cliente  
-* **Exemplos:** Day-off, meio período de folga, almoço com CEO, mentoria, verba para curso  
-* **Como funciona:** Colaborador resgata → sistema notifica RH e/ou gestor direto automaticamente  
-* **Dependência:** Requer mapeamento de gestor (via importação de CSV)  
-* **Vantagem MVP:** Valida core loop sem custo
-
-#### **B. Catálogo de Vouchers (API-Driven)**
+### **Catálogo de Vouchers (API-Driven)**
 
 * **O que são:** Gift cards digitais de parceiros B2B  
 * **Parceiros:** Integração via API com players de "Reward-as-a-Service"  
-  * **Status:** Em avaliação (Giftty, Incentivar.io, Carpe Diem XP)  
-* **Exemplos:** iFood, Uber, Amazon, Spotify, Magalu, Netflix
+  * **Status:** Integrado com Tremendous. Outras fornecedoras brasileiras se recusaram a fazer parceria ou contrato comercial.
+* **Exemplos:** Uber, Amazon, Spotify, Magalu, Netflix
 
 **Arquitetura de Resgate (Resiliência):**
 
 * **Fluxo:**  
   1. Usuário clica em "Resgatar"  
-  2. Sistema valida saldo e cria um "Job de Resgate" em uma **fila assíncrona**  
-  3. Frontend exibe: "Resgate em processamento\! Você receberá por e-mail."  
-  4. Um "worker" (processo em background) pega o job da fila  
-  5. Worker executa as chamadas de API (Débito na Fintech → Emissão no Fornecedor de Voucher)  
-  6. **Sucesso:** Envia e-mail com voucher  
-  7. **Falha (API da fintech ou fornecedor offline):** Job retorna para fila com "retry" automático (ex: 5 tentativas em 1 hora)  
-* **Vantagem:** O sistema de resgate nunca fica "fora do ar" para o usuário, mesmo se os parceiros de API falharem momentaneamente. Garante a resiliência operacional.
+  2. Sistema valida saldo e realiza o resgate, enviando um email ao usuário.
+  3. Frontend exibe: "Resgate feito com sucesso\! Você receberá por e-mail."  
 
 ### **4\. Sistema de Carteira de Prêmios (Wallet de Custódia)**
 
@@ -277,6 +263,8 @@ Aportes Iniciais Recomendados:
 2. **"Primeiro Resgate"** (+30 moedas bônus)  
 3. **"Generoso"** (+100 moedas bônus)
 
+É necessário pensar em mais estratégias de gamificação.
+
 **Promoções Relâmpago:** (Administrador cria promoções manuais com desconto em moedas)
 
 ### **7\. Sistema de Notificações (MVP \- Essencial)**
@@ -299,7 +287,6 @@ Aportes Iniciais Recomendados:
 
 * Login com Google Workspace (OAuth 2.0)  
 * Verificação automática de domínio (segurança B2B)  
-* **Backlog (Pós-MVP):** SSO com Azure AD (Microsoft)
 
 ### **9\. Onboarding Interativo e Administrativo**
 
@@ -338,17 +325,16 @@ Aportes Iniciais Recomendados:
 **Fase 1: MVP e Validação (Atual \- Q4 2025\)**
 
 * Foco 100% "Sales-Assisted" (sem self-service)  
-* Testar com cliente piloto (650 funcionários)  
-* Validar core loop de reconhecimento  
+* Testar com cliente piloto (Toro Investimentos 650 funcionários)  
+* Implementar API de Vouchers e Carteira de Custódia
+* Validar core loop de reconhecimento (já validado) 
 * Validar valor do Dashboard de Economia  
 * **Validar modelo jurídico (MSA/DPA) e financeiro (Custódia)**  
 * **Goal:** Provar que plataforma gera engajamento e é financeiramente viável
 
 **Fase 2: Go-to-Market (Q1-Q2 2026\)**
-
-* Implementar API de Vouchers e Carteira de Custódia  
 * Captar primeiros 5-10 clientes pagantes (mesmo perfil)  
-* **Goal:** Validar modelo de receita dupla (SaaS \+ Comissão)
+* **Goal:** Validar modelo de receita (SaaS)
 
 **Fase 3: Escala (Q3-Q4 2026\)**
 
@@ -366,7 +352,7 @@ Aportes Iniciais Recomendados:
 
 * WAU (Weekly Active Users)  
 * Retenção (Week 1\)  
-* Taxa de Uso de Elogios (\> 70%)  
+* Taxa de Uso de Elogios (\> 50%)  
 * Taxa de Resgate (25-40%)
 
 ### **Métricas de Negócio**
@@ -383,21 +369,23 @@ Aportes Iniciais Recomendados:
 **Features Críticas:**
 
 * ✅ Sistema de elogios e moedas duplas  
-* 🎯 Loja de Prêmios (Experiências \+ Vouchers via API)  
-* 🎯 **Arquitetura de Resgate Assíncrona (Filas/Jobs)**  
+* ✅ Loja de Prêmios (Vouchers via API)  
 * 🎯 Login Google Workspace (SSO)  
-* 🎯 Importação de usuários (CSV) \+ Mapeamento de gestores  
-* 🎯 Dashboard Analytics para RH  
-* 🎯 Dashboard de Economia (4 métricas essenciais)  
+* 🎯 Importação de usuários (CSV) \+ Mapeamento de gestores  (falta mapeamento de gestores)
+* ✅ Dashboard Analytics para RH  
+* ✅ Dashboard de Economia (4 métricas essenciais)  
 * 🎯 Sistema de Gamificação (3 badges)  
 * 🎯 Sistema de Notificações (6 emails \+ in-app)  
-* 🎯 Auditoria de má fé (básica)  
-* 🎯 Integração com fintech (Asaas \- subcarteiras)  
+* 🎯 Auditoria de má fé (básica) 
+* 🎯 Network graph de reconhecimento 
+* 🎯 Integração com fintech (Asaas \- subcarteiras) 
+* ✅ Roles e permissões avançadas 
+* 🎯 Customização visual básica (logo \+ 2 cores)
 * 🎯 **Definição de Pacote Jurídico (MSA, DPA, Termos de Uso)**
 
 **Decisões Técnicas Pendentes:**
 
-* \[ \] Escolher fornecedor de vouchers (1 principal \+ 1 backup)  
+* \[ ✅ \] Escolher fornecedor de vouchers (1 principal \+ 1 backup) Nota: somente 1 (tremendous) deu certo no momento. 
 * \[ \] Finalizar integração Asaas (split payment)  
 * \[ \] Implementar sistema de expiração de moedas (18 meses)
 
@@ -406,150 +394,38 @@ Aportes Iniciais Recomendados:
 ### **Fase 2: Validação e GTM (Q1-Q2 2026\)**
 
 * 🚀 Relatórios PDF exportáveis  
-* 🚀 Network graph de reconhecimento  
-* 🚀 Customização visual básica (logo \+ 2 cores)  
 * 🚀 Auditoria avançada (score de risco)  
-* 🚀 Promoções relâmpago (sistema manual \+ sugestões automáticas)  
-* 🚀 SSO com Azure AD (Microsoft)
+* 🚀 Promoções relâmpago (sistema manual \+ sugestões automáticas)
 
-**Objetivo:** Validar product-market fit e modelo de receita dupla
+**Objetivo:** Validar product-market fit e modelo de receita
 
 ### **Fase 3: Escala e Expansão (Q3-Q4 2026\)**
 
 * Integrações (Slack, Teams) \- **NÃO está no MVP**  
-* Analytics preditivos (IA)  
-* Roles e permissões avançadas  
+* Analytics preditivos (IA)
 * API pública \- **NÃO está no MVP**
 
 **Objetivo:** Tirar fundador do gargalo comercial e escalar receita
 
 ## **💼 Modelo de Negócio**
 
-### **Estratégia de Monetização (Fluxo Duplo)**
+### **Estratégia de Monetização**
 
 #### **1\. Receita Principal: SaaS Subscription**
 
 * **Modelo:** Cobrança por usuário ativo/mês  
-* **Faturamento:** Contrato anual, faturado via NFS-e (Nota Fiscal de Serviço eletrônica)
+* **Faturamento:** Contrato mensal, trimestral ou anual, faturado via NFS-e (Nota Fiscal de Serviço eletrônica)
 
-#### **2\. Receita Secundária: Comissão sobre Prêmios**
-
-* **Modelo:** Taxa sobre o volume de resgates  
-* **Implementação:** Via mark-up (negociado com parceiro) ou taxa de administração  
-* **Faturamento:** NFS-e mensal consolidada (Intermediação de Negócios)
-
-### **Estrutura de Preços (Atualizada v5.2)**
-
-#### **🥉 Plano ESSENCIAL**
-
-**Público:** 50-200 funcionários (PMEs testando reconhecimento)
-
-**Preço:**
-
-* R$ 18/usuário/mês (contrato anual)  
-* Mínimo: 50 usuários \= **R$ 900/mês** (R$ 10.800/ano)  
-* Comissão sobre resgates: **6%**
-
-**Funcionalidades:**
-
-* ✅ Sistema de elogios ilimitados  
-* ✅ Sistema de moedas (duplo: elogios \+ resgate)  
-* ✅ Feed de reconhecimento  
-* ✅ Loja de prêmios (Experiências \+ Vouchers)  
-* ✅ Dashboard analytics básico:  
-  * Total de elogios  
-  * Usuários ativos  
-  * Taxa de engajamento  
-* ✅ Dashboard de economia:  
-  * Saldo da carteira  
-  * Previsão de esgotamento  
-* ✅ Auditoria básica de má fé  
-* ✅ SSO Google Workspace  
-* ✅ Badges básicos (3)  
-* ✅ Onboarding (importação CSV)  
-* ✅ Suporte por email (48h úteis)
-
-**Limitações:**
-
-* Máx. 2 administradores  
-* Relatórios básicos (não exportáveis)  
-* Sem customização visual
-
-#### **🥇 Plano PROFISSIONAL ⭐ (RECOMENDADO)**
-
-**Público:** 200-1000 funcionários (médias/grandes empresas)
-
-**Preço:**
-
-* R$ 14/usuário/mês (contrato anual)  
-* Mínimo: 200 usuários \= **R$ 2.800/mês** (R$ 33.600/ano)  
-* Comissão sobre resgates: **5%**
-
-**Funcionalidades:**
-
-* ✅ **Tudo do Essencial \+**  
-* ✅ **Dashboard analytics completo** (distribuição por valor, etc.)  
-* ✅ **Relatórios exportáveis** (PDF, Excel)  
-* ✅ **Auditoria avançada** (score de risco, alertas automáticos)  
-* ✅ **Até 5 administradores**  
-* ✅ **Customização visual básica:**  
-  * Logo da empresa  
-  * 2 cores primárias  
-  * Valores empresariais customizados  
-* ✅ **Onboarding assistido** (1 sessão de 1h por videocall)  
-* ✅ **Suporte por email (24h úteis)**
-
-**Limitações:**
-
-* Sem integrações externas (Slack/Teams) \- **não está no roadmap MVP**  
-* Sem API pública \- **não está no roadmap MVP**
-
-### **Comparação de Planos**
-
-| Feature | Essencial | Profissional ⭐ |
-| :---- | :---- | :---- |
-| **Preço/usuário** | R$ 18 | R$ 14 |
-| **Mínimo usuários** | 50 | 200 |
-| **Comissão resgates** | 6% | 5% |
-| Sistema de elogios | ✅ | ✅ |
-| Loja de prêmios | ✅ | ✅ |
-| SSO Google | ✅ | ✅ |
-| Dashboard analytics | ✅ (básico) | ✅ (completo) |
-| Dashboard economia | ✅ | ✅ |
-| Auditoria má fé | ✅ (básica) | ✅ (avançada) |
-| Relatórios exportáveis | ❌ | ✅ (PDF/Excel) |
-| Customização visual | ❌ | ✅ (logo \+ cores) |
-| Administradores | Máx. 2 | Máx. 5 |
-| Onboarding | Importação CSV | Assistido (1h) |
-| Suporte | Email 48h úteis | Email 24h úteis |
-
-### **Estratégia de Vendas**
-
-**Plano Essencial:**
-
-* Sales-assisted (call de discovery)  
-* Foco PLG (Product-Led Growth) \- **Baixa prioridade no MVP**
-
-**Plano Profissional:**
-
-* Sales-assisted (call de discovery) \- **FOCO TOTAL**  
-* Demo personalizada  
-* Validação jurídica (MSA/DPA)  
-* Foco: Mid-market
-
-### **Cliente Piloto (650 funcionários)**
+### **Cliente Piloto Toro Investimentos (650 funcionários)**
 
 **Proposta:**
 
-* Plano Profissional  
 * 650 funcionários × R$ 14 \= **R$ 9.100/mês**  
-* Contrato anual: **R$ 109.200/ano**  
-* Comissão: 5% sobre resgates  
-* Aporte inicial sugerido: **R$ 19.500** (runway de 1,5 mês)
+* Contrato trimestral: **R$ 21.200/tri**
+* Aporte inicial sugerido: **R$ 19.500** (runway de 2 meses)
 
 **Inclui:**
 
-* Todos os recursos do Plano Profissional  
 * Relatórios executivos  
 * Customização (logo \+ cores)  
 * Onboarding assistido (1h)  
@@ -557,8 +433,6 @@ Aportes Iniciais Recomendados:
 * **Assinatura do pacote jurídico (MSA \+ DPA, preferencialmente fornecido pelo cliente)**
 
 ### **Projeção de Receita (Ano 1 \- Pós-MVP)**
-
-*Projeções mantidas (documento v5.0)*
 
 ## **🔍 Análise de Riscos e Mitigações**
 
@@ -570,7 +444,7 @@ Aportes Iniciais Recomendados:
 
 **Risco:** Gaming do sistema (má fé)
 
-* **Mitigação:** Auditoria automática, transparência do feed, score de risco, limite de overdraft
+* **Mitigação:** Auditoria automática, transparência do feed, score de risco
 
 **Risco:** Economia desequilibrada (muitas moedas, poucos resgates)
 
@@ -592,8 +466,7 @@ Aportes Iniciais Recomendados:
 **Risco:** Dependência de fornecedor único (Vouchers ou Fintech)
 
 * **Mitigação:**  
-  * Vouchers: Arquitetura com switch global (principal \+ backup)  
-  * **APIs (Geral):** **Arquitetura de resgate assíncrona (filas) para resiliência a falhas de API**
+  * Vouchers: Arquitetura com switch global (principal \+ backup)  (Não foi possível)
 
 **Risco:** Custos da fintech comendo margem de comissão
 
@@ -607,19 +480,18 @@ Aportes Iniciais Recomendados:
 
 **Risco:** Modelo de custódia invalidado (fiscal/contábil)
 
-* **Mitigação:** Validação prévia com contador (usar GUIA\_CONTADOR.md)
+* **Mitigação:** Validação prévia com contador
 
 **Risco:** Produto bloqueado por falta de compliance (LGPD)
 
 * **Mitigação:** **Estratégia Jurídica (Custo Zero):** Solicitar o MSA/DPA padrão do cliente piloto.
 
-## **🎯 Decisões Tomadas (v5.2)**
+## **🎯 Decisões Tomadas**
 
 ### **Economia e Modelo de Negócio**
 
 ✅ Sistema de moedas com expiração: (18 meses)  
-✅ Modelo de pricing: 2 planos (Essencial R$ 18, Profissional R$ 14\) \+ Comissão  
-✅ Índice de conversão: Fixo em R$ 0,06/moeda  
+✅ Índice de conversão: Padrão em R$ 0,06/moeda porém configurável pela empresa.<br>
 ✅ Aportes iniciais: Fórmula: Nº funcionários × R$ 20-30  
 ✅ SLA de Suporte: Realista (sem gerente de conta, resposta em 24/48h úteis)
 
@@ -634,8 +506,7 @@ Aportes Iniciais Recomendados:
 ### **Funcionalidades e Priorização**
 
 ✅ Dashboard de Economia: 4 métricas essenciais  
-✅ Onboarding (Admin): Importação CSV com campo 'email\_gestor'  
-✅ Relatórios exportáveis: Apenas no Profissional  
+✅ Onboarding (Admin): Importação CSV com campo 'email\_gestor'<br>
 ✅ Estratégia Jurídica: Priorizar uso de contratos do cliente (MSA/DPA)  
 ❌ NÃO está no MVP: Integrações (Slack/Teams), API pública, SSO Microsoft
 
@@ -645,13 +516,16 @@ Aportes Iniciais Recomendados:
 
 **Jurídico e Contábil (NOVO \- BLOQUEADOR):**
 
-* \[ \] **Validar modelo de faturamento** (split/custódia) com contador (Usar GUIA\_CONTADOR.md)  
+* \[ \] **Validar modelo de faturamento** (split/custódia) com contador
+  > Não validado ainda
 * \[ \] **Alinhar com cliente piloto:** "Vocês possuem um contrato (MSA) e DPA padrão para fornecedores SaaS?"
+  > Primeiro contato feito porém não perguntei isso
 
 **Fornecedores de Vouchers:**
 
 * \[ \] Agendar calls de discovery  
-* \[ \] Preencher scorecard de avaliação
+* \[ \] Preencher scorecard de avaliação<br>
+> Feito e somente um deu certo, o tremendous pois é free to use e tem api ótima.
 
 **Fintech:**
 
@@ -659,24 +533,15 @@ Aportes Iniciais Recomendados:
 
 ### **PRÓXIMAS 2 SEMANAS (Prioridade Média)**
 
-**Fornecedores:**
-
-* \[ \] Receber 3 propostas e acessar sandbox  
-* \[ \] Escolher 1 principal \+ 1 backup
-
 **Jurídico:**
 
 * \[ \] (Se cliente não tiver) Rascunhar minutas de Termos, PP e DPA  
 * \[ \] (Se cliente tiver) Receber e analisar os contratos do cliente piloto
-
-**Arquitetura de Resgate (NOVO):**
-
-* \[ \] Implementar sistema de filas (jobs/workers)  
-* \[ \] Integrar com Asaas e API (mock) do fornecedor
+> Apenas um primeiro contato foi feito, informalmente. Ainda não consegui pedir dados complexos como esse pois implica-se de que haverá fechamento de contrato.
 
 **Dashboard de Economia:**
 
-* \[ \] Implementar backend (4 métricas) e frontend
+* [x] Implementar backend (4 métricas) e frontend
 
 ### **PRÓXIMO MÊS (Prioridade Baixa)**
 
@@ -691,11 +556,6 @@ Aportes Iniciais Recomendados:
 **Sistema de Expiração:**
 
 * \[ \] Implementar lógica de expiração (18 meses)
-
-## **📚 Documentação de Apoio**
-
-* GUIA\_FORNECEDORES\_FINTECHS\_ECONOMIA.md  
-* GUIA\_CONTADOR.md (v1.0)
 
 ## **🔄 Controle de Versões**
 

@@ -115,8 +115,14 @@ export class BatchWalletUpdater {
   ): Promise<void> {
     if (transactions.length === 0) return
 
+    // Transform metadata to be compatible with Prisma JSON type
+    const transformedTransactions = transactions.map(t => ({
+      ...t,
+      metadata: t.metadata ? JSON.parse(JSON.stringify(t.metadata)) : undefined,
+    }))
+
     await this.prisma.walletTransaction.createMany({
-      data: transactions,
+      data: transformedTransactions,
     })
   }
 }

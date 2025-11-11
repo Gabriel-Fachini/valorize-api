@@ -11,7 +11,8 @@ import type {
 export const adminRedemptionsService = {
   /**
    * List company redemptions with filters
-   * Supports filtering by status, userId, prizeId, and prize type
+   * Supports filtering by status and prize type
+   * Search field searches both user name and prize name (case-insensitive, partial match)
    */
   async listRedemptions(
     companyId: string,
@@ -24,12 +25,26 @@ export const adminRedemptionsService = {
         where.status = filters.status
       }
 
-      if (filters.userId) {
-        where.userId = filters.userId
-      }
-
-      if (filters.prizeId) {
-        where.prizeId = filters.prizeId
+      // Search by user name OR prize name (case-insensitive partial match)
+      if (filters.search) {
+        where.OR = [
+          {
+            user: {
+              name: {
+                contains: filters.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            prize: {
+              name: {
+                contains: filters.search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        ]
       }
 
       // Build prize type filter if needed
@@ -51,6 +66,7 @@ export const adminRedemptionsService = {
                 id: true,
                 name: true,
                 email: true,
+                avatar: true,
               },
             },
             prize: {
@@ -58,6 +74,7 @@ export const adminRedemptionsService = {
                 id: true,
                 name: true,
                 type: true,
+                images: true,
               },
             },
           },
@@ -73,9 +90,11 @@ export const adminRedemptionsService = {
         userId: r.userId,
         userName: r.user.name,
         userEmail: r.user.email,
+        userAvatar: r.user.avatar,
         prizeId: r.prizeId,
         prizeName: r.prize.name,
         prizeType: r.prize.type,
+        prizeImage: r.prize.images.length > 0 ? r.prize.images[0] : null,
         status: r.status,
         coinsSpent: r.coinsSpent,
         redeemedAt: r.redeemedAt,
@@ -112,6 +131,7 @@ export const adminRedemptionsService = {
               id: true,
               name: true,
               email: true,
+              avatar: true,
             },
           },
           prize: {
@@ -158,6 +178,17 @@ export const adminRedemptionsService = {
         throw new Error('Unauthorized: redemption belongs to another company')
       }
 
+      // Transform voucherRedemption to convert nulls to undefined
+      const voucherRedemption = redemption.voucherRedemption
+        ? {
+            provider: redemption.voucherRedemption.provider,
+            voucherCode: redemption.voucherRedemption.voucherCode ?? undefined,
+            voucherLink: redemption.voucherRedemption.voucherLink ?? undefined,
+            status: redemption.voucherRedemption.status,
+            completedAt: redemption.voucherRedemption.completedAt ?? undefined,
+          }
+        : undefined
+
       const response: RedemptionDetailsResponse = {
         id: redemption.id,
         userId: redemption.userId,
@@ -171,9 +202,9 @@ export const adminRedemptionsService = {
         redeemedAt: redemption.redeemedAt,
         addressId: redemption.addressId,
         trackingCode: redemption.trackingCode,
-        trackingCarrier: null, // TODO: add to redemption model if needed
-        notes: null, // TODO: add to redemption model if needed
-        voucherRedemption: redemption.voucherRedemption,
+        trackingCarrier: undefined, // TODO: add to redemption model if needed
+        notes: undefined, // TODO: add to redemption model if needed
+        voucherRedemption,
         tracking: redemption.tracking,
       }
 
@@ -389,8 +420,17 @@ export const adminRedemptionsService = {
         const coinsToRefund = redemption.coinsSpent
         const budgetToRefund = coinsToRefund * 0.06 // Fixed conversion rate
 
-        // 1. Refund coins to user's redeemable balance
-        await tx.wallet.update({
+        // 1. Get user's wallet for transaction audit
+        const wallet = await tx.wallet.findUnique({
+          where: { userId: redemption.userId },
+        })
+
+        if (!wallet) {
+          throw new Error('User wallet not found')
+        }
+
+        // 2. Refund coins to user's redeemable balance
+        const updatedWallet = await tx.wallet.update({
           where: { userId: redemption.userId },
           data: {
             redeemableBalance: {
@@ -399,16 +439,17 @@ export const adminRedemptionsService = {
           },
         })
 
-        // 2. Create wallet transaction record for audit
+        // 3. Create wallet transaction record for audit
         await tx.walletTransaction.create({
           data: {
-            id: `walltx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            walletId: wallet.id,
             userId: redemption.userId,
-            companyId,
-            type: 'refund',
+            transactionType: 'CREDIT',
+            balanceType: 'REDEEMABLE',
             amount: coinsToRefund,
-            balance: coinsToRefund,
-            description: `Refund - Redemption ${redemptionId} cancelled by admin`,
+            previousBalance: updatedWallet.redeemableBalance - coinsToRefund,
+            newBalance: updatedWallet.redeemableBalance,
+            reason: `Refund - Redemption ${redemptionId} cancelled by admin`,
             metadata: {
               redemptionId,
               reason: reason ?? 'No reason provided',
@@ -416,28 +457,12 @@ export const adminRedemptionsService = {
           },
         })
 
-        // 3. Refund budget to company wallet
+        // 4. Refund budget to company wallet
         await tx.companyWallet.update({
           where: { companyId },
           data: {
             balance: {
               increment: budgetToRefund,
-            },
-          },
-        })
-
-        // 4. Create company wallet transaction record for audit
-        await tx.companyWalletTransaction.create({
-          data: {
-            id: `cpwtx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            companyId,
-            type: 'refund',
-            amount: budgetToRefund,
-            description: `Refund - Redemption ${redemptionId} cancelled by admin`,
-            metadata: {
-              redemptionId,
-              originalCoins: coinsToRefund,
-              reason: reason ?? 'No reason provided',
             },
           },
         })

@@ -54,3 +54,17 @@ export const complimentHistorySchema = {
     additionalProperties: false,
   },
 }
+
+// TypeScript types for compliment schemas
+export interface SendComplimentInput {
+  receiverId: string
+  valueId: number
+  message: string
+  coins: number
+}
+
+export interface ComplimentHistoryQuery {
+  type: 'sent' | 'received'
+  page?: number
+  limit?: number
+}
