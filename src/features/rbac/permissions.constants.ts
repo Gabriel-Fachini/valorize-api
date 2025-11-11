@@ -73,6 +73,12 @@ export const PERMISSION = {
   PRIZES_UPDATE: 'prizes:update',
   PRIZES_DELETE: 'prizes:delete',
   PRIZES_MANAGE_IMAGES: 'prizes:manage_images',
+
+  // Redemptions management permissions (admin only)
+  REDEMPTIONS_VIEW_ALL: 'redemptions:view_all',
+  REDEMPTIONS_VIEW_DETAILS: 'redemptions:view_details',
+  REDEMPTIONS_UPDATE_STATUS: 'redemptions:update_status',
+  REDEMPTIONS_CANCEL: 'redemptions:cancel',
 } as const
 
 /**
@@ -273,6 +279,28 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     name: PERMISSION.PRIZES_MANAGE_IMAGES,
     description: 'Gerenciar imagens de prêmios (upload e remoção)',
     category: 'Gerenciamento de Prêmios',
+  },
+
+  // Redemptions management permissions
+  {
+    name: PERMISSION.REDEMPTIONS_VIEW_ALL,
+    description: 'Visualizar todos os resgates da empresa',
+    category: 'Gerenciamento de Resgates',
+  },
+  {
+    name: PERMISSION.REDEMPTIONS_VIEW_DETAILS,
+    description: 'Visualizar detalhes completos de um resgate',
+    category: 'Gerenciamento de Resgates',
+  },
+  {
+    name: PERMISSION.REDEMPTIONS_UPDATE_STATUS,
+    description: 'Atualizar status, rastreamento e notas de resgates',
+    category: 'Gerenciamento de Resgates',
+  },
+  {
+    name: PERMISSION.REDEMPTIONS_CANCEL,
+    description: 'Cancelar resgates com estorno automático de moedas e orçamento',
+    category: 'Gerenciamento de Resgates',
   },
 ]
 

@@ -5,15 +5,26 @@ import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/database'
 import { User } from '@/features/users/user.model'
 import { redemptionService } from '@/features/prizes/redemptions/redemption.service'
+import { adminRedemptionsService } from './admin-redemptions.service'
 import { PERMISSION } from '@/features/rbac/permissions.constants'
 import {
   sendVoucherToUserSchema,
   bulkRedeemVouchersSchema,
+  listRedemptionsQuerySchema,
+  getRedemptionParamsSchema,
+  updateStatusSchema,
+  updateTrackingSchema,
+  addNoteSchema,
+  cancelRedemptionSchema,
 } from './redemptions.schemas'
 import type {
   SendVoucherToUserRequest,
   BulkRedeemVouchersRequest,
   BulkRedemptionResponse,
+  UpdateStatusPayload,
+  AddTrackingPayload,
+  AddNotePayload,
+  CancelRedemptionPayload,
 } from './types'
 
 // Constante com o ID fixo da campanha do Tremendous
@@ -248,6 +259,359 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
         return reply.code(400).send({
           message: error instanceof Error ? error.message : 'Failed to process bulk redemption',
         })
+      }
+    },
+  )
+
+  /**
+   * GET /admin/redemptions
+   * List all company redemptions with optional filters
+   */
+  fastify.get(
+    '/',
+    {
+      schema: listRedemptionsQuerySchema,
+      preHandler: [requirePermission(PERMISSION.REDEMPTIONS_VIEW_ALL)],
+    },
+    async (request: FastifyRequest, reply) => {
+      const currentUser = getCurrentUser(request)
+      const adminUser = await User.findByAuth0Id(currentUser.sub)
+
+      if (!adminUser) {
+        return reply.code(404).send({ message: 'Admin user not found' })
+      }
+
+      try {
+        const { status, userId, prizeId, type, limit, offset } = request.query as Record<
+          string,
+          string | number | undefined
+        >
+
+        const filters = {
+          status: status as string | undefined,
+          userId: userId as string | undefined,
+          prizeId: prizeId as string | undefined,
+          type: type as 'voucher' | 'experience' | 'physical' | undefined,
+          limit: limit ? Number(limit) : 20,
+          offset: offset ? Number(offset) : 0,
+        }
+
+        logger.info('[AdminRedemptionRoutes] List redemptions request', {
+          adminId: adminUser.id,
+          filters,
+        })
+
+        const { items, total } = await adminRedemptionsService.listRedemptions(
+          adminUser.companyId,
+          filters,
+        )
+
+        return reply.code(200).send({
+          data: items,
+          pagination: {
+            total,
+            limit: filters.limit,
+            offset: filters.offset,
+            pages: Math.ceil(total / filters.limit),
+          },
+        })
+      } catch (error) {
+        logger.error('[AdminRedemptionRoutes] Error listing redemptions', { error })
+
+        return reply.code(400).send({
+          message: error instanceof Error ? error.message : 'Failed to list redemptions',
+        })
+      }
+    },
+  )
+
+  /**
+   * GET /admin/redemptions/:id
+   * Get complete details of a specific redemption
+   */
+  fastify.get(
+    '/:id',
+    {
+      schema: getRedemptionParamsSchema,
+      preHandler: [requirePermission(PERMISSION.REDEMPTIONS_VIEW_DETAILS)],
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+      const currentUser = getCurrentUser(request)
+      const adminUser = await User.findByAuth0Id(currentUser.sub)
+
+      if (!adminUser) {
+        return reply.code(404).send({ message: 'Admin user not found' })
+      }
+
+      try {
+        const { id } = request.params
+
+        logger.info('[AdminRedemptionRoutes] Get redemption details request', {
+          adminId: adminUser.id,
+          redemptionId: id,
+        })
+
+        const redemption = await adminRedemptionsService.getRedemptionDetails(
+          id,
+          adminUser.companyId,
+        )
+
+        return reply.code(200).send(redemption)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to get redemption details'
+
+        if (message === 'Redemption not found') {
+          return reply.code(404).send({ message })
+        }
+
+        if (message.includes('Unauthorized')) {
+          return reply.code(403).send({ message })
+        }
+
+        logger.error('[AdminRedemptionRoutes] Error getting redemption details', { error })
+
+        return reply.code(400).send({ message })
+      }
+    },
+  )
+
+  /**
+   * PATCH /admin/redemptions/:id/status
+   * Update redemption status and optionally add notes
+   */
+  fastify.patch<{ Params: { id: string }; Body: UpdateStatusPayload }>(
+    '/:id/status',
+    {
+      schema: updateStatusSchema,
+      preHandler: [requirePermission(PERMISSION.REDEMPTIONS_UPDATE_STATUS)],
+    },
+    async (
+      request: FastifyRequest<{ Params: { id: string }; Body: UpdateStatusPayload }>,
+      reply,
+    ) => {
+      const currentUser = getCurrentUser(request)
+      const adminUser = await User.findByAuth0Id(currentUser.sub)
+
+      if (!adminUser) {
+        return reply.code(404).send({ message: 'Admin user not found' })
+      }
+
+      try {
+        const { id } = request.params
+        const { status, notes } = request.body
+
+        logger.info('[AdminRedemptionRoutes] Update redemption status request', {
+          adminId: adminUser.id,
+          redemptionId: id,
+          newStatus: status,
+        })
+
+        await adminRedemptionsService.updateRedemptionStatus(
+          id,
+          status,
+          adminUser.companyId,
+          adminUser.id,
+          notes,
+        )
+
+        return reply.code(200).send({
+          message: 'Redemption status updated successfully',
+          redemptionId: id,
+          status,
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to update status'
+
+        if (message === 'Redemption not found') {
+          return reply.code(404).send({ message })
+        }
+
+        if (message.includes('Unauthorized')) {
+          return reply.code(403).send({ message })
+        }
+
+        logger.error('[AdminRedemptionRoutes] Error updating redemption status', { error })
+
+        return reply.code(400).send({ message })
+      }
+    },
+  )
+
+  /**
+   * PATCH /admin/redemptions/:id/tracking
+   * Add tracking code and carrier information
+   */
+  fastify.patch<{ Params: { id: string }; Body: AddTrackingPayload }>(
+    '/:id/tracking',
+    {
+      schema: updateTrackingSchema,
+      preHandler: [requirePermission(PERMISSION.REDEMPTIONS_UPDATE_STATUS)],
+    },
+    async (
+      request: FastifyRequest<{ Params: { id: string }; Body: AddTrackingPayload }>,
+      reply,
+    ) => {
+      const currentUser = getCurrentUser(request)
+      const adminUser = await User.findByAuth0Id(currentUser.sub)
+
+      if (!adminUser) {
+        return reply.code(404).send({ message: 'Admin user not found' })
+      }
+
+      try {
+        const { id } = request.params
+        const { trackingCode, carrier, notes } = request.body
+
+        logger.info('[AdminRedemptionRoutes] Add tracking code request', {
+          adminId: adminUser.id,
+          redemptionId: id,
+          trackingCode,
+        })
+
+        await adminRedemptionsService.addTrackingCode(
+          id,
+          trackingCode,
+          adminUser.companyId,
+          adminUser.id,
+          carrier,
+          notes,
+        )
+
+        return reply.code(200).send({
+          message: 'Tracking code added successfully',
+          redemptionId: id,
+          trackingCode,
+          carrier: carrier || null,
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to add tracking code'
+
+        if (message === 'Redemption not found') {
+          return reply.code(404).send({ message })
+        }
+
+        if (message.includes('Unauthorized')) {
+          return reply.code(403).send({ message })
+        }
+
+        logger.error('[AdminRedemptionRoutes] Error adding tracking code', { error })
+
+        return reply.code(400).send({ message })
+      }
+    },
+  )
+
+  /**
+   * POST /admin/redemptions/:id/notes
+   * Add admin note to redemption
+   */
+  fastify.post<{ Params: { id: string }; Body: AddNotePayload }>(
+    '/:id/notes',
+    {
+      schema: addNoteSchema,
+      preHandler: [requirePermission(PERMISSION.REDEMPTIONS_UPDATE_STATUS)],
+    },
+    async (
+      request: FastifyRequest<{ Params: { id: string }; Body: AddNotePayload }>,
+      reply,
+    ) => {
+      const currentUser = getCurrentUser(request)
+      const adminUser = await User.findByAuth0Id(currentUser.sub)
+
+      if (!adminUser) {
+        return reply.code(404).send({ message: 'Admin user not found' })
+      }
+
+      try {
+        const { id } = request.params
+        const { note } = request.body
+
+        logger.info('[AdminRedemptionRoutes] Add admin note request', {
+          adminId: adminUser.id,
+          redemptionId: id,
+        })
+
+        await adminRedemptionsService.addAdminNote(id, note, adminUser.companyId, adminUser.id)
+
+        return reply.code(200).send({
+          message: 'Note added successfully',
+          redemptionId: id,
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to add note'
+
+        if (message === 'Redemption not found') {
+          return reply.code(404).send({ message })
+        }
+
+        if (message.includes('Unauthorized')) {
+          return reply.code(403).send({ message })
+        }
+
+        logger.error('[AdminRedemptionRoutes] Error adding note', { error })
+
+        return reply.code(400).send({ message })
+      }
+    },
+  )
+
+  /**
+   * DELETE /admin/redemptions/:id/cancel
+   * Cancel a redemption and refund coins + budget
+   */
+  fastify.delete<{ Params: { id: string }; Body: CancelRedemptionPayload }>(
+    '/:id/cancel',
+    {
+      schema: cancelRedemptionSchema,
+      preHandler: [requirePermission(PERMISSION.REDEMPTIONS_CANCEL)],
+    },
+    async (
+      request: FastifyRequest<{ Params: { id: string }; Body: CancelRedemptionPayload }>,
+      reply,
+    ) => {
+      const currentUser = getCurrentUser(request)
+      const adminUser = await User.findByAuth0Id(currentUser.sub)
+
+      if (!adminUser) {
+        return reply.code(404).send({ message: 'Admin user not found' })
+      }
+
+      try {
+        const { id } = request.params
+        const { reason } = request.body
+
+        logger.info('[AdminRedemptionRoutes] Cancel redemption request', {
+          adminId: adminUser.id,
+          redemptionId: id,
+          reason,
+        })
+
+        const result = await adminRedemptionsService.cancelRedemptionByAdmin(
+          id,
+          adminUser.companyId,
+          adminUser.id,
+          reason,
+        )
+
+        return reply.code(200).send(result)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to cancel redemption'
+
+        if (message === 'Redemption not found') {
+          return reply.code(404).send({ message })
+        }
+
+        if (message.includes('Unauthorized')) {
+          return reply.code(403).send({ message })
+        }
+
+        if (message.includes('Cannot cancel')) {
+          return reply.code(400).send({ message })
+        }
+
+        logger.error('[AdminRedemptionRoutes] Error cancelling redemption', { error })
+
+        return reply.code(400).send({ message })
       }
     },
   )
