@@ -20,7 +20,7 @@
 ### Our Solution
 1. **Value-Based Recognition**: Every compliment is tied to a company value
 2. **Dual Wallet System**: Separate balances for giving compliments (renewable) and redeeming prizes (cumulative)
-3. **Scalable Rewards**: Hybrid catalog focused on Vouchers (Tremendous API - FREE) and Experiences (managed by client)
+3. **Scalable Rewards**: Hybrid catalog of vouchers and physical products (Tremendous API for vouchers - FREE)
 4. **Analytics Dashboard**: Executive metrics showing culture in practice
 5. **Economy Dashboard**: Budget tracking, burn rate prediction, coverage index
 
@@ -103,22 +103,21 @@ feature/
 
 ### Prize System
 **Hybrid Catalog**:
-1. **Experiences** (Zero cost for Valorize):
-   - Intangible rewards managed 100% by client
-   - Examples: day-off, lunch with CEO, mentorship
-   - Requires manager mapping (via CSV import)
-
-2. **Vouchers** (API-Driven via Tremendous):
+1. **Vouchers** (API-Driven via Tremendous):
    - Digital gift cards from partners
    - Provider: Tremendous API (FREE - no commission)
    - Examples: iFood, Uber, Amazon, Spotify, Netflix
    - Status: Integrated and operational
 
+2. **Physical Products**:
+   - Physical items with shipping addresses
+   - Can be global or company-specific
+   - Managed by inventory system
+
 ### Wallet Budget Control
 - Companies define internal budget (no longer custody model with fintech)
 - Block vouchers when: Balance < cheapest available prize cost
 - Allow overdraft up to 120% (safety limit - may change during MVP)
-- Experiences always available (don't depend on balance)
 - Conversion index: R$ 0.06/coin (FIXED)
 
 ### Redemption Flow (Critical)

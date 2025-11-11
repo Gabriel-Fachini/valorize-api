@@ -6,6 +6,7 @@ import { prisma } from '@/lib/database'
 import { User } from '@/features/users/user.model'
 import { redemptionService } from '@/features/prizes/redemptions/redemption.service'
 import { adminRedemptionsService } from './admin-redemptions.service'
+import { redemptionsMetricsService } from './redemptions-metrics.service'
 import { PERMISSION } from '@/features/rbac/permissions.constants'
 import {
   sendVoucherToUserSchema,
@@ -16,6 +17,7 @@ import {
   updateTrackingSchema,
   addNoteSchema,
   cancelRedemptionSchema,
+  metricsQuerySchema,
 } from './redemptions.schemas'
 import type {
   SendVoucherToUserRequest,
@@ -80,7 +82,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
         }
 
         // Call service to send voucher (now includes email delivery - synchronous)
-        const { redemption, user: targetUserData, prize, voucherPrize, voucherResult } =
+        const { redemption, voucherResult } =
           await redemptionService.sendVoucherToUser(
             userId,
             prizeId,
@@ -282,16 +284,15 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const { status, userId, prizeId, type, limit, offset } = request.query as Record<
+        const { search, status, type, limit, offset } = request.query as Record<
           string,
           string | number | undefined
         >
 
         const filters = {
+          search: search as string | undefined,
           status: status as string | undefined,
-          userId: userId as string | undefined,
-          prizeId: prizeId as string | undefined,
-          type: type as 'voucher' | 'experience' | 'physical' | undefined,
+          type: type as 'voucher' | 'physical' | undefined,
           limit: limit ? Number(limit) : 20,
           offset: offset ? Number(offset) : 0,
         }
@@ -612,6 +613,53 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
         logger.error('[AdminRedemptionRoutes] Error cancelling redemption', { error })
 
         return reply.code(400).send({ message })
+      }
+    },
+  )
+
+  /**
+   * GET /admin/redemptions/metrics
+   * Get aggregated redemption metrics for the company
+   */
+  fastify.get(
+    '/metrics',
+    {
+      schema: metricsQuerySchema,
+      preHandler: [requirePermission(PERMISSION.REDEMPTIONS_VIEW_ALL)],
+    },
+    async (request: FastifyRequest, reply) => {
+      const currentUser = getCurrentUser(request)
+      const adminUser = await User.findByAuth0Id(currentUser.sub)
+
+      if (!adminUser) {
+        return reply.code(404).send({ message: 'Admin user not found' })
+      }
+
+      try {
+        const { startDate, endDate } = request.query as Record<string, string | undefined>
+
+        const filters = {
+          startDate: startDate ? new Date(startDate) : undefined,
+          endDate: endDate ? new Date(endDate) : undefined,
+        }
+
+        logger.info('[AdminRedemptionRoutes] Get metrics request', {
+          adminId: adminUser.id,
+          filters,
+        })
+
+        const metrics = await redemptionsMetricsService.getRedemptionMetrics(
+          adminUser.companyId,
+          filters,
+        )
+
+        return reply.code(200).send(metrics)
+      } catch (error) {
+        logger.error('[AdminRedemptionRoutes] Error getting metrics', { error })
+
+        return reply.code(400).send({
+          message: error instanceof Error ? error.message : 'Failed to get redemption metrics',
+        })
       }
     },
   )

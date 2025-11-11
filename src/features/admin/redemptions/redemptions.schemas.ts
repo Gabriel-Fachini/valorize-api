@@ -83,21 +83,17 @@ export const listRedemptionsQuerySchema = {
   querystring: {
     type: 'object',
     properties: {
+      search: {
+        type: 'string',
+        description: 'Search by user name or prize name (partial match, case-insensitive)',
+      },
       status: {
         type: 'string',
-        description: 'Filter by redemption status (pending, processing, completed, failed, cancelled, shipped, delivered)',
-      },
-      userId: {
-        type: 'string',
-        description: 'Filter by user ID',
-      },
-      prizeId: {
-        type: 'string',
-        description: 'Filter by prize ID',
+        description: 'Filter by redemption status. Vouchers: sent. Physical products: pending, processing, completed, shipped, delivered, cancelled',
       },
       type: {
         type: 'string',
-        enum: ['voucher', 'experience', 'physical'],
+        enum: ['voucher', 'physical'],
         description: 'Filter by prize type',
       },
       limit: {
@@ -149,8 +145,8 @@ export const updateStatusSchema = {
     properties: {
       status: {
         type: 'string',
-        enum: ['pending', 'processing', 'completed', 'sent', 'failed', 'cancelled', 'shipped', 'delivered'],
-        description: 'New redemption status',
+        enum: ['sent', 'pending', 'processing', 'completed', 'shipped', 'delivered', 'cancelled'],
+        description: 'New redemption status. Vouchers: sent. Products/Experiences: pending, processing, completed, shipped, delivered, cancelled',
       },
       notes: {
         type: 'string',
@@ -246,6 +242,25 @@ export const cancelRedemptionSchema = {
         type: 'string',
         maxLength: 500,
         description: 'Optional reason for cancellation',
+      },
+    },
+    additionalProperties: false,
+  },
+}
+
+export const metricsQuerySchema = {
+  querystring: {
+    type: 'object',
+    properties: {
+      startDate: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Start date in ISO 8601 format. Default: 30 days ago',
+      },
+      endDate: {
+        type: 'string',
+        format: 'date-time',
+        description: 'End date in ISO 8601 format. Default: today',
       },
     },
     additionalProperties: false,

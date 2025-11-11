@@ -209,7 +209,13 @@ export class RedemptionModel {
         skip: pagination.offset,
       })
 
-      return redemptions
+      return redemptions.map(r => ({
+        ...r,
+        prize: {
+          ...r.prize,
+          category: r.prize.category ?? '',
+        },
+      }))
     } catch (error) {
       logger.error('Error finding user redemptions', { error, userId })
       throw new Error('Failed to find user redemptions')
@@ -264,7 +270,13 @@ export class RedemptionModel {
         skip: filters.offset,
       })
 
-      return redemptions
+      return redemptions.map(r => ({
+        ...r,
+        prize: {
+          ...r.prize,
+          category: r.prize.category ?? '',
+        },
+      }))
     } catch (error) {
       logger.error('Error finding company redemptions', { error, companyId })
       throw new Error('Failed to find company redemptions')

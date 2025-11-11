@@ -74,7 +74,7 @@ export default async function complimentRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const { type, page, limit } = request.query
+      const { type, page, limit } = request.query as ComplimentHistoryQuery
       const result = await complimentService.getComplimentHistory(
         user.id,
         type,

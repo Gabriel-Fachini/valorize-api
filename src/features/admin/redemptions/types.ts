@@ -39,10 +39,9 @@ export interface BulkRedemptionResponse {
 
 // Admin Redemption Management Types
 export interface RedemptionListFilters {
+  search?: string
   status?: string
-  userId?: string
-  prizeId?: string
-  type?: 'voucher' | 'experience' | 'physical'
+  type?: 'voucher' | 'physical'
   limit?: number
   offset?: number
 }
@@ -55,6 +54,7 @@ export interface RedemptionListItem {
   prizeId: string
   prizeName: string
   prizeType: string
+  prizeImage?: string | null
   status: string
   coinsSpent: number
   redeemedAt: Date
@@ -128,4 +128,74 @@ export interface CancelRedemptionResult {
   coinsRefunded: number
   budgetRefunded: number
   message: string
+}
+
+// Metrics Interfaces
+export interface RedemptionMetricsFilters {
+  startDate?: Date
+  endDate?: Date
+}
+
+export interface VolumeMetrics {
+  totalRedemptions: number
+  totalCoinsSpent: number
+  totalValueBRL: number
+  avgCoinsPerRedemption: number
+  periodComparison: {
+    redemptionsChange: string
+    valueChange: string
+  }
+}
+
+export interface StatusMetrics {
+  status: string
+  count: number
+  percentage: number
+}
+
+export interface TypeMetrics {
+  type: 'voucher' | 'physical'
+  count: number
+  percentage: number
+  totalValueBRL: number
+  statusBreakdown: Record<string, number>
+}
+
+export interface PrizeMetrics {
+  prizeId: string
+  prizeName: string
+  prizeType: 'voucher' | 'physical'
+  redemptionCount: number
+  totalCoinsSpent: number
+  totalValueBRL: number
+}
+
+export interface EngagementMetrics {
+  uniqueRedeemers: number
+  totalActiveUsers: number
+  percentageOfActive: number
+  repeatRedeemers: number
+  repeatRate: number
+  avgRedemptionsPerUser: number
+}
+
+export interface FinancialMetrics {
+  totalCost: number
+  voucherCost: number
+  physicalCost: number
+  avgCostPerRedemption: number
+  projectedMonthlyCost: number
+}
+
+export interface RedemptionMetrics {
+  period: {
+    startDate: Date
+    endDate: Date
+  }
+  volume: VolumeMetrics
+  statusBreakdown: StatusMetrics[]
+  typeBreakdown: TypeMetrics[]
+  topPrizes: PrizeMetrics[]
+  userEngagement: EngagementMetrics
+  financialImpact: FinancialMetrics
 }

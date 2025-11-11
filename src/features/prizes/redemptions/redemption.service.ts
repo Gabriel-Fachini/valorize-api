@@ -29,6 +29,8 @@ interface BulkRedeemVoucherResult {
   prizeId: string
   success: boolean
   redemptionId?: string
+  voucherLink?: string
+  voucherCode?: string
   error?: string
 }
 

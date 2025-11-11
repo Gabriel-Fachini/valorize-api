@@ -32,7 +32,7 @@ const prizeResponseSchema = {
     companyId: { type: ['string', 'null'] },
     name: { type: 'string' },
     description: { type: 'string' },
-    type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+    type: { type: 'string', enum: ['voucher', 'physical'] },
     category: { type: ['string', 'null'] },
     images: {
       type: 'array',
@@ -73,8 +73,7 @@ export const createPrizeSchema = {
 
 Categories:
 - voucher: Digital vouchers (usually global, synced from Tremendous)
-- product: Physical products (can be global or company-specific, requires shipping address)
-- experience: Intangible rewards managed by the company (day-off, mentorship, etc.)
+- physical: Physical products (can be global or company-specific, requires shipping address)
 
 Global Prizes:
 - Set isGlobal=true to create a prize available for all companies
@@ -85,7 +84,7 @@ Global Prizes:
     properties: {
       name: { type: 'string', minLength: 3, maxLength: 200 },
       description: { type: 'string', minLength: 10, maxLength: 2000 },
-      type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      type: { type: 'string', enum: ['voucher', 'physical'] },
       category: { type: 'string', maxLength: 100 },
       coinPrice: { type: 'integer', minimum: 1 },
       brand: { type: 'string', maxLength: 100 },
@@ -121,7 +120,7 @@ export const listPrizesSchema = {
     properties: {
       page: { type: 'integer', minimum: 1, default: 1 },
       limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
-      type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      type: { type: 'string', enum: ['voucher', 'physical'] },
       category: { type: 'string', maxLength: 100 },
       isActive: { type: 'boolean' },
       isGlobal: { type: 'boolean' },
@@ -197,7 +196,7 @@ export const updatePrizeSchema = {
     properties: {
       name: { type: 'string', minLength: 3, maxLength: 200 },
       description: { type: 'string', minLength: 10, maxLength: 2000 },
-      type: { type: 'string', enum: ['voucher', 'experience', 'product'] },
+      type: { type: 'string', enum: ['voucher', 'physical'] },
       category: { type: 'string', maxLength: 100 },
       coinPrice: { type: 'integer', minimum: 1 },
       brand: { type: 'string', maxLength: 100 },

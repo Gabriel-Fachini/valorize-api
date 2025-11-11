@@ -318,12 +318,12 @@ model Prize {
   companyId      String?  @map("company_id")
   name           String
   description    String
-  type           String // "voucher", "experience", "product" - Prize delivery type
+  type           String // "voucher", "physical" - Prize delivery type
   category       String? // Business category (e.g., "Alimentação", "Tecnologia", "Gastronomia")
   images         String[]
   coinPrice      Int      @map("coin_price")
   brand          String?
-  specifications Json? // Mantém para experiences e dados genéricos
+  specifications Json? // Maintains flexible data structure for prize specifications
   stock          Int      @default(0)
   isActive       Boolean  @default(true) @map("is_active")
   createdAt      DateTime @default(now()) @map("created_at")

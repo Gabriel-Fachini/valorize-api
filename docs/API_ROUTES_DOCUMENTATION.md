@@ -1234,7 +1234,6 @@ Base path: `/prizes`
   "categories": [
     "electronics",
     "gift-cards",
-    "experiences",
     "home-office"
   ]
 }

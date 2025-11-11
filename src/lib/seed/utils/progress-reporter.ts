@@ -3,6 +3,7 @@
  * Uses cli-progress for professional-looking progress bars
  */
 
+// @ts-ignore - cli-progress doesn't have TypeScript definitions
 import cliProgress from 'cli-progress'
 import chalk from 'chalk'
 
@@ -30,8 +31,7 @@ export class ProgressReporter {
         format: `{name} │ {bar} │ {value}/{total} │ {percentage}% │ ETA: {eta_formatted}`,
         barCompleteChar: '█',
         barIncompleteChar: '░',
-        hideCursor: true,
-        formatValue: (v, options, type) => {
+        formatValue: (v: any, options: any, type: string) => {
           if (type === 'value' || type === 'total') {
             return String(v).padStart(String(options.total).length, ' ')
           }
