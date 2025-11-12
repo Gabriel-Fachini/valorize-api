@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import type { TremendousWebhookPayload } from './tremendous-webhook.types'
-import { VOUCHER_STATUS, TREMENDOUS_WEBHOOK_EVENTS } from './redemption.constants'
+import { VOUCHER_STATUS, TREMENDOUS_WEBHOOK_EVENTS, REDEMPTION_STATUS } from './redemption.constants'
 
 export const tremendousWebhookService = {
   /**
@@ -47,7 +47,7 @@ export const tremendousWebhookService = {
 
   /**
    * Handle successful reward delivery via email
-   * Updates VoucherRedemption status to SENT
+   * Updates both VoucherRedemption and main Redemption status to SENT
    */
   async handleDeliverySucceeded(rewardId: string): Promise<void> {
     const voucherRedemption = await prisma.voucherRedemption.findFirst({
@@ -60,20 +60,34 @@ export const tremendousWebhookService = {
       return
     }
 
-    await prisma.voucherRedemption.update({
-      where: { id: voucherRedemption.id },
-      data: { status: VOUCHER_STATUS.SENT },
+    const { redemption } = voucherRedemption
+
+    // Use transaction to ensure both statuses are updated atomically
+    await prisma.$transaction(async (tx) => {
+      // Update main redemption status to SENT
+      await tx.redemption.update({
+        where: { id: redemption.id },
+        data: { status: REDEMPTION_STATUS.SENT as any },
+      })
+
+      // Update voucher redemption status to SENT
+      await tx.voucherRedemption.update({
+        where: { id: voucherRedemption.id },
+        data: { status: VOUCHER_STATUS.SENT },
+      })
     })
 
-    logger.info('Voucher marked as sent', {
+    logger.info('Voucher marked as sent and redemption status updated', {
       voucherId: voucherRedemption.id,
+      redemptionId: redemption.id,
       rewardId,
     })
   },
 
   /**
    * Handle failed reward delivery
-   * Updates VoucherRedemption status to FAILED and refunds coins
+   * Updates VoucherRedemption status to FAILED, updates main Redemption status to FAILED,
+   * and refunds coins to user's redeemable balance
    */
   async handleDeliveryFailed(rewardId: string): Promise<void> {
     const voucherRedemption = await prisma.voucherRedemption.findFirst({
@@ -88,42 +102,52 @@ export const tremendousWebhookService = {
 
     const { redemption } = voucherRedemption
 
-    // Update voucher status to FAILED
-    await prisma.voucherRedemption.update({
-      where: { id: voucherRedemption.id },
-      data: { status: VOUCHER_STATUS.FAILED },
-    })
+    // Use transaction to ensure both statuses are updated atomically
+    await prisma.$transaction(async (tx) => {
+      // Update main redemption status to FAILED
+      await tx.redemption.update({
+        where: { id: redemption.id },
+        data: { status: REDEMPTION_STATUS.FAILED as any },
+      })
 
-    // Refund coins to user's redeemable balance
-    const wallet = await prisma.wallet.update({
-      where: { userId: redemption.userId },
-      data: {
-        redeemableBalance: {
-          increment: redemption.coinsSpent,
+      // Update voucher redemption status to FAILED
+      await tx.voucherRedemption.update({
+        where: { id: voucherRedemption.id },
+        data: { status: VOUCHER_STATUS.FAILED },
+      })
+
+      // Refund coins to user's redeemable balance
+      const wallet = await tx.wallet.update({
+        where: { userId: redemption.userId },
+        data: {
+          redeemableBalance: {
+            increment: redemption.coinsSpent,
+          },
         },
-      },
-    })
+      })
 
-    // Create wallet transaction for audit trail
-    await prisma.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        userId: redemption.userId,
-        transactionType: 'CREDIT',
-        balanceType: 'REDEEMABLE',
-        amount: redemption.coinsSpent,
-        previousBalance: wallet.redeemableBalance - redemption.coinsSpent,
-        newBalance: wallet.redeemableBalance,
-        reason: `Voucher delivery failed for reward ${rewardId}`,
-        metadata: {
-          redemptionId: redemption.id,
-          voucherId: voucherRedemption.id,
+      // Create wallet transaction for audit trail
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          userId: redemption.userId,
+          transactionType: 'CREDIT',
+          balanceType: 'REDEEMABLE',
+          amount: redemption.coinsSpent,
+          previousBalance: wallet.redeemableBalance - redemption.coinsSpent,
+          newBalance: wallet.redeemableBalance,
+          reason: `Voucher delivery failed for reward ${rewardId}`,
+          metadata: {
+            redemptionId: redemption.id,
+            voucherId: voucherRedemption.id,
+          },
         },
-      },
+      })
     })
 
-    logger.info('Voucher marked as failed and coins refunded', {
+    logger.info('Voucher marked as failed, redemption status updated, and coins refunded', {
       voucherId: voucherRedemption.id,
+      redemptionId: redemption.id,
       rewardId,
       coinsRefunded: redemption.coinsSpent,
     })
