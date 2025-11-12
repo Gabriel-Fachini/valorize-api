@@ -7,6 +7,11 @@ import { CompanyWalletModel } from '@/features/wallets/company-wallet.model'
 import { AddressModel } from '@/features/addresses/address.model'
 import { VoucherProviderFactory } from '@/lib/voucher-providers'
 import { COIN_TO_BRL_RATE } from '@/features/economy/economy.constants'
+import {
+  VOUCHER_STATUS,
+  PHYSICAL_PRODUCT_STATUS,
+  NON_CANCELABLE_STATUSES,
+} from './redemption.constants'
 
 interface RedeemPrizeInput {
   userId: string
@@ -308,23 +313,23 @@ export const redemptionService = {
               voucherCode: voucherResult.code ?? null,
               amount: voucherPrize.minValue,
               currency: voucherPrize.currency,
-              status: 'completed',
+              status: VOUCHER_STATUS.SENT,
               completedAt: new Date(),
               expiresAt: voucherResult.expiresAt ?? null,
             },
           })
 
-          // Atualizar status da redemption para completed
+          // Atualizar status da redemption para sent (email enviado)
           await tx.redemption.update({
             where: { id: redemption.id },
-            data: { status: 'completed' },
+            data: { status: VOUCHER_STATUS.SENT },
           })
 
           // Criar tracking de sucesso
           await RedemptionTrackingModel.create(
             {
               redemptionId: redemption.id,
-              status: 'completed',
+              status: VOUCHER_STATUS.SENT,
               notes: 'Voucher criado com sucesso',
               createdBy: userId,
             },
@@ -343,7 +348,7 @@ export const redemptionService = {
               provider: voucherPrize.provider,
               amount: voucherPrize.minValue,
               currency: voucherPrize.currency,
-              status: 'failed',
+              status: VOUCHER_STATUS.FAILED,
               errorMessage: error.message,
             },
           })
@@ -351,14 +356,14 @@ export const redemptionService = {
           // Marcar redemption como failed
           await tx.redemption.update({
             where: { id: redemption.id },
-            data: { status: 'failed' },
+            data: { status: VOUCHER_STATUS.FAILED },
           })
 
           // Criar tracking de erro
           await RedemptionTrackingModel.create(
             {
               redemptionId: redemption.id,
-              status: 'failed',
+              status: VOUCHER_STATUS.FAILED,
               notes: `Erro ao criar voucher: ${error.message}`,
               createdBy: userId,
             },
@@ -372,7 +377,7 @@ export const redemptionService = {
         await RedemptionTrackingModel.create(
           {
             redemptionId: redemption.id,
-            status: 'pending',
+            status: PHYSICAL_PRODUCT_STATUS.PENDING,
             notes: 'Resgate realizado com sucesso',
             createdBy: userId,
           },
@@ -409,8 +414,8 @@ export const redemptionService = {
         throw new Error('You can only cancel your own redemptions')
       }
 
-      // Validação: não pode cancelar se já foi enviado ou entregue
-      if (redemption.status === 'shipped' || redemption.status === 'delivered') {
+      // Validação: não pode cancelar se já foi enviado, entregue ou cancelado
+      if (NON_CANCELABLE_STATUSES.has(redemption.status as any)) {
         throw new CannotCancelShippedOrderError()
       }
 
@@ -454,14 +459,14 @@ export const redemptionService = {
       // 3. Atualizar status da redemption
       await tx.redemption.update({
         where: { id: redemptionId },
-        data: { status: 'cancelled' },
+        data: { status: PHYSICAL_PRODUCT_STATUS.CANCELLED },
       })
 
       // 4. Criar tracking de cancelamento
       await RedemptionTrackingModel.create(
         {
           redemptionId,
-          status: 'cancelled',
+          status: PHYSICAL_PRODUCT_STATUS.CANCELLED,
           notes: reason ?? 'Cancelled by user',
           createdBy: userId,
         },
@@ -789,7 +794,7 @@ export const redemptionService = {
         await RedemptionTrackingModel.create(
           {
             redemptionId: redemption.id,
-            status: 'processing',
+            status: PHYSICAL_PRODUCT_STATUS.PROCESSING,
             notes: 'Voucher administrativo - empresa pagou, aguardando criação',
             createdBy: item.userId,
           },
@@ -837,7 +842,7 @@ export const redemptionService = {
         userId: item.userId,
       })
 
-      // Atualizar para 'completed'
+      // Atualizar para 'sent' (email enviado com sucesso)
       await prisma.$transaction(async (tx) => {
         await tx.voucherRedemption.create({
           data: {
@@ -849,7 +854,7 @@ export const redemptionService = {
             voucherCode: voucherResult.code ?? null,
             amount: voucherPrize.minValue,
             currency: voucherPrize.currency,
-            status: 'completed',
+            status: VOUCHER_STATUS.SENT,
             completedAt: new Date(),
             expiresAt: voucherResult.expiresAt ?? null,
           },
@@ -857,13 +862,13 @@ export const redemptionService = {
 
         await tx.redemption.update({
           where: { id: redemption.id },
-          data: { status: 'completed' },
+          data: { status: VOUCHER_STATUS.SENT },
         })
 
         await RedemptionTrackingModel.create(
           {
             redemptionId: redemption.id,
-            status: 'completed',
+            status: VOUCHER_STATUS.SENT,
             notes: 'Voucher criado com sucesso',
             createdBy: item.userId,
           },
@@ -906,7 +911,7 @@ export const redemptionService = {
           // Marcar redemption como 'failed'
           await tx.redemption.update({
             where: { id: redemption.id },
-            data: { status: 'failed' },
+            data: { status: VOUCHER_STATUS.FAILED },
           })
 
           await tx.voucherRedemption.create({
@@ -915,7 +920,7 @@ export const redemptionService = {
               provider: voucherPrize.provider,
               amount: voucherPrize.minValue,
               currency: voucherPrize.currency,
-              status: 'failed',
+              status: VOUCHER_STATUS.FAILED,
               errorMessage: error.message,
             },
           })
@@ -923,7 +928,7 @@ export const redemptionService = {
           await RedemptionTrackingModel.create(
             {
               redemptionId: redemption.id,
-              status: 'failed',
+              status: VOUCHER_STATUS.FAILED,
               notes: `Erro ao criar voucher: ${error.message}`,
               createdBy: item.userId,
             },
@@ -1094,7 +1099,7 @@ export const redemptionService = {
           voucherCode: voucherResult.code ?? null,
           amount: customAmount ?? Number(prize.voucherPrize.minValue),
           currency: prize.voucherPrize.currency,
-          status: 'completed',
+          status: VOUCHER_STATUS.SENT,
           completedAt: new Date(),
           expiresAt: voucherResult.expiresAt ?? null,
         },
@@ -1103,14 +1108,14 @@ export const redemptionService = {
       // 8. Atualizar redemption para 'sent'
       await tx.redemption.update({
         where: { id: redemption.id },
-        data: { status: 'sent' },
+        data: { status: VOUCHER_STATUS.SENT },
       })
 
       // 9. Criar tracking final
       await RedemptionTrackingModel.create(
         {
           redemptionId: redemption.id,
-          status: 'sent',
+          status: VOUCHER_STATUS.SENT,
           notes: 'Voucher enviado com sucesso via email pela Tremendous API',
           createdBy: userId,
         },

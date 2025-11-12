@@ -109,10 +109,7 @@ export class RedemptionModel {
   ): Promise<RedemptionModel> {
     try {
       const redemption = await tx.redemption.create({
-        data: {
-          ...data,
-          status: 'pending',
-        },
+        data,
       })
 
       logger.info('Redemption created successfully', {
@@ -234,7 +231,7 @@ export class RedemptionModel {
       const where: Prisma.RedemptionWhereInput = { companyId }
 
       if (filters.status) {
-        where.status = filters.status
+        where.status = filters.status as any
       }
 
       const redemptions = await prisma.redemption.findMany({
@@ -290,7 +287,7 @@ export class RedemptionModel {
     try {
       const updated = await tx.redemption.update({
         where: { id: this.data.id },
-        data: { status },
+        data: { status: status as any },
       })
 
       this.data = updated

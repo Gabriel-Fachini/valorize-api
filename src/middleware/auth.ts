@@ -14,6 +14,7 @@ const PUBLIC_ROUTES = [
   '/auth/refresh-info',
   '/auth/admin/login',
   '/auth/signup',
+  '/webhooks',             // Webhook endpoints from external providers (Tremendous, etc)
 ]
 
 // Check if a route should be public

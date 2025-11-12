@@ -123,6 +123,20 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     transformStaticCSP: (header) => header,
   })
 
+  // Custom content-type parser for webhook endpoints
+  // This captures the raw body before JSON parsing for signature validation
+  app.addContentTypeParser('application/json', { parseAs: 'buffer' }, async (request: any, body: Buffer) => {
+    // Preserve the raw body as a Buffer for webhook signature validation
+    request.rawBody = body
+
+    // Now parse the JSON from the buffer
+    try {
+      return JSON.parse(body.toString('utf-8'))
+    } catch (err) {
+      throw new Error('Invalid JSON in request body')
+    }
+  })
+
   // Register global middlewares
   app.addHook('preHandler', auth0Middleware)
   app.setErrorHandler(errorHandler)
@@ -267,6 +281,16 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       await fastify.register(redemptionRoutes)
     },
     { prefix: '/redemptions' },
+  )
+
+  // Webhook routes (external integrations - public endpoints)
+  await app.register(
+    async function (fastify) {
+      const { default: tremendousWebhookRoutes } = await import(
+        '@/features/prizes/redemptions/tremendous-webhook.routes'
+      )
+      await fastify.register(tremendousWebhookRoutes)
+    },
   )
 
   // Dashboard routes are now under /admin/dashboard (see admin.routes.ts)
