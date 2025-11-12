@@ -250,11 +250,18 @@ npm install
 npm run build:prod
 ```
 
-#### "SonarCloud not analyzing"
+#### "SonarCloud not analyzing" or "Artifact not found"
 - Check `SONAR_TOKEN` is correct (copy-paste from SonarCloud)
 - Verify `sonar-project.properties` exists
 - Check GitHub Secrets are set (Settings → Secrets)
-- Re-run workflow manually from GitHub Actions tab
+- **Coverage artifact missing**: Run locally first to debug:
+  ```bash
+  npm run ci:test
+  ls -la coverage/
+  # Should show: lcov.info, index.html
+  ```
+- Check the CI workflow debug logs in GitHub Actions tab (step: "Debug - List coverage directory")
+- If coverage is empty, tests may be failing - check "Run tests with coverage" step logs
 
 ### CD Pipeline Issues
 
