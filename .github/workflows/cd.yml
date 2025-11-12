@@ -79,10 +79,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@3193ce9b44a7e0a4d0ff1da9efd9ad7605220e21 # v4.1.1
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Setup Google Cloud
-        uses: google-github-actions/setup-gcloud@e30f5a19d1d25ab11192ee080271907ebea77fd0 # v1.1.1
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
         with:
           version: latest
           project_id: ${{ secrets.GCP_PROJECT_ID }}

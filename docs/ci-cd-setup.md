@@ -542,14 +542,16 @@ All GitHub Actions are pinned to specific commit hashes instead of version tags.
 
 **Examples**:
 ```yaml
-uses: actions/checkout@3193ce9b44a7e0a4d0ff1da9efd9ad7605220e21 # v4.1.1
-uses: actions/setup-node@60edb5dd545a8c4c23541c4f3cab48540e18c6f1 # v4.0.2
-uses: SonarSource/sonarcloud-github-action@4b4701d267a32ebb42cf2cf17df1850830a8433b # v2.3.0
+uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+uses: SonarSource/sonarcloud-github-action@ffc3010689be73b8e5ae0c57ce35968afd7909e8 # v5.0.0
+uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 ```
 
 **Why This Matters**:
 - ❌ `uses: actions/checkout@v4` - Can be modified if tag is re-released
-- ✅ `uses: actions/checkout@3193ce9b44a7e0a4d0ff1da9efd9ad7605220e21` - Immutable
+- ✅ `uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955` - Immutable
 
 ### Environment Variables in Secrets
 
@@ -575,6 +577,13 @@ run: |
 - Secrets defined in `env` blocks are automatically masked in logs
 - Any variable containing a secret value is replaced with `***` in output
 - This applies even to derived variables like `${DATABASE_URL}`
+
+### Important Version Notes
+
+⚠️ **google-github-actions/setup-gcloud**: Uses v3.0.1 (NOT v1.x which doesn't exist)
+- v1.x was deprecated and superseded by v2.x and v3.x
+- v3.0.1 (latest) requires Node 24+ compatibility
+- Alternative: Use v2.2.1 if Node 24+ is not available
 
 ### Recommendations
 
