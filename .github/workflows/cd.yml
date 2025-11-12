@@ -1,0 +1,153 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  REGISTRY_REGION: southamerica-east1
+  IMAGE_NAME: valorize-api
+  CLOUD_RUN_SERVICE: valorize-api
+
+jobs:
+  test-and-build:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: valorize_user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: valorize_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://valorize_user:password@localhost:5432/valorize_test
+
+      - name: Build TypeScript
+        run: npm run build:prod
+
+  deploy:
+    name: Deploy to Google Cloud Run
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: latest
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGISTRY_REGION }}-docker.pkg.dev
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --tag ${{ env.REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/valorize/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --tag ${{ env.REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/valorize/${{ env.IMAGE_NAME }}:latest \
+            .
+
+      - name: Push to Artifact Registry
+        run: |
+          docker push ${{ env.REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/valorize/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/valorize/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.CLOUD_RUN_SERVICE }} \
+            --image ${{ env.REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/valorize/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGISTRY_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }},AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }},AUTH0_AUDIENCE=${{ secrets.AUTH0_AUDIENCE }},AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }},AUTH0_CLIENT_SECRET=${{ secrets.AUTH0_CLIENT_SECRET }},TREMENDOUS_API_KEY=${{ secrets.TREMENDOUS_API_KEY }},TREMENDOUS_BASE_URL=${{ secrets.TREMENDOUS_BASE_URL }},SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }},SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }},CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+
+      - name: Health check
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.CLOUD_RUN_SERVICE }} \
+            --region ${{ env.REGISTRY_REGION }} \
+            --format 'value(status.url)')
+          echo "Service URL: $SERVICE_URL"
+
+          # Wait for service to be ready
+          max_attempts=30
+          attempt=0
+          while [ $attempt -lt $max_attempts ]; do
+            if curl -f -s "$SERVICE_URL/api/v1/health" > /dev/null 2>&1; then
+              echo "✅ Health check passed"
+              exit 0
+            fi
+            attempt=$((attempt + 1))
+            echo "Health check attempt $attempt/$max_attempts..."
+            sleep 2
+          done
+
+          echo "❌ Health check failed after $max_attempts attempts"
+          exit 1
+
+      - name: Deployment notification
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          echo "Service: ${{ env.CLOUD_RUN_SERVICE }}"
+          echo "Region: ${{ env.REGISTRY_REGION }}"
+          echo "Image: ${{ github.sha }}"
+
+      - name: Deployment failure notification
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Please check the Cloud Run console for details"
+          echo "See: docs/ci-cd-setup.md for troubleshooting"
