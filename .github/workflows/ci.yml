@@ -33,12 +33,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3193ce9b44a7e0a4d0ff1da9efd9ad7605220e21 # v4.1.1
         with:
           fetch-depth: 0 # Full history for SonarCloud analysis
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@60edb5dd545a8c4c23541c4f3cab48540e18c6f1 # v4.0.2
         with:
           node-version: '18'
           cache: 'npm'
@@ -59,7 +59,7 @@ jobs:
         run: npm run build:prod
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@26f56ddb39e399e0287a38c1e1c0663a05d340d2 # v4.3.2
         with:
           name: coverage
           path: coverage/
@@ -73,18 +73,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3193ce9b44a7e0a4d0ff1da9efd9ad7605220e21 # v4.1.1
         with:
           fetch-depth: 0
 
       - name: Download coverage artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@8caf195ad91230ea0fb809609e7ca15270d86c00 # v4.1.7
         with:
           name: coverage
           path: coverage/
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@4b4701d267a32ebb42cf2cf17df1850830a8433b # v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -95,7 +95,7 @@ jobs:
 
       - name: Comment PR with SonarCloud results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@6849c00ba9d7e1282a343b7c135b1f00c2442354 # v7.0.1
         with:
           script: |
             const fs = require('fs');

@@ -532,6 +532,76 @@ After setup, verify:
 
 ---
 
+## 🔐 GitHub Actions Security Hardening
+
+### Action Pinning (Commit SHA)
+
+All GitHub Actions are pinned to specific commit hashes instead of version tags. This prevents supply chain attacks where a malicious actor could push code to a version tag.
+
+**Format**: `uses: owner/action@<commit-sha> # <version>`
+
+**Examples**:
+```yaml
+uses: actions/checkout@3193ce9b44a7e0a4d0ff1da9efd9ad7605220e21 # v4.1.1
+uses: actions/setup-node@60edb5dd545a8c4c23541c4f3cab48540e18c6f1 # v4.0.2
+uses: SonarSource/sonarcloud-github-action@4b4701d267a32ebb42cf2cf17df1850830a8433b # v2.3.0
+```
+
+**Why This Matters**:
+- ❌ `uses: actions/checkout@v4` - Can be modified if tag is re-released
+- ✅ `uses: actions/checkout@3193ce9b44a7e0a4d0ff1da9efd9ad7605220e21` - Immutable
+
+### Environment Variables in Secrets
+
+**Problem**: Secrets interpolated directly in command lines are visible in logs
+```yaml
+# ❌ INSECURE - Values visible in logs
+--set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }},AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
+```
+
+**Solution**: Use `env` block at step level, then reference via shell variables
+```yaml
+# ✅ SECURE - Values masked in logs
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+run: |
+  ENV_VARS="DATABASE_URL=${DATABASE_URL}"
+  ENV_VARS="${ENV_VARS},AUTH0_DOMAIN=${AUTH0_DOMAIN}"
+  gcloud run deploy ... --set-env-vars "${ENV_VARS}"
+```
+
+**How GitHub Masks Secrets**:
+- Secrets defined in `env` blocks are automatically masked in logs
+- Any variable containing a secret value is replaced with `***` in output
+- This applies even to derived variables like `${DATABASE_URL}`
+
+### Recommendations
+
+1. **Quarterly Security Audit**
+   - Review commit hashes of pinned actions
+   - Check GitHub Security Advisory for vulnerabilities
+   - Update to latest secure versions using `gh action update`
+
+2. **Dependabot Integration** (Optional)
+   - Enable Dependabot for GitHub Actions
+   - Auto-generate PRs for action updates
+   - Settings → Code and Security → Dependabot
+
+3. **Workflow Permissions**
+   ```yaml
+   permissions:
+     contents: read        # No push access
+     id-token: write       # Only for OIDC
+   ```
+
+4. **Audit Logs**
+   - Check: Settings → Audit Log
+   - Monitor for suspicious workflow modifications
+   - Alert on secret access
+
+---
+
 ## 📞 Getting Help
 
 ### Documentation
