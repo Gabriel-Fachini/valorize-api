@@ -40,7 +40,7 @@ export interface BulkRedemptionResponse {
 // Admin Redemption Management Types
 export interface RedemptionListFilters {
   search?: string
-  status?: string
+  status?: string // Status filter as string, will be validated as RedemptionStatus
   type?: 'voucher' | 'physical'
   limit?: number
   offset?: number

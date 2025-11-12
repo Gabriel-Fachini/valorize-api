@@ -1,4 +1,7 @@
 // JSON Schema for Fastify validation
+import { REDEMPTION_STATUS } from '@/features/prizes/redemptions/redemption.constants'
+
+const STATUS_VALUES = Object.values(REDEMPTION_STATUS)
 
 export const sendVoucherToUserSchema = {
   body: {
@@ -89,7 +92,7 @@ export const listRedemptionsQuerySchema = {
       },
       status: {
         type: 'string',
-        description: 'Filter by redemption status. Vouchers: sent. Physical products: pending, processing, completed, shipped, delivered, cancelled',
+        description: 'Filter by redemption status. Vouchers: sent, failed. Products: pending, processing, shipped, delivered, cancelled, refunded',
       },
       type: {
         type: 'string',
@@ -145,8 +148,8 @@ export const updateStatusSchema = {
     properties: {
       status: {
         type: 'string',
-        enum: ['sent', 'pending', 'processing', 'completed', 'shipped', 'delivered', 'cancelled'],
-        description: 'New redemption status. Vouchers: sent. Products/Experiences: pending, processing, completed, shipped, delivered, cancelled',
+        enum: STATUS_VALUES,
+        description: 'New redemption status. Vouchers: sent, failed. Products: pending, processing, shipped, delivered, cancelled, refunded',
       },
       notes: {
         type: 'string',

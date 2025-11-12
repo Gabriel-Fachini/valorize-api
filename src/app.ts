@@ -21,7 +21,14 @@ const start = async () => {
     logger.info(`API Documentation available at http://localhost:${port}/docs`)
     
   } catch (err) {
-    logger.error('Error starting server:', err)
+    const error = err instanceof Error ? err : new Error(String(err))
+    logger.error('Error starting server', error)
+    console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.error('🚨 STARTUP ERROR DETAILS:')
+    console.error(`  Name: ${error.name}`)
+    console.error(`  Message: ${error.message}`)
+    console.error(`  Stack:\n${error.stack}`)
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
     process.exit(1)
   }
 }

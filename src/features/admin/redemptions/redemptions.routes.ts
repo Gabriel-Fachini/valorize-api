@@ -409,7 +409,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
 
         await adminRedemptionsService.updateRedemptionStatus(
           id,
-          status,
+          status as any,
           adminUser.companyId,
           adminUser.id,
           notes,

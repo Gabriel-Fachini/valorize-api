@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { Prisma } from '@prisma/client'
+import { PHYSICAL_PRODUCT_STATUS, NON_CANCELABLE_STATUSES, type RedemptionStatus } from '@/features/prizes/redemptions/redemption.constants'
 import type {
   RedemptionListFilters,
   RedemptionListItem,
@@ -22,7 +23,8 @@ export const adminRedemptionsService = {
       const where: Prisma.RedemptionWhereInput = { companyId }
 
       if (filters.status) {
-        where.status = filters.status
+        // Cast status string to RedemptionStatus enum
+        where.status = filters.status as any
       }
 
       // Search by user name OR prize name (case-insensitive partial match)
@@ -226,7 +228,7 @@ export const adminRedemptionsService = {
    */
   async updateRedemptionStatus(
     redemptionId: string,
-    newStatus: string,
+    newStatus: RedemptionStatus,
     companyId: string,
     adminUserId: string,
     notes?: string,
@@ -319,8 +321,8 @@ export const adminRedemptionsService = {
           data: {
             id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             redemptionId,
-            status: 'tracking_added',
-            notes: trackingNotes,
+            status: redemption.status, // Use current redemption status for audit trail
+            notes: `[TRACKING] ${trackingNotes ?? ''}`,
             createdBy: adminUserId,
           },
         })
@@ -368,8 +370,8 @@ export const adminRedemptionsService = {
         data: {
           id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           redemptionId,
-          status: 'admin_note',
-          notes: note,
+          status: redemption.status, // Use current redemption status for audit trail
+          notes: `[ADMIN NOTE] ${note}`,
           createdBy: adminUserId,
         },
       })
@@ -409,8 +411,7 @@ export const adminRedemptionsService = {
       }
 
       // Prevent cancellation of certain statuses
-      const nonCancelableStatuses = ['delivered', 'cancelled']
-      if (nonCancelableStatuses.includes(redemption.status)) {
+      if (NON_CANCELABLE_STATUSES.has(redemption.status as any)) {
         throw new Error(
           `Cannot cancel redemption with status: ${redemption.status}`,
         )
@@ -482,7 +483,7 @@ export const adminRedemptionsService = {
         // 6. Update redemption status
         await tx.redemption.update({
           where: { id: redemptionId },
-          data: { status: 'cancelled' },
+          data: { status: PHYSICAL_PRODUCT_STATUS.CANCELLED },
         })
 
         // 7. Create final tracking entry
@@ -490,7 +491,7 @@ export const adminRedemptionsService = {
           data: {
             id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             redemptionId,
-            status: 'cancelled',
+            status: PHYSICAL_PRODUCT_STATUS.CANCELLED,
             notes: `Cancelled by admin. Reason: ${reason ?? 'No reason provided'}. Refunded ${coinsToRefund} coins and R$ ${budgetToRefund.toFixed(2)}`,
             createdBy: adminUserId,
           },

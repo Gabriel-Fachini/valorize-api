@@ -5,17 +5,7 @@
  * Redemption rate: ~40% of distributed coins (80k / 200k)
  */
 
-/**
- * Redemption status enum
- */
-export const REDEMPTION_STATUS = {
-  PENDING: 'pending',
-  PROCESSING: 'processing',
-  SHIPPED: 'shipped',
-  DELIVERED: 'delivered',
-  CANCELLED: 'cancelled',
-  REFUNDED: 'refunded',
-}
+import { PHYSICAL_PRODUCT_STATUS } from '@/features/prizes/redemptions/redemption.constants'
 
 /**
  * Prize types for distribution
@@ -57,12 +47,12 @@ const COIN_COSTS = {
 function generateRedemptions() {
   const redemptions = []
   const statuses = [
-    REDEMPTION_STATUS.PENDING,
-    REDEMPTION_STATUS.PROCESSING,
-    REDEMPTION_STATUS.SHIPPED,
-    REDEMPTION_STATUS.DELIVERED,
-    REDEMPTION_STATUS.DELIVERED,
-    REDEMPTION_STATUS.DELIVERED,
+    PHYSICAL_PRODUCT_STATUS.PENDING,
+    PHYSICAL_PRODUCT_STATUS.PROCESSING,
+    PHYSICAL_PRODUCT_STATUS.SHIPPED,
+    PHYSICAL_PRODUCT_STATUS.DELIVERED,
+    PHYSICAL_PRODUCT_STATUS.DELIVERED,
+    PHYSICAL_PRODUCT_STATUS.DELIVERED,
   ]
 
   let totalCoins = 0
@@ -80,22 +70,22 @@ function generateRedemptions() {
       const status = statuses[statusIndex]
 
       // Generate tracking code
-      const trackingCode = status === REDEMPTION_STATUS.PENDING ? null : `TRK-${day.toString().padStart(3, '0')}-${redemptionIndex}`
+      const trackingCode = status === PHYSICAL_PRODUCT_STATUS.PENDING ? null : `TRK-${day.toString().padStart(3, '0')}-${redemptionIndex}`
 
       // Build tracking history based on status
       const tracking = []
-      tracking.push({ status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' })
+      tracking.push({ status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' })
 
-      if (status === REDEMPTION_STATUS.PROCESSING || status === REDEMPTION_STATUS.SHIPPED || status === REDEMPTION_STATUS.DELIVERED) {
-        tracking.push({ status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' })
+      if (status === PHYSICAL_PRODUCT_STATUS.PROCESSING || status === PHYSICAL_PRODUCT_STATUS.SHIPPED || status === PHYSICAL_PRODUCT_STATUS.DELIVERED) {
+        tracking.push({ status: PHYSICAL_PRODUCT_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' })
       }
 
-      if (status === REDEMPTION_STATUS.SHIPPED || status === REDEMPTION_STATUS.DELIVERED) {
-        tracking.push({ status: REDEMPTION_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' })
+      if (status === PHYSICAL_PRODUCT_STATUS.SHIPPED || status === PHYSICAL_PRODUCT_STATUS.DELIVERED) {
+        tracking.push({ status: PHYSICAL_PRODUCT_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' })
       }
 
-      if (status === REDEMPTION_STATUS.DELIVERED) {
-        tracking.push({ status: REDEMPTION_STATUS.DELIVERED, notes: 'Entregue ao usuário.', createdBy: 'system' })
+      if (status === PHYSICAL_PRODUCT_STATUS.DELIVERED) {
+        tracking.push({ status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Entregue ao usuário.', createdBy: 'system' })
       }
 
       totalCoins += coinsSpent
@@ -123,59 +113,59 @@ export const GABRIEL_REDEMPTIONS = [
     prizeName: 'Cartão Presente Amazon R$ 100',
     variantValue: 'R$ 100',
     coinsSpent: 500,
-    status: REDEMPTION_STATUS.PENDING,
+    status: PHYSICAL_PRODUCT_STATUS.PENDING,
     trackingCode: null,
     daysAgo: 1,
-    tracking: [{ status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' }],
+    tracking: [{ status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' }],
   },
   {
     prizeName: 'Spotify Premium - 3 Meses',
     variantValue: '3 meses',
     coinsSpent: 600,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'SPOT-001',
     daysAgo: 5,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
     ],
   },
   {
     prizeName: 'Cartão Presente Starbucks R$ 50',
     variantValue: 'Digital',
     coinsSpent: 250,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'STAR-001',
     daysAgo: 10,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
     ],
   },
   {
     prizeName: 'Fones Bluetooth Sem Fio',
     variantValue: 'Preto',
     coinsSpent: 800,
-    status: REDEMPTION_STATUS.SHIPPED,
+    status: PHYSICAL_PRODUCT_STATUS.SHIPPED,
     trackingCode: 'FONE-001',
     daysAgo: 15,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' },
     ],
   },
   {
     prizeName: 'Curso de Culinária Online',
     variantValue: 'Italiana',
     coinsSpent: 350,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'CULI-001',
     daysAgo: 20,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Acesso entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Acesso entregue.', createdBy: 'system' },
     ],
   },
 ]
@@ -221,12 +211,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Cartão Presente Amazon R$ 50',
     variantValue: 'R$ 50',
     coinsSpent: 250,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'AMZ-COM-001',
     daysAgo: 10,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
     ],
   },
   {
@@ -234,12 +224,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Spotify Premium - 3 Meses',
     variantValue: '3 meses',
     coinsSpent: 600,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'SPOT-COM-001',
     daysAgo: 20,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
     ],
   },
   {
@@ -247,12 +237,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Cartão Presente Starbucks R$ 50',
     variantValue: 'Cartão Físico',
     coinsSpent: 250,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'STAR-COM-001',
     daysAgo: 30,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
     ],
   },
   {
@@ -260,12 +250,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Fones Bluetooth Sem Fio',
     variantValue: 'Prata',
     coinsSpent: 800,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'FONE-COM-001',
     daysAgo: 40,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Fone entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Fone entregue.', createdBy: 'system' },
     ],
   },
   {
@@ -273,12 +263,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Kindle Paperwhite',
     variantValue: '8GB',
     coinsSpent: 1200,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'KIN-COM-001',
     daysAgo: 50,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Kindle entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Kindle entregue.', createdBy: 'system' },
     ],
   },
   {
@@ -286,12 +276,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Cartão Presente iFood R$ 50',
     variantValue: 'R$ 50',
     coinsSpent: 250,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'IFD-COM-002',
     daysAgo: 35,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Cartão entregue.', createdBy: 'system' },
     ],
   },
   {
@@ -299,12 +289,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Netflix Premium - 1 Mês',
     variantValue: '1 mês',
     coinsSpent: 200,
-    status: REDEMPTION_STATUS.DELIVERED,
+    status: PHYSICAL_PRODUCT_STATUS.DELIVERED,
     trackingCode: 'NET-COM-002',
     daysAgo: 25,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.DELIVERED, notes: 'Código entregue.', createdBy: 'system' },
     ],
   },
   {
@@ -312,12 +302,12 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Cartão Presente Uber R$ 50',
     variantValue: 'R$ 50',
     coinsSpent: 250,
-    status: REDEMPTION_STATUS.PROCESSING,
+    status: PHYSICAL_PRODUCT_STATUS.PROCESSING,
     trackingCode: 'UBR-COM-002',
     daysAgo: 15,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
     ],
   },
   {
@@ -325,13 +315,13 @@ export const COMPANY_REDEMPTIONS = [
     prizeName: 'Cartão Presente Amazon R$ 75',
     variantValue: 'R$ 75',
     coinsSpent: 375,
-    status: REDEMPTION_STATUS.SHIPPED,
+    status: PHYSICAL_PRODUCT_STATUS.SHIPPED,
     trackingCode: 'AMZ-COM-002',
     daysAgo: 8,
     tracking: [
-      { status: REDEMPTION_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
-      { status: REDEMPTION_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' },
+      { status: PHYSICAL_PRODUCT_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' },
     ],
   },
 ]

@@ -7,6 +7,24 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum RedemptionStatus {
+  // Vouchers (Digital)
+  SENT
+  FAILED
+
+  // Physical Products
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
 model User {
   id           String   @id @default(cuid())
   auth0Id      String   @unique @map("auth0_id")
@@ -391,7 +409,7 @@ model Redemption {
   companyId    String   @map("company_id")
   addressId    String?  @map("address_id") // OPCIONAL agora (NULL para vouchers)
   coinsSpent   Int      @map("coins_spent")
-  status       String   @default("pending")
+  status       RedemptionStatus @default(PENDING)
   trackingCode String?  @map("tracking_code") // Manter para compatibilidade
   redeemedAt   DateTime @default(now()) @map("redeemed_at")
 
@@ -404,6 +422,7 @@ model Redemption {
 
   // Relacionamentos específicos por tipo (1:1 opcional)
   voucherRedemption VoucherRedemption? // Se category = "voucher"
+  webhookLogs       TremendousWebhookLog[]
 
   @@index([userId, redeemedAt])
   @@index([companyId, status])
@@ -415,7 +434,7 @@ model Redemption {
 model RedemptionTracking {
   id           String   @id @default(cuid())
   redemptionId String   @map("redemption_id")
-  status       String
+  status       RedemptionStatus
   notes        String?
   createdBy    String?  @map("created_by")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -485,7 +504,7 @@ model VoucherRedemption {
   currency    String  @default("BRL")
 
   // Controle de status e retry
-  status       String    @default("pending") // pending, processing, completed, failed
+  status       RedemptionStatus @default(SENT) // SENT when email delivered, FAILED if delivery fails
   errorMessage String?   @map("error_message") // Mensagem de erro (se houver)
   retryCount   Int       @default(0) @map("retry_count")
   lastRetryAt  DateTime? @map("last_retry_at")
@@ -564,4 +583,25 @@ model VoucherPrize {
   @@index([provider])
   @@index([provider, externalId])
   @@map("voucher_prizes")
+}
+
+// ============================================================================
+// WEBHOOK LOGS - Stores webhook events from providers (e.g., Tremendous)
+// ============================================================================
+
+model TremendousWebhookLog {
+  id           String   @id @default(cuid())
+  webhookUuid  String   @unique @map("webhook_uuid") // Tremendous uuid for idempotency
+  event        String   // REWARDS.DELIVERY.SUCCEEDED, REWARDS.DELIVERY.FAILED, etc.
+  payload      Json     // Full webhook payload
+  processed    Boolean  @default(true) @map("processed")
+  redemptionId String?  @map("redemption_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  redemption Redemption? @relation(fields: [redemptionId], references: [id])
+
+  @@index([webhookUuid])
+  @@index([event])
+  @@index([processed, createdAt])
+  @@map("tremendous_webhook_logs")
 }

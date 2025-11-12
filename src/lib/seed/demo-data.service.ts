@@ -315,14 +315,14 @@ export const demoDataService = {
         prizeId: prizes[0].id,
         prizeName: prizes[0].name,
         coinsSpent: prizes[0].coinPrice,
-        status: 'delivered' as const,
+        status: 'DELIVERED' as const,
         daysAgo: 8,
       },
       {
         prizeId: prizes[1]?.id,
         prizeName: prizes[1]?.name,
         coinsSpent: prizes[1]?.coinPrice,
-        status: 'processing' as const,
+        status: 'PROCESSING' as const,
         daysAgo: 2,
       },
     ].filter(r => r.prizeId) // Filter out undefined prizes
