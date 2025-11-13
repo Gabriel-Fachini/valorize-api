@@ -11,6 +11,8 @@
     "start": "node dist/app.js",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "ci:test": "vitest run --coverage",
+    "ci": "npm run lint && npm run ci:test && npm run build:prod",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "db:generate": "prisma generate",
