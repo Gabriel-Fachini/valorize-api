@@ -157,7 +157,7 @@ export class UserSeeder extends BaseSeeder {
       companyId: company.id,
       departmentIds: deptsAndJobs.departments.map(d => d.id),
       jobTitleIds: deptsAndJobs.jobTitles.map(j => j.id),
-      generateAvatars: false, // Skip avatars for performance
+      generateAvatars: true, // Generate avatars using pravatar.cc
       distribution: 'pareto',
     })
 

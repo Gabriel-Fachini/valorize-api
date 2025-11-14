@@ -38,12 +38,13 @@ export class UserFactory {
   static generateBrazilianUser(overrides?: Partial<GeneratedUser>): GeneratedUser {
     const name = faker.person.fullName()
     const email = faker.internet.email().toLowerCase()
+    const avatarIndex = faker.number.int({ min: 1, max: 70 })
 
     return {
       name,
       email,
       auth0Id: `auth0|${faker.string.uuid()}`,
-      avatarUrl: faker.image.avatar(),
+      avatarUrl: `https://i.pravatar.cc/150?img=${avatarIndex}&u=${email}`,
       isActive: true,
       ...overrides,
     }
@@ -84,13 +85,18 @@ export class UserFactory {
       const departmentId = config.departmentIds[i % departmentCount]
       const jobTitleId = config.jobTitleIds[i % jobTitleCount]
 
+      // Generate avatar URL using pravatar.cc with variety (70 images available)
+      const avatarUrl = config.generateAvatars
+        ? `https://i.pravatar.cc/150?img=${(i % 70) + 1}&u=${email}`
+        : undefined
+
       users.push({
         name,
         email,
         auth0Id,
         departmentId,
         jobTitleId,
-        avatarUrl: config.generateAvatars ? faker.image.avatar() : undefined,
+        avatarUrl,
         isActive: true,
       })
     }
