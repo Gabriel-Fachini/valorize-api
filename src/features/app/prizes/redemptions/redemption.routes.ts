@@ -1,6 +1,5 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
-import { logger } from '@/lib/logger'
 import { User } from '@/features/users/user.model'
 import { redemptionService } from './redemption.service'
 import {

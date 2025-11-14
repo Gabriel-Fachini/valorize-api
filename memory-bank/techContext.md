@@ -64,8 +64,7 @@
   "eslint": "^9.34.0",                   // Code linting
   "@typescript-eslint/parser": "^8.41.0", // TS ESLint parser
   "vitest": "^3.2.4",                    // Testing framework
-  "prisma": "^6.15.0",                   // Prisma CLI
-  "zod": "^3.22.4"                       // Schema validation
+  "prisma": "^6.15.0",                   // Prisma CLI                     // Schema validation
 }
 ```
 
@@ -337,7 +336,6 @@ if (!company) {
    - Validação CNPJ brasileira
    - Dados específicos por país
    - Sistema de contatos empresariais
-   - 10 endpoints REST com validação Zod
 
 7. **Sistema de Elogios e Wallets**: Core da gamificação
    - Sistema de moedas duplo (compliment + redeemable)

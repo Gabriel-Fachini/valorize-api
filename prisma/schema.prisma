@@ -16,7 +16,7 @@ enum RedemptionStatus {
   SENT
   FAILED
 
-  // Physical Products
+  // Products (Physical)
   PENDING
   PROCESSING
   SHIPPED
@@ -336,7 +336,7 @@ model Prize {
   companyId      String?  @map("company_id")
   name           String
   description    String
-  type           String // "voucher", "physical" - Prize delivery type
+  type           String // "voucher", "product" - Prize delivery type
   category       String? // Business category (e.g., "Alimentação", "Tecnologia", "Gastronomia")
   images         String[]
   coinPrice      Int      @map("coin_price")

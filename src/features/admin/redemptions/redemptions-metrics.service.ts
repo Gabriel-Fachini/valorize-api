@@ -214,7 +214,7 @@ export const redemptionsMetricsService = {
         const statusBreakdown = Object.fromEntries(statusMap)
 
         return {
-          type: type as 'voucher' | 'physical',
+          type: type as 'voucher' | 'product',
           count,
           percentage: Math.round((count / total) * 10000) / 100,
           totalValueBRL: Math.round(data.totalCoins * COIN_TO_BRL_RATE * 100) / 100,
@@ -270,7 +270,7 @@ export const redemptionsMetricsService = {
       return {
         prizeId: data.prizeId,
         prizeName: prize.name,
-        prizeType: prize.type as 'voucher' | 'physical',
+        prizeType: prize.type as 'voucher' | 'product',
         redemptionCount: data._count.id,
         totalCoinsSpent: totalCoins,
         totalValueBRL: Math.round(totalCoins * COIN_TO_BRL_RATE * 100) / 100,
@@ -373,7 +373,7 @@ export const redemptionsMetricsService = {
     })
 
     let voucherCost = 0
-    let physicalCost = 0
+    let productCost = 0
     let totalCoins = 0
 
     for (const redemption of redemptions) {
@@ -381,14 +381,14 @@ export const redemptionsMetricsService = {
 
       if (redemption.prize.type === 'voucher') {
         voucherCost += cost
-      } else if (redemption.prize.type === 'physical') {
-        physicalCost += cost
+      } else if (redemption.prize.type === 'product') {
+        productCost += cost
       }
 
       totalCoins += redemption.coinsSpent
     }
 
-    const totalCost = voucherCost + physicalCost
+    const totalCost = voucherCost + productCost
     const avgCostPerRedemption =
       redemptions.length > 0
         ? Math.round((totalCost / redemptions.length) * 100) / 100
@@ -405,7 +405,7 @@ export const redemptionsMetricsService = {
     return {
       totalCost: Math.round(totalCost * 100) / 100,
       voucherCost: Math.round(voucherCost * 100) / 100,
-      physicalCost: Math.round(physicalCost * 100) / 100,
+      productCost: Math.round(productCost * 100) / 100,
       avgCostPerRedemption,
       projectedMonthlyCost,
     }

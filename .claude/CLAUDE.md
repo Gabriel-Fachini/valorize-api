@@ -20,7 +20,7 @@
 ### Our Solution
 1. **Value-Based Recognition**: Every compliment is tied to a company value
 2. **Dual Wallet System**: Separate balances for giving compliments (renewable) and redeeming prizes (cumulative)
-3. **Scalable Rewards**: Hybrid catalog of vouchers and physical products (Tremendous API for vouchers - FREE)
+3. **Scalable Rewards**: Hybrid catalog of vouchers and product prizes (Tremendous API for vouchers - FREE)
 4. **Analytics Dashboard**: Executive metrics showing culture in practice
 5. **Economy Dashboard**: Budget tracking, burn rate prediction, coverage index
 
@@ -76,7 +76,7 @@ feature/
 ├── feature.model.ts     # Entity + Repository (static methods)
 ├── feature.service.ts   # Business logic (object literal)
 ├── feature.routes.ts    # HTTP endpoints (Fastify plugin)
-├── feature.schemas.ts   # Zod validations
+├── feature.schemas.ts  
 └── feature.types.ts     # TypeScript types (optional)
 ```
 
@@ -109,7 +109,7 @@ feature/
    - Examples: iFood, Uber, Amazon, Spotify, Netflix
    - Status: Integrated and operational
 
-2. **Physical Products**:
+2. **Product Prizes**:
    - Physical items with shipping addresses
    - Can be global or company-specific
    - Managed by inventory system
@@ -257,7 +257,6 @@ The current #1 priority is developing the main and critical flow for voucher and
 ### Critical Constraints
 - Every entity must have `companyId` for proper multi-tenant isolation
 - RBAC validation on all protected routes
-- Input sanitization via Zod schemas
 - JWT token validation via Auth0
 - Rate limiting enabled
 - SQL injection protection via Prisma

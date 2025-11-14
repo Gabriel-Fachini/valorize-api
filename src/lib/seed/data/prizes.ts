@@ -76,7 +76,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Fones Bluetooth Sem Fio',
     description: 'Fones de alta qualidade com cancelamento de ruído e bateria de 30 horas.',
-    type: 'physical',
+    type: 'product',
     category: PRIZE_CATEGORIES.ELECTRONICS,
     images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500'],
     coinPrice: 800,
@@ -116,7 +116,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Kindle Paperwhite',
     description: 'Leitor digital à prova d\'água com tela sem reflexo. Perfeito para ler em qualquer lugar.',
-    type: 'physical',
+    type: 'product',
     category: PRIZE_CATEGORIES.ELECTRONICS,
     images: ['https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=500'],
     coinPrice: 1200,
@@ -136,7 +136,7 @@ export const GLOBAL_PRIZES = [
   {
     name: 'Tapete de Yoga Premium',
     description: 'Tapete de yoga ecológico com aderência superior e amortecimento. Inclui alça de transporte.',
-    type: 'physical',
+    type: 'product',
     category: PRIZE_CATEGORIES.WELLNESS,
     images: ['https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=500'],
     coinPrice: 350,
@@ -182,7 +182,7 @@ export const VALORIZE_COMPANY_PRIZES = [
   {
     name: 'Moletom Valorize',
     description: 'Moletom de qualidade premium com o logo da Valorize. Confortável e estiloso.',
-    type: 'physical',
+    type: 'product',
     category: PRIZE_CATEGORIES.MERCHANDISE,
     images: ['https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500'],
     coinPrice: 600,
@@ -204,7 +204,7 @@ export const VALORIZE_COMPANY_PRIZES = [
   {
     name: 'Garrafa Valorize - Térmica',
     description: 'Mantenha suas bebidas quentes ou frias o dia todo. Garrafa térmica premium.',
-    type: 'physical',
+    type: 'product',
     category: PRIZE_CATEGORIES.MERCHANDISE,
     images: ['https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500'],
     coinPrice: 200,

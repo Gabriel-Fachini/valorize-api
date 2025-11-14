@@ -5,7 +5,7 @@
  * - SENT: Email delivered successfully (via Tremendous webhook)
  * - FAILED: Creation or delivery failed
  *
- * Physical Products:
+ * Produtos (Physical):
  * - PENDING: Order received
  * - PROCESSING: Being prepared
  * - SHIPPED: Sent to customer
@@ -19,7 +19,7 @@ export const VOUCHER_STATUS = {
   FAILED: 'FAILED',
 } as const
 
-export const PHYSICAL_PRODUCT_STATUS = {
+export const PRODUCT_STATUS = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
   SHIPPED: 'SHIPPED',
@@ -30,28 +30,28 @@ export const PHYSICAL_PRODUCT_STATUS = {
 
 export const REDEMPTION_STATUS = {
   ...VOUCHER_STATUS,
-  ...PHYSICAL_PRODUCT_STATUS,
+  ...PRODUCT_STATUS,
 } as const
 
 // TypeScript types
 export type VoucherStatus = (typeof VOUCHER_STATUS)[keyof typeof VOUCHER_STATUS]
-export type PhysicalProductStatus = (typeof PHYSICAL_PRODUCT_STATUS)[keyof typeof PHYSICAL_PRODUCT_STATUS]
+export type ProductStatus = (typeof PRODUCT_STATUS)[keyof typeof PRODUCT_STATUS]
 export type RedemptionStatus = (typeof REDEMPTION_STATUS)[keyof typeof REDEMPTION_STATUS]
 
 // Helper sets
 export const NON_CANCELABLE_STATUSES = new Set<RedemptionStatus>([
-  PHYSICAL_PRODUCT_STATUS.SHIPPED,
-  PHYSICAL_PRODUCT_STATUS.DELIVERED,
-  PHYSICAL_PRODUCT_STATUS.CANCELLED,
-  PHYSICAL_PRODUCT_STATUS.REFUNDED,
+  PRODUCT_STATUS.SHIPPED,
+  PRODUCT_STATUS.DELIVERED,
+  PRODUCT_STATUS.CANCELLED,
+  PRODUCT_STATUS.REFUNDED,
 ])
 
 export const FINAL_STATUSES = new Set<RedemptionStatus>([
   VOUCHER_STATUS.SENT,
   VOUCHER_STATUS.FAILED,
-  PHYSICAL_PRODUCT_STATUS.DELIVERED,
-  PHYSICAL_PRODUCT_STATUS.CANCELLED,
-  PHYSICAL_PRODUCT_STATUS.REFUNDED,
+  PRODUCT_STATUS.DELIVERED,
+  PRODUCT_STATUS.CANCELLED,
+  PRODUCT_STATUS.REFUNDED,
 ])
 
 // Tremendous webhook event types

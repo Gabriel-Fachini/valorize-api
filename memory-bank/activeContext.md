@@ -85,7 +85,6 @@ O **Sistema de Elogios** foi implementado com sucesso, incluindo sistema de audi
    - Limite de 3 endereços por usuário
    - Sistema de endereço padrão automático
    - Validações: CEP, telefone, campos obrigatórios
-   - CRUD completo com Zod schemas
    - Integração com Redemptions
 
 12. **Sistema de Departamentos (100%) ✅ NOVO**
@@ -135,7 +134,7 @@ src/features/companies/
 ├── company.model.ts              # Model genérico Company
 ├── company.service.ts            # Service principal (simplificado)
 ├── company.routes.ts             # Routes principais
-├── company.schemas.ts            # Validações Zod
+├── company.schemas.ts        
 ├── brazil/                       # Pasta específica para Brasil
 │   ├── company-brazil.model.ts   # Model específico Brasil
 │   └── company-brazil.service.ts # Service específico Brasil

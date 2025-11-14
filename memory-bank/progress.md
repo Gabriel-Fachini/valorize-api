@@ -36,7 +36,7 @@
 - **CompanyBrazil Model**: Dados específicos brasileiros (CNPJ, razão social, etc.)
 - **CompanyContact Model**: Sistema de contatos empresariais
 - **Validação CNPJ**: Algoritmo completo com dígitos verificadores
-- **API REST**: 10 endpoints com validação Zod e documentação Swagger
+- **API REST**: 10 endpoints com documentação Swagger
 - **Integração**: Relacionamentos com User e Role via companyId
 - **Extensibilidade**: Estrutura preparada para outros países
 
@@ -80,7 +80,7 @@
 - **Endereço Padrão**: Sistema automático de endereço default
 - **Validações**: CEP, telefone, campos obrigatórios
 - **Integração Completa**: Relacionamento com User e Redemptions
-- **API REST**: CRUD completo com validações Zod
+- **API REST**: CRUD completo
 
 #### 11. Sistema de Departamentos (100%) ✅ IMPLEMENTADO
 - **Department Model**: Entidade com relacionamentos

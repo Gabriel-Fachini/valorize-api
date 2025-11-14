@@ -68,7 +68,7 @@ feature/
 ├── feature.model.ts     # Entity + Repository (static methods)
 ├── feature.service.ts   # Business logic (object literal)
 ├── feature.routes.ts    # HTTP endpoints (Fastify plugin)
-├── feature.schemas.ts   # Zod validations
+├── feature.schemas.ts 
 └── feature.types.ts     # TypeScript types (optional)
 ```
 
@@ -108,7 +108,6 @@ feature/
 - Generic Company entity (multi-country ready)
 - CompanyBrazil with specific data (CNPJ validation)
 - CompanyContact for business contacts
-- 10 REST endpoints with Zod validation
 - Integration with User and Role via companyId
 
 ### 5. RBAC System (100%)
@@ -410,7 +409,6 @@ JWT_SECRET=your-jwt-secret
 ### Security Focus
 - JWT tokens with expiration
 - RBAC granular permissions
-- Input sanitization (Zod schemas)
 - Rate limiting enabled
 - SQL injection protection (Prisma)
 

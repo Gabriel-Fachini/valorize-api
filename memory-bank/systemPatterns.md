@@ -28,7 +28,7 @@ feature/
 ├── feature.model.ts     # Entidade + Repository methods
 ├── feature.service.ts   # Business logic
 ├── feature.routes.ts    # HTTP endpoints
-├── feature.schemas.ts   # Validações Zod
+├── feature.schemas.ts 
 └── feature.types.ts     # TypeScript types (quando necessário)
 ```
 

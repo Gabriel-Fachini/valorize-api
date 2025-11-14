@@ -3,7 +3,7 @@ import { Prize, PrizeVariant } from '@prisma/client'
 /**
  * Prize type (delivery format)
  */
-export type PrizeType = 'voucher' | 'physical'
+export type PrizeType = 'voucher' | 'product'
 
 /**
  * Prize sort/order options

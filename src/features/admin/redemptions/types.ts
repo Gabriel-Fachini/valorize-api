@@ -41,7 +41,7 @@ export interface BulkRedemptionResponse {
 export interface RedemptionListFilters {
   search?: string
   status?: string // Status filter as string, will be validated as RedemptionStatus
-  type?: 'voucher' | 'physical'
+  type?: 'voucher' | 'product'
   limit?: number
   offset?: number
 }
@@ -154,7 +154,7 @@ export interface StatusMetrics {
 }
 
 export interface TypeMetrics {
-  type: 'voucher' | 'physical'
+  type: 'voucher' | 'product'
   count: number
   percentage: number
   totalValueBRL: number
@@ -164,7 +164,7 @@ export interface TypeMetrics {
 export interface PrizeMetrics {
   prizeId: string
   prizeName: string
-  prizeType: 'voucher' | 'physical'
+  prizeType: 'voucher' | 'product'
   redemptionCount: number
   totalCoinsSpent: number
   totalValueBRL: number
@@ -182,7 +182,7 @@ export interface EngagementMetrics {
 export interface FinancialMetrics {
   totalCost: number
   voucherCost: number
-  physicalCost: number
+  productCost: number
   avgCostPerRedemption: number
   projectedMonthlyCost: number
 }

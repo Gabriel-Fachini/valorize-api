@@ -122,7 +122,6 @@ For detailed instructions on deploying to Google Cloud Platform using Cloud Run:
 - **ORM**: Prisma
 - **Authentication**: Auth0
 - **Testing**: Vitest
-- **Validation**: Zod
 
 ## 📁 Project Structure
 

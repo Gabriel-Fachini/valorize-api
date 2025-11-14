@@ -292,7 +292,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
         const filters = {
           search: search as string | undefined,
           status: status as string | undefined,
-          type: type as 'voucher' | 'physical' | undefined,
+          type: type as 'voucher' | 'product' | undefined,
           limit: limit ? Number(limit) : 20,
           offset: offset ? Number(offset) : 0,
         }

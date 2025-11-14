@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { Prisma } from '@prisma/client'
-import { PHYSICAL_PRODUCT_STATUS, NON_CANCELABLE_STATUSES, type RedemptionStatus } from '@/features/prizes/redemptions/redemption.constants'
+import { PRODUCT_STATUS, NON_CANCELABLE_STATUSES, type RedemptionStatus } from '@/features/prizes/redemptions/redemption.constants'
 import type {
   RedemptionListFilters,
   RedemptionListItem,
@@ -469,7 +469,7 @@ export const adminRedemptionsService = {
         })
 
         // 5. Restore prize stock if applicable
-        if (redemption.prize.type === 'physical' && redemption.prize.stock) {
+        if (redemption.prize.type === 'product' && redemption.prize.stock) {
           await tx.prize.update({
             where: { id: redemption.prizeId },
             data: {
@@ -483,7 +483,7 @@ export const adminRedemptionsService = {
         // 6. Update redemption status
         await tx.redemption.update({
           where: { id: redemptionId },
-          data: { status: PHYSICAL_PRODUCT_STATUS.CANCELLED },
+          data: { status: PRODUCT_STATUS.CANCELLED },
         })
 
         // 7. Create final tracking entry
@@ -491,7 +491,7 @@ export const adminRedemptionsService = {
           data: {
             id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             redemptionId,
-            status: PHYSICAL_PRODUCT_STATUS.CANCELLED,
+            status: PRODUCT_STATUS.CANCELLED,
             notes: `Cancelled by admin. Reason: ${reason ?? 'No reason provided'}. Refunded ${coinsToRefund} coins and R$ ${budgetToRefund.toFixed(2)}`,
             createdBy: adminUserId,
           },

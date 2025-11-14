@@ -9,7 +9,7 @@ import { VoucherProviderFactory } from '@/lib/voucher-providers'
 import { COIN_TO_BRL_RATE } from '@/features/economy/economy.constants'
 import {
   VOUCHER_STATUS,
-  PHYSICAL_PRODUCT_STATUS,
+  PRODUCT_STATUS,
   NON_CANCELABLE_STATUSES,
 } from './redemption.constants'
 
@@ -146,7 +146,7 @@ export const redemptionService = {
       // 2. Validar endereço (obrigatório apenas para produtos físicos)
       if (!isVoucher) {
         if (!addressId) {
-          throw new Error('Address is required for physical products')
+          throw new Error('Address is required for product prizes')
         }
 
         const address = await AddressModel.findById(addressId)
@@ -377,7 +377,7 @@ export const redemptionService = {
         await RedemptionTrackingModel.create(
           {
             redemptionId: redemption.id,
-            status: PHYSICAL_PRODUCT_STATUS.PENDING,
+            status: PRODUCT_STATUS.PENDING,
             notes: 'Resgate realizado com sucesso',
             createdBy: userId,
           },
@@ -459,14 +459,14 @@ export const redemptionService = {
       // 3. Atualizar status da redemption
       await tx.redemption.update({
         where: { id: redemptionId },
-        data: { status: PHYSICAL_PRODUCT_STATUS.CANCELLED },
+        data: { status: PRODUCT_STATUS.CANCELLED },
       })
 
       // 4. Criar tracking de cancelamento
       await RedemptionTrackingModel.create(
         {
           redemptionId,
-          status: PHYSICAL_PRODUCT_STATUS.CANCELLED,
+          status: PRODUCT_STATUS.CANCELLED,
           notes: reason ?? 'Cancelled by user',
           createdBy: userId,
         },
@@ -794,7 +794,7 @@ export const redemptionService = {
         await RedemptionTrackingModel.create(
           {
             redemptionId: redemption.id,
-            status: PHYSICAL_PRODUCT_STATUS.PROCESSING,
+            status: PRODUCT_STATUS.PROCESSING,
             notes: 'Voucher administrativo - empresa pagou, aguardando criação',
             createdBy: item.userId,
           },

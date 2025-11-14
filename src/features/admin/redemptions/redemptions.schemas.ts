@@ -96,7 +96,7 @@ export const listRedemptionsQuerySchema = {
       },
       type: {
         type: 'string',
-        enum: ['voucher', 'physical'],
+        enum: ['voucher', 'product'],
         description: 'Filter by prize type',
       },
       limit: {
