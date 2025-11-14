@@ -6,6 +6,7 @@
  *
  * Structure:
  * - /admin/dashboard/*         - Dashboard and analytics routes
+ * - /admin/compliments-dashboard/* - Comprehensive compliments analytics (core feature)
  * - /admin/roles/*             - Role and permission management (CRUD)
  * - /admin/users/*             - User management and CSV import
  * - /admin/company/info        - Company basic information
@@ -35,6 +36,18 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       await fastify.register(dashboardRoutes)
     },
     { prefix: '/dashboard' },
+  )
+
+  // Compliments Dashboard routes - /admin/compliments-dashboard/*
+  // Comprehensive analytics for the core compliments feature
+  await fastify.register(
+    async function (fastify) {
+      const { default: complimentsDashboardRoutes } = await import(
+        '@/features/admin/compliments-dashboard/compliments-dashboard.routes'
+      )
+      await fastify.register(complimentsDashboardRoutes)
+    },
+    { prefix: '/compliments-dashboard' },
   )
 
   // Roles Management routes - /admin/roles/* (full CRUD for roles and permissions + admin's own permissions)
