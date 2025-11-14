@@ -312,7 +312,7 @@ const userRoutes = async (
     },
   }, async (request, reply) => {
     const user = await getCurrentUser(request)
-    const { rbacService } = await import('@/features/rbac/rbac.service')
+    const { rbacService } = await import('@/features/app/rbac/rbac.service')
 
     try {
       const result = await rbacService.getUserPermissions(user.auth0Id as string)

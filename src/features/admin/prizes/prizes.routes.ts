@@ -1,12 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { requirePermission } from '@/middleware/rbac'
-import { PERMISSION } from '@/features/rbac/permissions.constants'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { getAuth0Id } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { prizesService } from './prizes.service'
 import { supabaseStorageService } from '@/lib/storage/supabase-storage.service'
-import { rbacService } from '@/features/rbac/rbac.service'
+import { rbacService } from '@/features/app/rbac/rbac.service'
 import { InsufficientPermissionError } from '@/middleware/error-handler'
 import type {
   CreatePrizeRequest,

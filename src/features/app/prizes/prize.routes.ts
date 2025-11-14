@@ -84,7 +84,7 @@ export default async function prizeRoutes(fastify: FastifyInstance) {
   )
 
   // GET /prizes/categories - Get available categories
-  fastify.get('/categories', async (request, reply) => {
+  fastify.get('/prizes/categories', async (request, reply) => {
     const currentUser = getCurrentUser(request)
     const user = await User.findByAuth0Id(currentUser.sub)
 

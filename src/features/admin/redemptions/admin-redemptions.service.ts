@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { Prisma } from '@prisma/client'
-import { PRODUCT_STATUS, NON_CANCELABLE_STATUSES, type RedemptionStatus } from '@/features/prizes/redemptions/redemption.constants'
+import { PRODUCT_STATUS, NON_CANCELABLE_STATUSES, type RedemptionStatus } from '@/features/app/prizes/redemptions/redemption.constants'
 import type {
   RedemptionListFilters,
   RedemptionListItem,

@@ -7,7 +7,7 @@ import {
   dashboardStatsSchema,
   DashboardStatsQuery,
 } from './dashboard.schemas'
-import { PERMISSION } from '@/features/rbac/permissions.constants'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { departmentService } from '../departments/department.service'
 import { jobTitleService } from '../job-titles/job-title.service'
 
@@ -153,7 +153,7 @@ export default async function dashboardRoutes(fastify: FastifyInstance) {
   await fastify.register(
     async function (fastify) {
       const { default: economyDashboardRoutes } = await import(
-        '@/features/dashboard/economy.routes'
+        '@/features/app/dashboard/economy.routes'
       )
       await fastify.register(economyDashboardRoutes)
     },

@@ -6,7 +6,7 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { ValidationError } from '@/middleware/error-handler'
-import { authService } from '@/features/auth/auth.service'
+import { authService } from '@/features/app/auth/auth.service'
 import type {
   CSVRow,
   CSVRowError,

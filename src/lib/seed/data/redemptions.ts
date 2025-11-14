@@ -5,7 +5,7 @@
  * Redemption rate: ~40% of distributed coins (80k / 200k)
  */
 
-import { PHYSICAL_PRODUCT_STATUS } from '@/features/prizes/redemptions/redemption.constants'
+import { PHYSICAL_PRODUCT_STATUS } from '@/features/app/prizes/redemptions/redemption.constants'
 
 /**
  * Prize types for distribution

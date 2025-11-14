@@ -2,11 +2,11 @@ import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/database'
 import { RedemptionModel } from './redemption.model'
 import { RedemptionTrackingModel } from './redemption-tracking.model'
-import { WalletModel } from '@/features/wallets/wallet.model'
-import { CompanyWalletModel } from '@/features/wallets/company-wallet.model'
-import { AddressModel } from '@/features/addresses/address.model'
+import { WalletModel } from '@/features/app/wallets/wallet.model'
+import { CompanyWalletModel } from '@/features/app/wallets/company-wallet.model'
+import { AddressModel } from '@/features/app/addresses/address.model'
 import { VoucherProviderFactory } from '@/lib/voucher-providers'
-import { COIN_TO_BRL_RATE } from '@/features/economy/economy.constants'
+import { COIN_TO_BRL_RATE } from '@/features/app/economy/economy.constants'
 import {
   VOUCHER_STATUS,
   PRODUCT_STATUS,

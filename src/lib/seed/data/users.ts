@@ -2,7 +2,7 @@
  * User seed data with role assignments
  */
 
-import { ROLE } from '@/features/rbac/roles.constants'
+import { ROLE } from '@/features/app/rbac/roles.constants'
 
 export interface UserData {
   auth0Id: string

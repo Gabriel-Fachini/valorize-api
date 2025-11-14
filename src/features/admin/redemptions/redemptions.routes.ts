@@ -3,11 +3,11 @@ import { getCurrentUser } from '@/middleware/auth'
 import { requirePermission } from '@/middleware/rbac'
 import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/database'
-import { User } from '@/features/users/user.model'
-import { redemptionService } from '@/features/prizes/redemptions/redemption.service'
+import { User } from '@/features/app/users/user.model'
+import { redemptionService } from '@/features/app/prizes/redemptions/redemption.service'
 import { adminRedemptionsService } from './admin-redemptions.service'
 import { redemptionsMetricsService } from './redemptions-metrics.service'
-import { PERMISSION } from '@/features/rbac/permissions.constants'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import {
   sendVoucherToUserSchema,
   bulkRedeemVouchersSchema,

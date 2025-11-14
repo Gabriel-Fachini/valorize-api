@@ -5,7 +5,7 @@
  * Import from @/features/rbac/permissions.constants instead.
  */
 
-import { ALL_PERMISSIONS } from '@/features/rbac/permissions.constants'
+import { ALL_PERMISSIONS } from '@/features/app/rbac/permissions.constants'
 
 /**
  * @deprecated Use PermissionDefinition from @/features/rbac/permissions.constants

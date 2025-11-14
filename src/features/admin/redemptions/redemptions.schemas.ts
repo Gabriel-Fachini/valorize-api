@@ -1,5 +1,5 @@
 // JSON Schema for Fastify validation
-import { REDEMPTION_STATUS } from '@/features/prizes/redemptions/redemption.constants'
+import { REDEMPTION_STATUS } from '@/features/app/prizes/redemptions/redemption.constants'
 
 const STATUS_VALUES = Object.values(REDEMPTION_STATUS)
 

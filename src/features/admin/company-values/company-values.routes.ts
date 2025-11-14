@@ -16,7 +16,7 @@ import {
   deleteCompanyValueSchema,
 } from './company-values.schemas'
 import { requirePermission } from '@/middleware/rbac'
-import { PERMISSION } from '@/features/rbac/permissions.constants'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { getAuth0Id } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'

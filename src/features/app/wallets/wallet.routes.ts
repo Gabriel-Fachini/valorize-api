@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/middleware/auth'
 import { User } from '../users/user.model'
 import { walletService } from './wallet.service'
 import { BalanceType, TransactionType } from './wallet-transaction.model'
-import { PERMISSION } from '@/features/rbac/permissions.constants'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 
 export default async function walletRoutes(fastify: FastifyInstance) {
   // Get user's wallet balance

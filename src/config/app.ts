@@ -170,7 +170,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Users module routes
   await app.register(
     async function (fastify) {
-      const { default: userRoutes } = await import('@/features/users/user.routes')
+      const { default: userRoutes } = await import('@/features/app/users/user.routes')
       await fastify.register(userRoutes)
     },
     { prefix: '/users' },
@@ -179,7 +179,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Addresses module routes
   await app.register(
     async function (fastify) {
-      const { default: addressRoutes } = await import('@/features/addresses/address.routes')
+      const { default: addressRoutes } = await import('@/features/app/addresses/address.routes')
       await fastify.register(addressRoutes)
     },
     { prefix: '/addresses' },
@@ -188,7 +188,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Auth module routes
   await app.register(
     async function (fastify) {
-      const { default: authRoutes } = await import('@/features/auth/auth.routes')
+      const { default: authRoutes } = await import('@/features/app/auth/auth.routes')
       await fastify.register(authRoutes)
     },
     { prefix: '/auth' },
@@ -207,7 +207,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Companies module routes
   await app.register(
     async function (fastify) {
-      const { default: companyRoutes } = await import('@/features/companies/company.routes')
+      const { default: companyRoutes } = await import('@/features/app/companies/company.routes')
       await fastify.register(companyRoutes)
     },
     { prefix: '/companies' },
@@ -216,7 +216,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Job Titles module routes
   await app.register(
     async function (fastify) {
-      const { default: jobTitleRoutes } = await import('@/features/job-titles/job-title.routes')
+      const { default: jobTitleRoutes } = await import('@/features/app/job-titles/job-title.routes')
       await fastify.register(jobTitleRoutes)
     },
     { prefix: '/job-titles' },
@@ -226,7 +226,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Company Settings module routes
   await app.register(async function (fastify) {
     const { default: companySettingsRoutes } = await import(
-      '@/features/company-settings/settings/settings.routes'
+      '@/features/app/company-settings/settings/settings.routes'
     )
     await fastify.register(companySettingsRoutes)
   })
@@ -234,7 +234,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   // Company Values module routes
   await app.register(async function (fastify) {
     const { default: companyValuesRoutes } = await import(
-      '@/features/company-settings/values/values.routes'
+      '@/features/app/company-settings/values/values.routes'
     )
     await fastify.register(companyValuesRoutes)
   })
@@ -243,7 +243,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   await app.register(
     async function (fastify) {
       const { default: complimentRoutes } = await import(
-        '@/features/compliments/compliment.routes'
+        '@/features/app/compliments/compliment.routes'
       )
       await fastify.register(complimentRoutes)
     },
@@ -254,7 +254,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   await app.register(
     async function (fastify) {
       const { default: walletRoutes } = await import(
-        '@/features/wallets/wallet.routes'
+        '@/features/app/wallets/wallet.routes'
       )
       await fastify.register(walletRoutes)
     },
@@ -265,7 +265,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   await app.register(
     async function (fastify) {
       const { default: prizeRoutes } = await import(
-        '@/features/prizes/prize.routes'
+        '@/features/app/prizes/prize.routes'
       )
       await fastify.register(prizeRoutes)
     },
@@ -276,7 +276,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   await app.register(
     async function (fastify) {
       const { default: redemptionRoutes } = await import(
-        '@/features/prizes/redemptions/redemption.routes'
+        '@/features/app/prizes/redemptions/redemption.routes'
       )
       await fastify.register(redemptionRoutes)
     },
@@ -287,7 +287,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   await app.register(
     async function (fastify) {
       const { default: tremendousWebhookRoutes } = await import(
-        '@/features/prizes/redemptions/tremendous-webhook.routes'
+        '@/features/app/prizes/redemptions/tremendous-webhook.routes'
       )
       await fastify.register(tremendousWebhookRoutes)
     },

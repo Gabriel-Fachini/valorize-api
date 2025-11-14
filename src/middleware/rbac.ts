@@ -17,7 +17,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { InsufficientPermissionError } from '@/middleware/error-handler'
 import { getCurrentUser } from '@/middleware/auth'
-import { rbacService } from '../features/rbac/rbac.service'
+import { rbacService } from '../features/app/rbac/rbac.service'
 import { logger } from '@/lib/logger'
 
 /**

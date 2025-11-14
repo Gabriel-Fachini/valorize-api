@@ -17,7 +17,7 @@ import {
   PermissionsByCategory,
   ListRolesQuery,
 } from './types'
-import { ALL_PERMISSIONS, getPermissionsByCategory, getAllCategories } from '@/features/rbac/permissions.constants'
+import { ALL_PERMISSIONS, getPermissionsByCategory, getAllCategories } from '@/features/app/rbac/permissions.constants'
 
 /**
  * Service for managing roles and permissions

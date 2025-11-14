@@ -7,7 +7,7 @@
 
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
-import { BRL_TO_COIN_RATE } from '@/features/economy/economy.constants'
+import { BRL_TO_COIN_RATE } from '@/features/app/economy/economy.constants'
 
 export interface CreateVoucherPrizeDTO {
   provider: string

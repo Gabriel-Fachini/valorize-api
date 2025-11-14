@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
-import { User } from '@/features/users/user.model'
+import { User } from '@/features/app/users/user.model'
 import { redemptionService } from './redemption.service'
 import {
   redeemPrizeSchema,

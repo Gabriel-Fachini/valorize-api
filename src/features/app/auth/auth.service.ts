@@ -6,7 +6,7 @@ import { User } from '../users/user.model'
 import { prisma } from '@/lib/database'
 import { rbacService } from '../rbac/rbac.service'
 import { demoDataService } from '@/lib/seed/demo-data.service'
-import { PERMISSION } from '@/features/rbac/permissions.constants'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 
 export interface LoginRequest {
   email: string

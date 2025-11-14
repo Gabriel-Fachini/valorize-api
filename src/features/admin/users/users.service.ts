@@ -6,7 +6,7 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { NotFoundError, ConflictError, ValidationError } from '@/middleware/error-handler'
-import { authService } from '@/features/auth/auth.service'
+import { authService } from '@/features/app/auth/auth.service'
 import { companyDomainsService } from '@/features/admin/company-domains/company-domains.service'
 import type {
   UserListItem,

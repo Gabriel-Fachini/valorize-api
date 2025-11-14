@@ -12,7 +12,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { rolesManagementService } from './roles-management.service'
 import { requirePermission } from '@/middleware/rbac'
-import { PERMISSION } from '@/features/rbac/permissions.constants'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { getAuth0Id } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
@@ -67,7 +67,7 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const auth0Id = getAuth0Id(request)
-      const { rbacService } = await import('@/features/rbac/rbac.service')
+      const { rbacService } = await import('@/features/app/rbac/rbac.service')
 
       const userPermissions = await rbacService.getUserPermissions(auth0Id)
 

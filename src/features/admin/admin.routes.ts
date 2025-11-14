@@ -31,7 +31,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   await fastify.register(
     async function (fastify) {
       const { default: dashboardRoutes } = await import(
-        '@/features/dashboard/dashboard.routes'
+        '@/features/app/dashboard/dashboard.routes'
       )
       await fastify.register(dashboardRoutes)
     },
@@ -120,7 +120,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   await fastify.register(
     async function (fastify) {
       const { default: voucherProductRoutes } = await import(
-        '@/features/prizes/vouchers/voucher-product.routes'
+        '@/features/app/prizes/vouchers/voucher-product.routes'
       )
       await fastify.register(voucherProductRoutes)
     },

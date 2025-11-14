@@ -5,7 +5,7 @@
  * Import from @/features/rbac/roles.constants instead.
  */
 
-import { ALL_ROLES } from '@/features/rbac/roles.constants'
+import { ALL_ROLES } from '@/features/app/rbac/roles.constants'
 
 /**
  * @deprecated Use RoleDefinition from @/features/rbac/roles.constants
