@@ -13,7 +13,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
 import { logger } from '@/lib/logger'
-import { User } from '@/features/app/users/users.model'
+import { User } from '@/features/app/users/user.model'
 import { prisma } from '@/lib/database'
 
 /**
