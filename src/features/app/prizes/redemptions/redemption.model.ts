@@ -139,6 +139,8 @@ export class RedemptionModel {
                   name: true,
                   images: true,
                   category: true,
+                  type: true,
+                  description: true,
                 },
               },
               variant: {

@@ -256,7 +256,7 @@ export const redemptionService = {
         tx,
       )
 
-      // 8. Se for voucher, criar DIRETO (síncrono)
+      // 8. Se for voucher, criar DIRETO (síncrono) e enviar via email
       if (isVoucher) {
         // Validar campos obrigatórios do voucher
         const voucherPrize = (prize as any).voucherPrize
@@ -275,16 +275,17 @@ export const redemptionService = {
         }
 
         try {
-          logger.info('[RedemptionService] Creating voucher synchronously', {
+          logger.info('[RedemptionService] Creating voucher and sending via email', {
             redemptionId: redemption.id,
             provider: voucherPrize.provider,
             productId: voucherPrize.externalId,
+            recipientEmail: user.email,
           })
 
           // Criar voucher via provider
           const voucherProvider = VoucherProviderFactory.create(voucherPrize.provider)
 
-          const voucherResult = await voucherProvider.createVoucher({
+          const voucherResult = await voucherProvider.createVoucherViaEmail({
             externalId: redemption.id, // Usar redemptionId para idempotência
             productId: voucherPrize.externalId,
             amount: voucherPrize.minValue.toNumber(),
@@ -296,10 +297,11 @@ export const redemptionService = {
             campaignId,
           })
 
-          logger.info('[RedemptionService] Voucher created successfully', {
+          logger.info('[RedemptionService] Voucher created and email sent successfully', {
             redemptionId: redemption.id,
             orderId: voucherResult.orderId,
             voucherLink: voucherResult.link,
+            recipientEmail: user.email,
           })
 
           // Criar registro na tabela VoucherRedemption

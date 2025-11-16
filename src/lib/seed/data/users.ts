@@ -16,6 +16,17 @@ export interface UserData {
 }
 
 export const DEMO_USERS: UserData[] = [
+  // Valorize HQ users (backoffice team)
+  {
+    auth0Id: 'auth0|valorize-hq-super-admin',
+    email: 'admin@valorize.com.br',
+    name: 'Valorize Admin',
+    avatarUrl: 'https://i.pravatar.cc/150?img=99&u=admin@valorize.com.br',
+    companyId: 'valorize-hq-000',
+    roles: [ROLE.SUPER_ADMIN],
+    jobTitleName: 'Product Manager',
+    departmentName: 'Product',
+  },
   // Valorize Corp users
   {
     auth0Id: 'auth0|688aa3e7f3f1dbd119c3b600',

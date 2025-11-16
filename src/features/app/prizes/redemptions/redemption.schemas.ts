@@ -14,10 +14,10 @@ export const redeemPrizeSchema = {
       },
       addressId: {
         type: 'string',
-        description: 'Address ID for delivery (must be owned by the user)',
+        description: 'Address ID for delivery (required only for product prizes, optional for vouchers)',
       },
     },
-    required: ['prizeId', 'addressId'],
+    required: ['prizeId'],
     additionalProperties: false,
   },
 }

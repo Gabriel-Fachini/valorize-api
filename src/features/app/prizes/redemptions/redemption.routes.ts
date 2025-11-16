@@ -41,6 +41,7 @@ export default async function redemptionRoutes(fastify: FastifyInstance) {
           prizeId: request.body.prizeId,
           variantId: request.body.variantId,
           addressId: request.body.addressId,
+          campaignId: process.env.TREMENDOUS_CAMPAIGN_ID,
         })
 
         return reply.code(201).send({

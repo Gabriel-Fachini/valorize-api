@@ -14,6 +14,7 @@ const PUBLIC_ROUTES = [
   '/auth/refresh-info',
   '/auth/admin/login',
   '/auth/signup',
+  '/backoffice/auth/login', // Backoffice login for Super Admins from Valorize HQ
   '/webhooks',             // Webhook endpoints from external providers (Tremendous, etc)
 ]
 

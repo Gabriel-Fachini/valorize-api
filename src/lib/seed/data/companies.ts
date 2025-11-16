@@ -26,6 +26,25 @@ export interface CompanyData {
 
 export const DEMO_COMPANIES: CompanyData[] = [
   {
+    id: 'valorize-hq-000',
+    name: 'Valorize HQ',
+    domain: 'valorize.com.br',
+    country: 'BR',
+    timezone: 'America/Sao_Paulo',
+    brazilData: {
+      cnpj: '00000000000191', // Fictitious CNPJ for Valorize HQ (backoffice company)
+      razaoSocial: 'Valorize Tecnologia e Cultura Empresarial Ltda',
+      inscricaoEstadual: '000000000',
+      inscricaoMunicipal: '000000000',
+      nire: '35300000000',
+      cnaePrincipal: '6201-5/00', // Desenvolvimento de software sob encomenda
+      cnaeSecundario: '6202-3/00, 6203-1/00',
+      naturezaJuridica: 'Sociedade Empresária Limitada',
+      porteEmpresa: 'Empresa de Pequeno Porte',
+      situacaoCadastral: 'Ativa',
+    },
+  },
+  {
     id: 'demo-company-001',
     name: 'Valorize Corp',
     domain: 'valorize.com',

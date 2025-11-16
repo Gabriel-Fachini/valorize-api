@@ -21,6 +21,8 @@ export default async function prizeRoutes(fastify: FastifyInstance) {
         Querystring: {
           category?: string
           type?: string
+          search?: string
+          sortBy?: 'popular' | 'most_redeemed' | 'price_asc' | 'price_desc'
           minPrice?: number
           maxPrice?: number
         }
@@ -84,7 +86,7 @@ export default async function prizeRoutes(fastify: FastifyInstance) {
   )
 
   // GET /prizes/categories - Get available categories
-  fastify.get('/prizes/categories', async (request, reply) => {
+  fastify.get('/categories', async (request, reply) => {
     const currentUser = getCurrentUser(request)
     const user = await User.findByAuth0Id(currentUser.sub)
 

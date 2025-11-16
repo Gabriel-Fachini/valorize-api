@@ -7,6 +7,8 @@ export const prizeService = {
     filters?: {
       category?: string
       type?: string
+      search?: string
+      sortBy?: 'popular' | 'most_redeemed' | 'price_asc' | 'price_desc'
       minPrice?: number
       maxPrice?: number
     },

@@ -204,6 +204,16 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     { prefix: '/admin' },
   )
 
+  // Backoffice routes - Valorize internal team management (Super Admins only)
+  // Includes: companies management, cross-company analytics, global prizes, etc.
+  await app.register(
+    async function (fastify) {
+      const { backofficeRoutes } = await import('@/features/backoffice/backoffice.routes')
+      await fastify.register(backofficeRoutes)
+    },
+    { prefix: '/backoffice' },
+  )
+
   // Companies module routes
   await app.register(
     async function (fastify) {

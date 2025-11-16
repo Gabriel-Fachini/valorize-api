@@ -46,6 +46,8 @@ export const prizeRepository = {
     filters?: {
       type?: string
       category?: string
+      search?: string
+      sortBy?: 'popular' | 'most_redeemed' | 'price_asc' | 'price_desc'
       minPrice?: number
       maxPrice?: number
     },
@@ -65,6 +67,29 @@ export const prizeRepository = {
         where.category = filters.category
       }
 
+      // Search filter - searches in name and description
+      if (filters?.search) {
+        where.AND = [
+          {
+            OR: [
+              {
+                name: {
+                  contains: filters.search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                description: {
+                  contains: filters.search,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          },
+        ]
+      }
+
+      // Price range filter
       if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
         where.coinPrice = {}
         if (filters?.minPrice !== undefined) {
@@ -75,10 +100,26 @@ export const prizeRepository = {
         }
       }
 
+      // Determine sort order
+      let orderBy: Prisma.PrizeOrderByWithRelationInput | Prisma.PrizeOrderByWithRelationInput[] = { createdAt: 'desc' }
+
+      if (filters?.sortBy === 'price_asc') {
+        orderBy = { coinPrice: 'asc' }
+      } else if (filters?.sortBy === 'price_desc') {
+        orderBy = { coinPrice: 'desc' }
+      } else if (filters?.sortBy === 'most_redeemed') {
+        orderBy = {
+          redemptions: {
+            _count: 'desc'
+          }
+        }
+      }
+      // 'popular' uses default createdAt desc
+
       const prizes = await prisma.prize.findMany({
         where,
         include: PRIZE_INCLUDES,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
       })
 
       return prizes.map((prize) => new PrizeModel(prize))
