@@ -86,8 +86,23 @@ export const backofficeCompanyService = {
       ? company.plan[0] || null
       : company.plan || null
 
+    // Return only the fields that match CompanyDetails interface
+    // Exclude 'users' and 'values' which are only used for calculations
     return {
-      ...company,
+      id: company.id,
+      name: company.name,
+      domain: company.domain,
+      country: company.country,
+      timezone: company.timezone,
+      logoUrl: company.logoUrl,
+      billingEmail: company.billingEmail,
+      isActive: company.isActive,
+      createdAt: company.createdAt,
+      updatedAt: company.updatedAt,
+      companyBrazil: company.companyBrazil || undefined,
+      contacts: company.contacts,
+      settings: company.settings || undefined,
+      allowedDomains: company.allowedDomains,
       wallet,
       plan: activePlan,
       metrics,

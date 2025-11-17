@@ -80,12 +80,12 @@ export const requireSuperAdmin = () => {
       }
 
       // Check if user belongs to Valorize HQ company
-      const isValorizeHQ = user.company?.name === 'Valorize HQ'
+      const isValorizeHQ = user.companyId === 'valorize-hq-000'
 
       if (!isValorizeHQ) {
         logger.warn('Backoffice access denied: User not from Valorize HQ', {
           userId: user.id,
-          companyName: user.company?.name,
+          companyId: user.companyId,
         })
         throw new BackofficeAccessDeniedError(
           'Access restricted to Valorize backoffice team',
@@ -116,7 +116,7 @@ export const requireSuperAdmin = () => {
       logger.info('Backoffice access granted', {
         userId: user.id,
         email: user.email,
-        company: user.company?.name,
+        companyId: user.companyId,
       })
     } catch (error) {
       if (error instanceof BackofficeAccessDeniedError) {

@@ -105,7 +105,10 @@ export const getCompanySchema: FastifySchema = {
       type: 'object',
       properties: {
         success: { type: 'boolean' },
-        data: { type: 'object' }, // Full company details
+        data: {
+          type: 'object',
+          additionalProperties: true, // Allow all company detail properties
+        },
       },
     },
     404: commonErrorResponse,
@@ -132,6 +135,14 @@ export const createCompanySchema: FastifySchema = {
       billingEmail: { type: 'string', format: 'email' },
       companyBrazil: {
         type: 'object',
+        required: [
+          'cnpj',
+          'razaoSocial',
+          'cnaePrincipal',
+          'naturezaJuridica',
+          'porteEmpresa',
+          'situacaoCadastral',
+        ],
         properties: {
           cnpj: { type: 'string', minLength: 14, maxLength: 14 },
           razaoSocial: { type: 'string', minLength: 2, maxLength: 200 },
@@ -216,6 +227,14 @@ export const updateCompanySchema: FastifySchema = {
       billingEmail: { type: 'string', format: 'email' },
       companyBrazil: {
         type: 'object',
+        required: [
+          'cnpj',
+          'razaoSocial',
+          'cnaePrincipal',
+          'naturezaJuridica',
+          'porteEmpresa',
+          'situacaoCadastral',
+        ],
         properties: {
           cnpj: { type: 'string', minLength: 14, maxLength: 14 },
           razaoSocial: { type: 'string', minLength: 2, maxLength: 200 },

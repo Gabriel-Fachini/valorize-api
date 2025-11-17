@@ -84,27 +84,25 @@ export const errorHandler = async (
     requestId,
     method,
     url,
-    error: {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-    },
+    errorName: error.name,
+    errorMessage: error.message,
+    errorCode: error.code,
+    errorStack: error.stack,
   })
 
   // Handle Fastify validation errors
   if (error.validation) {
+    // Extract friendly validation message
+    const validationMessage = error.message || 'Request validation failed'
+
     return reply.code(400).send({
       success: false,
-      error: {
-        message: 'Request validation failed',
-        code: 'VALIDATION_ERROR',
-        details: error.validation,
-      },
-      meta: {
-        requestId,
-        timestamp: new Date().toISOString(),
-      },
+      error: 'Bad Request',
+      message: validationMessage,
+      statusCode: 400,
+      code: 'VALIDATION_ERROR',
+      details: error.validation,
+      requestId,
     })
   }
 

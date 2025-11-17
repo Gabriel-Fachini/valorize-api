@@ -31,7 +31,7 @@ import { User } from '@/features/app/users/user.model'
  */
 export const backofficeCompaniesRoutes = async (
   fastify: FastifyInstance,
-  _options: FastifyPluginOptions
+  _options: FastifyPluginOptions,
 ) => {
   /**
    * GET /backoffice/companies
@@ -174,9 +174,12 @@ export const backofficeCompaniesRoutes = async (
         })
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Failed to create company'
+          error instanceof Error ? error.message : String(error)
 
-        logger.error('Failed to create company', { error })
+        logger.error('Failed to create company', {
+          error: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+        })
 
         // Handle specific validation errors
         if (
@@ -204,7 +207,7 @@ export const backofficeCompaniesRoutes = async (
         return reply.code(500).send({
           success: false,
           error: 'Internal Server Error',
-          message: 'Failed to create company',
+          message: errorMessage, // Return the actual error message instead of generic one
         })
       }
     }
