@@ -33,6 +33,15 @@ export enum AuditAction {
   // Plan management
   PLAN_CHANGE = 'PLAN_CHANGE',
 
+  // Financial management
+  CHARGE_CREATE = 'CHARGE_CREATE',
+  CHARGE_UPDATE = 'CHARGE_UPDATE',
+  CHARGE_DELETE = 'CHARGE_DELETE',
+  CHARGE_CANCEL = 'CHARGE_CANCEL',
+  CHARGE_PAYMENT_REGISTER = 'CHARGE_PAYMENT_REGISTER',
+  CHARGE_ATTACHMENT_UPLOAD = 'CHARGE_ATTACHMENT_UPLOAD',
+  CHARGE_ATTACHMENT_DELETE = 'CHARGE_ATTACHMENT_DELETE',
+
   // Impersonation (future)
   IMPERSONATE = 'IMPERSONATE',
   IMPERSONATE_END = 'IMPERSONATE_END',
@@ -49,6 +58,9 @@ export enum AuditEntityType {
   COMPANY_CONTACT = 'CompanyContact',
   COMPANY_PLAN = 'CompanyPlan',
   ALLOWED_DOMAIN = 'AllowedDomain',
+  CHARGE = 'Charge',
+  CHARGE_ATTACHMENT = 'ChargeAttachment',
+  CHARGE_PAYMENT = 'ChargePayment',
 }
 
 /**
@@ -59,6 +71,7 @@ export interface AuditLogParams {
   action: AuditAction
   entityType: AuditEntityType
   entityId: string
+  companyId?: string
   changes?: Record<string, { before: any; after: any }>
   metadata?: Record<string, any>
 }
@@ -94,7 +107,7 @@ export const auditLogger = {
    * ```
    */
   async log(params: AuditLogParams): Promise<void> {
-    const { userId, action, entityType, entityId, changes, metadata } = params
+    const { userId, action, entityType, entityId, companyId, changes, metadata } = params
 
     try {
       await prisma.auditLog.create({
@@ -103,6 +116,7 @@ export const auditLogger = {
           action,
           entityType,
           entityId,
+          companyId,
           changes: changes as Prisma.InputJsonValue,
           metadata: metadata as Prisma.InputJsonValue,
         },

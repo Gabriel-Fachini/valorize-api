@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger'
 import { authService, LoginRequest, LoginResponse } from '@/features/app/auth/auth.service'
 import { User } from '@/features/app/users/user.model'
+import { Company } from '@/features/app/companies/company.model'
 import { rbacService } from '@/features/app/rbac/rbac.service'
 import { prisma } from '@/lib/database'
 
@@ -75,24 +76,27 @@ export const backofficeAuthService = {
         )
       }
 
-      // Step 6: Get user permissions for response
+      // Step 6: Get company information
+      const company = await Company.findById(user.companyId)
+
+      // Step 7: Get user permissions for response
       const userPermissions = await rbacService.getUserPermissions(loginResult.user_info.sub)
 
       logger.info('Backoffice login successful', {
         email: credentials.email,
         userId: user.id,
         auth0Id: loginResult.user_info.sub,
-        company: user.company?.name,
+        company: company?.name,
         roles: userPermissions.roles.map((role) => role.name),
         permissionsCount: userPermissions.permissions.length,
       })
 
-      // Step 7: Return login response with additional backoffice info
+      // Step 8: Return login response with additional backoffice info
       return {
         ...loginResult,
         user_info: {
           ...loginResult.user_info,
-          companyName: user.company?.name,
+          companyName: company?.name,
         },
       }
     } catch (error) {
@@ -159,6 +163,9 @@ export const backofficeAuthService = {
         )
       }
 
+      // Get company information
+      const company = await Company.findById(user.companyId)
+
       // Get user permissions
       const userPermissions = await rbacService.getUserPermissions(auth0Id)
 
@@ -166,7 +173,7 @@ export const backofficeAuthService = {
         userId: user.id,
         auth0Id,
         email: user.email,
-        company: user.company?.name,
+        company: company?.name,
         roles: userPermissions.roles.map((role) => role.name),
       })
 
@@ -177,7 +184,7 @@ export const backofficeAuthService = {
           name: user.name,
           avatar: user.avatar,
           companyId: user.companyId,
-          companyName: user.company?.name,
+          companyName: company?.name,
           isActive: user.isActive,
           jobTitle: user.jobTitle ?? null,
           department: user.department ?? null,

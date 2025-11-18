@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { backofficeAuthRoutes } from './auth/backoffice-auth.routes'
 import { backofficeCompaniesRoutes } from './companies/companies.routes'
 import { backofficeAuditLogsRoutes } from './audit-logs/audit-logs.routes'
+import financialRoutes from './financial/financial.routes'
 
 /**
  * Backoffice Routes Aggregator
@@ -18,6 +19,9 @@ export async function backofficeRoutes(fastify: FastifyInstance) {
 
   // Audit logs routes (Super Admin only)
   await fastify.register(backofficeAuditLogsRoutes, { prefix: '/audit-logs' })
+
+  // Financial management routes (Super Admin only)
+  await fastify.register(financialRoutes, { prefix: '/financial' })
 
   // Future backoffice modules will be registered here:
   // await fastify.register(globalPrizesRoutes, { prefix: '/prizes' })
