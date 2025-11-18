@@ -25,8 +25,8 @@
 5. **Economy Dashboard**: Budget tracking, burn rate prediction, coverage index
 
 ### Pricing Model
-- **Essential Plan**: R$18/user/month (50-200 employees)
-- **Professional Plan**: R$14/user/month (200-1000 employees) ⭐ FOCUS
+- **Essential Plan**: R$14/user/month (50-200 employees)
+- **Professional Plan**: R$18/user/month (200-1000 employees) ⭐ FOCUS
 - No commission on vouchers (Tremendous is free)
 
 ## Technical Stack

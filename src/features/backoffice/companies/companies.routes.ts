@@ -12,6 +12,7 @@ import {
   getWalletStatusSchema,
   addWalletCreditsSchema,
   removeWalletCreditsSchema,
+  getPlanSchema,
   updatePlanSchema,
   getBillingInfoSchema,
   getMetricsSchema,
@@ -679,6 +680,44 @@ export const backofficeCompaniesRoutes = async (
           success: false,
           error: 'Internal Server Error',
           message: 'Failed to unfreeze wallet',
+        })
+      }
+    }
+  )
+
+  /**
+   * GET /backoffice/companies/:id/plan
+   *
+   * Get company current plan
+   */
+  fastify.get(
+    '/:id/plan',
+    {
+      preHandler: [requireSuperAdmin()],
+      schema: getPlanSchema,
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params as { id: string }
+
+        const plan = await backofficeCompanyService.getPlan(id)
+
+        logger.info('Company plan retrieved', {
+          companyId: id,
+          planType: plan.planType,
+        })
+
+        return reply.code(200).send({
+          success: true,
+          data: plan,
+        })
+      } catch (error) {
+        logger.error('Failed to get plan', { error })
+
+        return reply.code(500).send({
+          success: false,
+          error: 'Internal Server Error',
+          message: 'Failed to get plan',
         })
       }
     }

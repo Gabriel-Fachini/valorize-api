@@ -2,7 +2,9 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { economyDashboardService } from './economy.service'
 import { getEconomyDashboardSchema } from './economy.schemas'
 import { requirePermission } from '@/middleware/rbac'
+import { requireFeature } from '@/middleware/plan-guard'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
+import { PLAN_FEATURE } from '@/features/app/plans/plan-features.constants'
 import { getAuth0Id } from '@/middleware/auth'
 import { getCompanyIdFromUser } from '@/lib/utils/auth'
 import { logger } from '@/lib/logger'
@@ -44,11 +46,16 @@ export default async function economyDashboardRoutes(fastify: FastifyInstance) {
   /**
    * GET /admin/dashboard/economy/wallet-history
    * Get paginated wallet deposit history
+   *
+   * @requires PROFESSIONAL plan
    */
   fastify.get<{ Querystring: { limit?: string } }>(
     '/wallet-history',
     {
-      preHandler: [requirePermission(PERMISSION.ADMIN_VIEW_ANALYTICS)],
+      preHandler: [
+        requireFeature(PLAN_FEATURE.ECONOMY_WALLET_HISTORY),
+        requirePermission(PERMISSION.ADMIN_VIEW_ANALYTICS),
+      ],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {

@@ -3,7 +3,8 @@
 ## Test Results Summary
 
 ✅ **Service Layer**: Working perfectly - returns all data correctly
-❓ **HTTP Endpoint**: Needs testing with valid authentication token
+✅ **HTTP Endpoint Fix**: Schema updated with `additionalProperties: true`
+✅ **Endpoint Separation**: Confirmed - specialized endpoints exist and work independently
 
 ## Available Test Scripts
 
@@ -21,11 +22,32 @@ Tests the service layer directly, bypassing HTTP/auth.
 
 **Result**: ✅ WORKING - Returns full company details with all nested data.
 
-### 3. Test HTTP Endpoint (Auth required)
+### 3. Validate Fix (Comprehensive validation)
 ```bash
-# Set your Auth0 token and company ID
-AUTH0_TOKEN=your_token_here COMPANY_ID=cmi2fe3q70000tpvhw57spuo1 npx tsx utility-tests/test-backoffice-company-details.ts
+# Test both service layer and HTTP endpoint
+npx tsx utility-tests/validate-fix.ts
+
+# With Auth0 token for HTTP test
+AUTH0_TOKEN=your_token npx tsx utility-tests/validate-fix.ts
 ```
+
+Validates that the fix is working correctly by testing both service and HTTP layers.
+
+### 4. Validate Endpoint Separation (Auth required)
+```bash
+AUTH0_TOKEN=your_token npx tsx utility-tests/validate-endpoint-separation.ts
+```
+
+Comprehensive test that validates:
+- ✅ Full company details endpoint works correctly
+- ✅ Specialized wallet endpoint returns only wallet data
+- ✅ Specialized billing endpoint returns only billing data
+- ✅ Specialized metrics endpoint returns only metrics data
+- ✅ Data consistency across all endpoints
+
+**Result**: ✅ Endpoint separation is correct by design
+- Full details endpoint (`GET /:id`) provides complete overview
+- Specialized endpoints (`GET /:id/wallet`, `GET /:id/billing`, `GET /:id/metrics`) provide focused data
 
 ## How to Get an Auth0 Token
 
@@ -122,3 +144,34 @@ When the endpoint works correctly, it should return:
 - Issue is likely in authentication or HTTP layer
 - Check middleware configuration
 - Verify CORS settings if testing from browser
+
+## Endpoint Architecture
+
+The backoffice companies module has the following endpoint design:
+
+### Full Details Endpoint
+**GET /backoffice/companies/:id**
+- Returns complete company overview
+- Includes: basic info, wallet, plan, metrics, billing, contacts, domains
+- Use case: Dashboard summary, complete company view
+
+### Specialized Endpoints
+These provide focused data for specific management tasks:
+
+**GET /backoffice/companies/:id/wallet**
+- Returns ONLY wallet status
+- Use case: Wallet management operations
+
+**GET /backoffice/companies/:id/billing**
+- Returns ONLY billing information
+- Use case: Financial reporting, MRR tracking
+
+**GET /backoffice/companies/:id/metrics**
+- Returns ONLY company metrics
+- Use case: Analytics, engagement tracking
+
+### Why This Design?
+1. **Full details** for dashboard/overview screens
+2. **Specialized endpoints** for focused operations (reduces payload size)
+3. **Consistent data** - specialized endpoints return the same data as full details
+4. **Better performance** - clients can request only what they need

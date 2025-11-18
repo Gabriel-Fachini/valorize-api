@@ -26,8 +26,16 @@ enum RedemptionStatus {
 }
 
 enum PlanType {
-  ESSENTIAL // R$18/user/month (50-200 employees)
-  PROFESSIONAL // R$14/user/month (200-1000 employees)
+  ESSENTIAL // R$14/user/month (50-200 employees)
+  PROFESSIONAL // R$18/user/month (200-1000 employees)
+}
+
+enum ChargeStatus {
+  PENDING // Pendente
+  PAID // Paga
+  OVERDUE // Vencida
+  CANCELED // Cancelada
+  PARTIAL // Parcialmente paga
 }
 
 model User {
@@ -57,6 +65,10 @@ model User {
 
   redemptions Redemption[]
   addresses   Address[]
+
+  createdCharges             Charge[]           @relation("ChargeCreator")
+  chargeAttachmentsUploaded  ChargeAttachment[] @relation("AttachmentUploader")
+  chargePaymentsRegistered   ChargePayment[]    @relation("PaymentRegistrar")
 
   @@index([companyId])
   @@index([jobTitleId])
@@ -176,8 +188,9 @@ model Company {
   redemptions    Redemption[]
   allowedDomains AllowedDomain[] // Domínios permitidos para SSO
   wallet         CompanyWallet?
-  plan           CompanyPlan?
+  plans          CompanyPlan[] // One-to-many: empresa pode ter múltiplos planos (histórico)
   auditLogs      AuditLog[]
+  charges        Charge[]
 
   @@index([domain])
   @@index([country])
@@ -624,7 +637,7 @@ model TremendousWebhookLog {
 
 model CompanyPlan {
   id           String    @id @default(cuid())
-  companyId    String    @unique @map("company_id")
+  companyId    String    @map("company_id")
   planType     PlanType  @map("plan_type")
   pricePerUser Decimal   @map("price_per_user") @db.Decimal(10, 2)
   startDate    DateTime  @map("start_date")
@@ -677,4 +690,70 @@ model CompanyContactHistory {
   @@index([changedBy])
   @@index([changedAt])
   @@map("company_contact_history")
+}
+
+// ============================================================================
+// FINANCIAL MANAGEMENT - Tables for billing and payment tracking
+// ============================================================================
+
+model Charge {
+  id            String       @id @default(cuid())
+  companyId     String       @map("company_id")
+  amount        Decimal      @db.Decimal(10, 2)
+  description   String
+  dueDate       DateTime     @map("due_date")
+  issueDate     DateTime     @default(now()) @map("issue_date")
+  status        ChargeStatus @default(PENDING)
+  paymentMethod String?      @map("payment_method") // BOLETO, PIX, CREDIT_CARD
+  paidAt        DateTime?    @map("paid_at")
+  canceledAt    DateTime?    @map("canceled_at")
+  notes         String?      @db.Text
+  createdBy     String       @map("created_by") // Super Admin user ID
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdByUser   User               @relation("ChargeCreator", fields: [createdBy], references: [id])
+  attachments     ChargeAttachment[]
+  payments        ChargePayment[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([companyId, status])
+  @@map("charges")
+}
+
+model ChargeAttachment {
+  id         String   @id @default(cuid())
+  chargeId   String   @map("charge_id")
+  fileName   String   @map("file_name")
+  fileUrl    String   @map("file_url")
+  fileSize   Int      @map("file_size") // bytes
+  fileType   String   @map("file_type") // MIME type
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  charge         Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  uploadedByUser User   @relation("AttachmentUploader", fields: [uploadedBy], references: [id])
+
+  @@index([chargeId])
+  @@map("charge_attachments")
+}
+
+model ChargePayment {
+  id            String   @id @default(cuid())
+  chargeId      String   @map("charge_id")
+  amount        Decimal  @db.Decimal(10, 2)
+  paidAt        DateTime @map("paid_at")
+  paymentMethod String   @map("payment_method") // BOLETO, PIX, CREDIT_CARD
+  notes         String?  @db.Text
+  registeredBy  String   @map("registered_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  charge           Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  registeredByUser User   @relation("PaymentRegistrar", fields: [registeredBy], references: [id])
+
+  @@index([chargeId])
+  @@map("charge_payments")
 }

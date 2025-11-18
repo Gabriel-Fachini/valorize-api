@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
 import { requirePermission } from '@/middleware/rbac'
+import { checkPlanFeatureAccess } from '@/middleware/plan-guard'
 import { authService } from '../auth/auth.service'
 import { dashboardService } from './dashboard.service'
 import {
@@ -8,8 +9,10 @@ import {
   DashboardStatsQuery,
 } from './dashboard.schemas'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
+import { PLAN_FEATURE } from '@/features/app/plans/plan-features.constants'
 import { departmentService } from '../departments/department.service'
 import { jobTitleService } from '../job-titles/job-title.service'
+import { PlanRestrictionError } from '@/middleware/error-handler'
 
 /**
  * Dashboard routes for admin analytics and statistics
@@ -43,6 +46,26 @@ export default async function dashboardRoutes(fastify: FastifyInstance) {
 
       try {
         const { startDate, endDate, departmentId, jobTitleId } = request.query
+
+        // Check if user is trying to use advanced filters (PROFESSIONAL plan feature)
+        const isUsingAdvancedFilters = !!(departmentId || jobTitleId)
+
+        if (isUsingAdvancedFilters) {
+          // Validate plan access for advanced filters
+          const hasAccess = await checkPlanFeatureAccess(
+            request,
+            PLAN_FEATURE.DASHBOARD_ADVANCED_FILTERS,
+          )
+
+          if (!hasAccess) {
+            throw new PlanRestrictionError(
+              'PROFESSIONAL',
+              null, // Will be fetched by error handler if needed
+              'Advanced Dashboard Filters',
+              'Advanced filters (by department and job title) are available on the Professional plan. Upgrade to get deeper insights into your team dynamics.',
+            )
+          }
+        }
 
         // Get company ID efficiently without fetching full user object
         const companyId = await authService.getCompanyId(currentUser.sub)

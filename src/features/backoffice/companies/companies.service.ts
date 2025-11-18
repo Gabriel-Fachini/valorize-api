@@ -81,10 +81,8 @@ export const backofficeCompanyService = {
     // Get billing info
     const billing = await BackofficeCompany.getBillingInfo(companyId)
 
-    // Extract first active plan (Prisma returns array for one-to-many relations with where filter)
-    const activePlan = Array.isArray(company.plan)
-      ? company.plan[0] || null
-      : company.plan || null
+    // Extract first active plan (Prisma returns array for one-to-many relations)
+    const activePlan = company.plans[0] || null
 
     // Return only the fields that match CompanyDetails interface
     // Exclude 'users' and 'values' which are only used for calculations
@@ -140,8 +138,8 @@ export const backofficeCompanyService = {
 
     // Get default plan pricing
     const defaultPricing = {
-      ESSENTIAL: 18.0, // R$18/user/month
-      PROFESSIONAL: 14.0, // R$14/user/month
+      ESSENTIAL: 14.0, // R$14/user/month
+      PROFESSIONAL: 18.0, // R$18/user/month
     }
 
     const pricePerUser =
@@ -606,6 +604,33 @@ export const backofficeCompanyService = {
   },
 
   /**
+   * Get company current plan
+   */
+  async getPlan(companyId: string) {
+    const plan = await prisma.companyPlan.findFirst({
+      where: {
+        companyId,
+        isActive: true,
+      },
+    })
+
+    if (!plan) {
+      throw new Error('Company has no active plan')
+    }
+
+    return {
+      id: plan.id,
+      planType: plan.planType,
+      pricePerUser: Number(plan.pricePerUser),
+      startDate: plan.startDate,
+      endDate: plan.endDate,
+      isActive: plan.isActive,
+      createdAt: plan.createdAt,
+      updatedAt: plan.updatedAt,
+    }
+  },
+
+  /**
    * Update company plan
    */
   async updatePlan(
@@ -615,8 +640,8 @@ export const backofficeCompanyService = {
   ): Promise<void> {
     // Get default pricing if not provided
     const defaultPricing: Record<PlanType, number> = {
-      ESSENTIAL: 18.0,
-      PROFESSIONAL: 14.0,
+      ESSENTIAL: 14.0,
+      PROFESSIONAL: 18.0,
     }
 
     const pricePerUser = input.pricePerUser || defaultPricing[input.planType]

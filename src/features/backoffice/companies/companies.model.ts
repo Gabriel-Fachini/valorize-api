@@ -63,9 +63,11 @@ export class BackofficeCompany {
 
     // Filter by plan type
     if (planType) {
-      where.plan = {
-        planType,
-        isActive: true,
+      where.plans = {
+        some: {
+          planType,
+          isActive: true,
+        },
       }
     }
 
@@ -86,7 +88,7 @@ export class BackofficeCompany {
       prisma.company.findMany({
         where,
         include: {
-          plan: {
+          plans: {
             where: { isActive: true },
           },
           users: {
@@ -112,8 +114,10 @@ export class BackofficeCompany {
     const companyListItems: CompanyListItem[] = companies.map((company) => {
       const totalUsers = company.users.length
       const activeUsers = company.users.filter((u) => u.isActive).length
-      const pricePerUser = company.plan?.pricePerUser
-        ? Number(company.plan.pricePerUser)
+      // Get active plan (first element since we filter by isActive: true)
+      const activePlan = company.plans[0]
+      const pricePerUser = activePlan?.pricePerUser
+        ? Number(activePlan.pricePerUser)
         : 0
       const currentMRR = activeUsers * pricePerUser
 
@@ -123,7 +127,7 @@ export class BackofficeCompany {
         domain: company.domain,
         country: company.country,
         logoUrl: company.logoUrl,
-        planType: company.plan?.planType || null,
+        planType: activePlan?.planType || null,
         isActive: company.isActive,
         totalUsers,
         activeUsers,
@@ -163,7 +167,7 @@ export class BackofficeCompany {
         isActive: true,
       },
       include: {
-        plan: {
+        plans: {
           where: { isActive: true },
         },
         users: {
@@ -176,9 +180,10 @@ export class BackofficeCompany {
     let totalMRR = 0
 
     for (const company of companies) {
-      if (company.plan) {
+      const activePlan = company.plans[0]
+      if (activePlan) {
         const activeUsers = company.users.length
-        const pricePerUser = Number(company.plan.pricePerUser)
+        const pricePerUser = Number(activePlan.pricePerUser)
         totalMRR += activeUsers * pricePerUser
       }
     }
@@ -208,7 +213,7 @@ export class BackofficeCompany {
         },
         settings: true,
         wallet: true,
-        plan: {
+        plans: {
           where: { isActive: true },
         },
         allowedDomains: true,
@@ -436,7 +441,7 @@ export class BackofficeCompany {
     const company = await prisma.company.findUnique({
       where: { id: companyId },
       include: {
-        plan: {
+        plans: {
           where: { isActive: true },
         },
         users: {
@@ -448,14 +453,15 @@ export class BackofficeCompany {
 
     if (!company) return null
 
+    const activePlan = company.plans[0]
     const activeUsers = company.users.length
-    const pricePerUser = company.plan ? Number(company.plan.pricePerUser) : 0
+    const pricePerUser = activePlan ? Number(activePlan.pricePerUser) : 0
     const currentMRR = activeUsers * pricePerUser
 
     return {
       currentMRR,
       activeUsers,
-      planType: company.plan?.planType || null,
+      planType: activePlan?.planType || null,
       pricePerUser,
       estimatedMonthlyAmount: currentMRR,
       nextBillingDate: null, // Could be calculated based on plan startDate

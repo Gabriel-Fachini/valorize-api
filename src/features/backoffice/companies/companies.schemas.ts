@@ -309,7 +309,10 @@ export const getWalletStatusSchema: FastifySchema = {
       type: 'object',
       properties: {
         success: { type: 'boolean' },
-        data: { type: 'object' },
+        data: {
+          type: 'object',
+          additionalProperties: true, // Allow all wallet status properties
+        },
       },
     },
     404: commonErrorResponse,
@@ -389,6 +392,45 @@ export const removeWalletCreditsSchema: FastifySchema = {
 }
 
 /**
+ * Get company plan endpoint
+ */
+export const getPlanSchema: FastifySchema = {
+  tags: ['Backoffice', 'Companies', 'Billing'],
+  description: 'Get company current plan information',
+  security: [{ bearerAuth: [] }],
+  params: {
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: { type: 'string' },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            planType: { type: 'string', enum: ['ESSENTIAL', 'PROFESSIONAL'] },
+            pricePerUser: { type: 'number' },
+            startDate: { type: 'string', format: 'date-time' },
+            endDate: { type: ['string', 'null'], format: 'date-time' },
+            isActive: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
+    404: commonErrorResponse,
+    500: commonErrorResponse,
+  },
+}
+
+/**
  * Update company plan endpoint
  */
 export const updatePlanSchema: FastifySchema = {
@@ -443,7 +485,10 @@ export const getBillingInfoSchema: FastifySchema = {
       type: 'object',
       properties: {
         success: { type: 'boolean' },
-        data: { type: 'object' },
+        data: {
+          type: 'object',
+          additionalProperties: true, // Allow all billing info properties
+        },
       },
     },
     404: commonErrorResponse,
@@ -477,7 +522,10 @@ export const getMetricsSchema: FastifySchema = {
       type: 'object',
       properties: {
         success: { type: 'boolean' },
-        data: { type: 'object' },
+        data: {
+          type: 'object',
+          additionalProperties: true, // Allow all metrics properties
+        },
       },
     },
     404: commonErrorResponse,
