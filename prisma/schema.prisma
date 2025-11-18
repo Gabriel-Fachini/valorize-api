@@ -25,6 +25,19 @@ enum RedemptionStatus {
   REFUNDED
 }
 
+enum PlanType {
+  ESSENTIAL // R$14/user/month (50-200 employees)
+  PROFESSIONAL // R$18/user/month (200-1000 employees)
+}
+
+enum ChargeStatus {
+  PENDING // Pendente
+  PAID // Paga
+  OVERDUE // Vencida
+  CANCELED // Cancelada
+  PARTIAL // Parcialmente paga
+}
+
 model User {
   id           String   @id @default(cuid())
   auth0Id      String   @unique @map("auth0_id")
@@ -45,12 +58,17 @@ model User {
   companyContacts    CompanyContact[]
   wallet             Wallet?
   walletTransactions WalletTransaction[]
+  auditLogs          AuditLog[]
 
   complimentsSent     Compliment[] @relation("ComplimentSender")
   complimentsReceived Compliment[] @relation("ComplimentReceiver")
 
   redemptions Redemption[]
   addresses   Address[]
+
+  createdCharges             Charge[]           @relation("ChargeCreator")
+  chargeAttachmentsUploaded  ChargeAttachment[] @relation("AttachmentUploader")
+  chargePaymentsRegistered   ChargePayment[]    @relation("PaymentRegistrar")
 
   @@index([companyId])
   @@index([jobTitleId])
@@ -145,15 +163,16 @@ model RolePermission {
 }
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String // Nome fantasia
-  logoUrl   String?  @map("logo_url") // URL da logo da empresa
-  domain    String   @unique // Para verificação de email no login (domínio principal)
-  country   String   @default("BR") // Código do país
-  timezone  String   @default("America/Sao_Paulo")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(cuid())
+  name         String // Nome fantasia
+  logoUrl      String?  @map("logo_url") // URL da logo da empresa
+  domain       String   @unique // Para verificação de email no login (domínio principal)
+  country      String   @default("BR") // Código do país
+  timezone     String   @default("America/Sao_Paulo")
+  billingEmail String?  @map("billing_email") // Email para faturamento
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
   users          User[]
@@ -169,6 +188,9 @@ model Company {
   redemptions    Redemption[]
   allowedDomains AllowedDomain[] // Domínios permitidos para SSO
   wallet         CompanyWallet?
+  plans          CompanyPlan[] // One-to-many: empresa pode ter múltiplos planos (histórico)
+  auditLogs      AuditLog[]
+  charges        Charge[]
 
   @@index([domain])
   @@index([country])
@@ -208,8 +230,9 @@ model CompanyContact {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history CompanyContactHistory[]
 
   @@unique([companyId, userId]) // Um usuário pode ser contato apenas uma vez por empresa
   @@index([companyId])
@@ -402,16 +425,16 @@ model Address {
 }
 
 model Redemption {
-  id           String   @id @default(cuid())
-  userId       String   @map("user_id")
-  prizeId      String   @map("prize_id")
-  variantId    String?  @map("variant_id")
-  companyId    String   @map("company_id")
-  addressId    String?  @map("address_id") // OPCIONAL agora (NULL para vouchers)
-  coinsSpent   Int      @map("coins_spent")
+  id           String           @id @default(cuid())
+  userId       String           @map("user_id")
+  prizeId      String           @map("prize_id")
+  variantId    String?          @map("variant_id")
+  companyId    String           @map("company_id")
+  addressId    String?          @map("address_id") // OPCIONAL agora (NULL para vouchers)
+  coinsSpent   Int              @map("coins_spent")
   status       RedemptionStatus @default(PENDING)
-  trackingCode String?  @map("tracking_code") // Manter para compatibilidade
-  redeemedAt   DateTime @default(now()) @map("redeemed_at")
+  trackingCode String?          @map("tracking_code") // Manter para compatibilidade
+  redeemedAt   DateTime         @default(now()) @map("redeemed_at")
 
   user     User                 @relation(fields: [userId], references: [id])
   prize    Prize                @relation(fields: [prizeId], references: [id])
@@ -432,12 +455,12 @@ model Redemption {
 }
 
 model RedemptionTracking {
-  id           String   @id @default(cuid())
-  redemptionId String   @map("redemption_id")
+  id           String           @id @default(cuid())
+  redemptionId String           @map("redemption_id")
   status       RedemptionStatus
   notes        String?
-  createdBy    String?  @map("created_by")
-  createdAt    DateTime @default(now()) @map("created_at")
+  createdBy    String?          @map("created_by")
+  createdAt    DateTime         @default(now()) @map("created_at")
 
   redemption Redemption @relation(fields: [redemptionId], references: [id], onDelete: Cascade)
 
@@ -452,6 +475,7 @@ model CompanyWallet {
   totalDeposited Decimal  @default(0) @map("total_deposited") @db.Decimal(10, 2)
   totalSpent     Decimal  @default(0) @map("total_spent") @db.Decimal(10, 2)
   overdraftLimit Decimal  @default(0) @map("overdraft_limit") @db.Decimal(10, 2)
+  isFrozen       Boolean  @default(false) @map("is_frozen") // Wallet congelado (quando empresa está inativa)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -460,6 +484,7 @@ model CompanyWallet {
 
   @@index([companyId])
   @@index([balance])
+  @@index([isFrozen])
   @@map("company_wallets")
 }
 
@@ -505,9 +530,9 @@ model VoucherRedemption {
 
   // Controle de status e retry
   status       RedemptionStatus @default(SENT) // SENT when email delivered, FAILED if delivery fails
-  errorMessage String?   @map("error_message") // Mensagem de erro (se houver)
-  retryCount   Int       @default(0) @map("retry_count")
-  lastRetryAt  DateTime? @map("last_retry_at")
+  errorMessage String?          @map("error_message") // Mensagem de erro (se houver)
+  retryCount   Int              @default(0) @map("retry_count")
+  lastRetryAt  DateTime?        @map("last_retry_at")
 
   // Timestamps
   completedAt DateTime? @map("completed_at")
@@ -592,8 +617,8 @@ model VoucherPrize {
 model TremendousWebhookLog {
   id           String   @id @default(cuid())
   webhookUuid  String   @unique @map("webhook_uuid") // Tremendous uuid for idempotency
-  event        String   // REWARDS.DELIVERY.SUCCEEDED, REWARDS.DELIVERY.FAILED, etc.
-  payload      Json     // Full webhook payload
+  event        String // REWARDS.DELIVERY.SUCCEEDED, REWARDS.DELIVERY.FAILED, etc.
+  payload      Json // Full webhook payload
   processed    Boolean  @default(true) @map("processed")
   redemptionId String?  @map("redemption_id")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -604,4 +629,131 @@ model TremendousWebhookLog {
   @@index([event])
   @@index([processed, createdAt])
   @@map("tremendous_webhook_logs")
+}
+
+// ============================================================================
+// BACKOFFICE - Tables for internal management by Valorize HQ
+// ============================================================================
+
+model CompanyPlan {
+  id           String    @id @default(cuid())
+  companyId    String    @map("company_id")
+  planType     PlanType  @map("plan_type")
+  pricePerUser Decimal   @map("price_per_user") @db.Decimal(10, 2)
+  startDate    DateTime  @map("start_date")
+  endDate      DateTime? @map("end_date")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([planType])
+  @@index([isActive])
+  @@map("company_plans")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  action     String // CREATE, UPDATE, DELETE, ACTIVATE, DEACTIVATE, WALLET_CREDIT, WALLET_DEBIT, etc.
+  entityType String   @map("entity_type") // Company, User, Wallet, CompanyContact, etc.
+  entityId   String   @map("entity_id")
+  changes    Json? // Changelog (before/after values)
+  metadata   Json? // Additional data (IP, user agent, request ID, etc.)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id])
+  Company   Company? @relation(fields: [companyId], references: [id])
+  companyId String?
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model CompanyContactHistory {
+  id        String   @id @default(cuid())
+  contactId String   @map("contact_id")
+  field     String // role, isPrimary, etc.
+  oldValue  String?  @map("old_value")
+  newValue  String?  @map("new_value")
+  changedBy String   @map("changed_by") // User ID que fez a mudança
+  changedAt DateTime @default(now()) @map("changed_at")
+
+  contact CompanyContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+  @@index([changedBy])
+  @@index([changedAt])
+  @@map("company_contact_history")
+}
+
+// ============================================================================
+// FINANCIAL MANAGEMENT - Tables for billing and payment tracking
+// ============================================================================
+
+model Charge {
+  id            String       @id @default(cuid())
+  companyId     String       @map("company_id")
+  amount        Decimal      @db.Decimal(10, 2)
+  description   String
+  dueDate       DateTime     @map("due_date")
+  issueDate     DateTime     @default(now()) @map("issue_date")
+  status        ChargeStatus @default(PENDING)
+  paymentMethod String?      @map("payment_method") // BOLETO, PIX, CREDIT_CARD
+  paidAt        DateTime?    @map("paid_at")
+  canceledAt    DateTime?    @map("canceled_at")
+  notes         String?      @db.Text
+  createdBy     String       @map("created_by") // Super Admin user ID
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdByUser   User               @relation("ChargeCreator", fields: [createdBy], references: [id])
+  attachments     ChargeAttachment[]
+  payments        ChargePayment[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([companyId, status])
+  @@map("charges")
+}
+
+model ChargeAttachment {
+  id         String   @id @default(cuid())
+  chargeId   String   @map("charge_id")
+  fileName   String   @map("file_name")
+  fileUrl    String   @map("file_url")
+  fileSize   Int      @map("file_size") // bytes
+  fileType   String   @map("file_type") // MIME type
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  charge         Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  uploadedByUser User   @relation("AttachmentUploader", fields: [uploadedBy], references: [id])
+
+  @@index([chargeId])
+  @@map("charge_attachments")
+}
+
+model ChargePayment {
+  id            String   @id @default(cuid())
+  chargeId      String   @map("charge_id")
+  amount        Decimal  @db.Decimal(10, 2)
+  paidAt        DateTime @map("paid_at")
+  paymentMethod String   @map("payment_method") // BOLETO, PIX, CREDIT_CARD
+  notes         String?  @db.Text
+  registeredBy  String   @map("registered_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  charge           Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  registeredByUser User   @relation("PaymentRegistrar", fields: [registeredBy], references: [id])
+
+  @@index([chargeId])
+  @@map("charge_payments")
 }

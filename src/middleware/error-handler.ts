@@ -49,7 +49,7 @@ export class ForbiddenError extends Error implements ApiError {
 export class InsufficientPermissionError extends Error implements ApiError {
   statusCode = 403
   code = 'INSUFFICIENT_PERMISSION'
-  
+
   constructor(
     public requiredPermission: string,
     public userPermissions: string[] = [],
@@ -60,10 +60,28 @@ export class InsufficientPermissionError extends Error implements ApiError {
   }
 }
 
+export class PlanRestrictionError extends Error implements ApiError {
+  statusCode = 403
+  code = 'PLAN_RESTRICTION'
+
+  constructor(
+    public requiredPlan: string,
+    public currentPlan: string | null,
+    public featureName: string,
+    message?: string,
+  ) {
+    super(
+      message ??
+      `This feature requires ${requiredPlan} plan. Your current plan is ${currentPlan || 'undefined'}. Please upgrade to access this feature.`
+    )
+    this.name = 'PlanRestrictionError'
+  }
+}
+
 export class ConflictError extends Error implements ApiError {
   statusCode = 409
   code = 'CONFLICT'
-  
+
   constructor(message: string) {
     super(message)
     this.name = 'ConflictError'
@@ -84,27 +102,25 @@ export const errorHandler = async (
     requestId,
     method,
     url,
-    error: {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-      stack: error.stack,
-    },
+    errorName: error.name,
+    errorMessage: error.message,
+    errorCode: error.code,
+    errorStack: error.stack,
   })
 
   // Handle Fastify validation errors
   if (error.validation) {
+    // Extract friendly validation message
+    const validationMessage = error.message || 'Request validation failed'
+
     return reply.code(400).send({
       success: false,
-      error: {
-        message: 'Request validation failed',
-        code: 'VALIDATION_ERROR',
-        details: error.validation,
-      },
-      meta: {
-        requestId,
-        timestamp: new Date().toISOString(),
-      },
+      error: 'Bad Request',
+      message: validationMessage,
+      statusCode: 400,
+      code: 'VALIDATION_ERROR',
+      details: error.validation,
+      requestId,
     })
   }
 
@@ -121,6 +137,23 @@ export const errorHandler = async (
         missingPermissions: [error.requiredPermission].filter(
           perm => !error.userPermissions.includes(perm),
         ),
+      },
+      requestId,
+    })
+  }
+
+  // Handle plan restriction errors with upgrade information
+  if (error instanceof PlanRestrictionError) {
+    return reply.code(403).send({
+      error: 'Plan Restriction',
+      message: error.message,
+      statusCode: 403,
+      code: 'PLAN_RESTRICTION',
+      details: {
+        featureName: error.featureName,
+        requiredPlan: error.requiredPlan,
+        currentPlan: error.currentPlan,
+        upgradeRequired: true,
       },
       requestId,
     })

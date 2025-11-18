@@ -12,7 +12,9 @@ import {
   getNetworkGraphSchema,
 } from './compliments-dashboard.schemas'
 import { requirePermission } from '@/middleware/rbac'
+import { requireFeature } from '@/middleware/plan-guard'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
+import { PLAN_FEATURE } from '@/features/app/plans/plan-features.constants'
 import { getAuth0Id } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
@@ -193,12 +195,17 @@ export default async function complimentsDashboardRoutes(fastify: FastifyInstanc
    *
    * Returns nodes (users) and links (compliment relationships)
    * for graph visualization of recognition patterns.
+   *
+   * @requires PROFESSIONAL plan
    */
   fastify.get(
     '/network',
     {
       schema: getNetworkGraphSchema,
-      preHandler: [requirePermission(PERMISSION.ADMIN_VIEW_ANALYTICS)],
+      preHandler: [
+        requireFeature(PLAN_FEATURE.DASHBOARD_NETWORK_GRAPH),
+        requirePermission(PERMISSION.ADMIN_VIEW_ANALYTICS),
+      ],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {

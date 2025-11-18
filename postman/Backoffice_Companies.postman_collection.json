@@ -1,0 +1,608 @@
+{
+  "info": {
+    "name": "Backoffice - Companies Management",
+    "description": "Client management for Super Admins from Valorize HQ\n\n**Authentication Required**: Super Admin from Valorize HQ company\n**Base URL**: {{baseUrl}}/backoffice/companies\n\n## Setup Instructions\n\n1. Set environment variables:\n   - `baseUrl`: API base URL (e.g., http://localhost:3000)\n   - `authToken`: Your JWT token from Auth0\n\n2. All requests require Bearer token authentication\n\n3. Test company IDs and other IDs will need to be replaced with actual values from your database",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "List Companies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/backoffice/companies?page=1&limit=20&sortBy=updatedAt&sortOrder=desc",
+          "host": ["{{baseUrl}}"],
+          "path": ["backoffice", "companies"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number (min: 1)"
+            },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Items per page (1-100)"
+            },
+            {
+              "key": "sortBy",
+              "value": "updatedAt",
+              "description": "Sort field: name, createdAt, updatedAt, mrr"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc",
+              "description": "asc or desc"
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Search in name, CNPJ, domain",
+              "disabled": true
+            },
+            {
+              "key": "status",
+              "value": "active",
+              "description": "active or inactive",
+              "disabled": true
+            },
+            {
+              "key": "planType",
+              "value": "PROFESSIONAL",
+              "description": "ESSENTIAL or PROFESSIONAL",
+              "disabled": true
+            },
+            {
+              "key": "country",
+              "value": "BR",
+              "description": "ISO country code (2 chars)",
+              "disabled": true
+            },
+            {
+              "key": "createdAfter",
+              "value": "2024-01-01T00:00:00Z",
+              "description": "ISO date-time",
+              "disabled": true
+            },
+            {
+              "key": "createdBefore",
+              "value": "2024-12-31T23:59:59Z",
+              "description": "ISO date-time",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "List all companies with filters, pagination, and sorting.\n\nReturns aggregations:\n- Total MRR\n- Company counts by status (active/inactive)\n- Other metrics"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Company Details",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/backoffice/companies/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["backoffice", "companies", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{companyId}}",
+              "description": "Company ID"
+            }
+          ]
+        },
+        "description": "Get full company details including:\n- Basic info\n- Brazil-specific data (if applicable)\n- Contacts\n- Settings\n- Wallet status\n- Active plan\n- Allowed domains\n- Metrics\n- Billing information"
+      },
+      "response": []
+    },
+    {
+      "name": "Create Company",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Acme Corporation\",\n  \"domain\": \"acme.com.br\",\n  \"country\": \"BR\",\n  \"timezone\": \"America/Sao_Paulo\",\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"billingEmail\": \"billing@acme.com.br\",\n  \"companyBrazil\": {\n    \"cnpj\": \"12345678901234\",\n    \"razaoSocial\": \"Acme Corporation LTDA\",\n    \"inscricaoEstadual\": \"123456789\",\n    \"cnaePrincipal\": \"6201-5/00\",\n    \"naturezaJuridica\": \"Sociedade Limitada\",\n    \"porteEmpresa\": \"Média Empresa\",\n    \"situacaoCadastral\": \"Ativa\"\n  },\n  \"plan\": {\n    \"planType\": \"PROFESSIONAL\",\n    \"pricePerUser\": 18.00,\n    \"startDate\": \"2024-01-01T00:00:00Z\"\n  },\n  \"initialValues\": [\n    {\n      \"title\": \"Colaboração\",\n      \"description\": \"Trabalhar em equipe para atingir objetivos comuns\",\n      \"example\": \"Ajudar colegas em projetos complexos\",\n      \"iconName\": \"users\",\n      \"iconColor\": \"#3B82F6\"\n    },\n    {\n      \"title\": \"Inovação\",\n      \"description\": \"Buscar constantemente novas soluções\",\n      \"example\": \"Propor melhorias nos processos\",\n      \"iconName\": \"lightbulb\",\n      \"iconColor\": \"#FBBF24\"\n    }\n  ],\n  \"initialWalletBudget\": 10000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/backoffice/companies",
+          "host": ["{{baseUrl}}"],
+          "path": ["backoffice", "companies"]
+        },
+        "description": "Create a new company with full wizard.\n\n**Required fields:**\n- name, domain, country, timezone\n- plan (with planType and startDate)\n- initialValues (minimum 2, maximum 10)\n\n**Optional:**\n- logoUrl, billingEmail\n- companyBrazil (required if country = 'BR')\n- initialWalletBudget\n\n**Note:** Contacts are NOT created here - use dedicated endpoints after company creation"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Company",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Acme Corporation Updated\",\n  \"logoUrl\": \"https://example.com/new-logo.png\",\n  \"billingEmail\": \"finance@acme.com.br\",\n  \"companyBrazil\": {\n    \"situacaoCadastral\": \"Ativa - Regular\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/backoffice/companies/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["backoffice", "companies", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{companyId}}",
+              "description": "Company ID"
+            }
+          ]
+        },
+        "description": "Update company basic information.\n\nAll fields are optional - only send what you want to update."
+      },
+      "response": []
+    },
+    {
+      "name": "Activate Company",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/backoffice/companies/:id/activate",
+          "host": ["{{baseUrl}}"],
+          "path": ["backoffice", "companies", ":id", "activate"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{companyId}}",
+              "description": "Company ID"
+            }
+          ]
+        },
+        "description": "Activate company - restores access for all users.\n\nSets `isActive = true`"
+      },
+      "response": []
+    },
+    {
+      "name": "Deactivate Company",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/backoffice/companies/:id/deactivate",
+          "host": ["{{baseUrl}}"],
+          "path": ["backoffice", "companies", ":id", "deactivate"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{companyId}}",
+              "description": "Company ID"
+            }
+          ]
+        },
+        "description": "Deactivate company - blocks login and freezes wallet.\n\nSets:\n- `isActive = false`\n- Wallet `isFrozen = true`"
+      },
+      "response": []
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get Wallet Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/wallet",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "wallet"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Get wallet status with metrics:\n- Balance, totalDeposited, totalSpent\n- Overdraft limit\n- Freeze status\n- Burn rate (monthly)\n- Coverage index (months)\n- Total redemptions (vouchers/products)\n- Projected depletion date"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Credits",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"reason\": \"Monthly credit top-up for Q1 2024\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/wallet/credits",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "wallet", "credits"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Add credits to company wallet.\n\nCreates a WalletDeposit record and updates balance/totalDeposited.\n\n**Required:**\n- amount (> 0)\n- reason (5-500 chars)"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Credits",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000,\n  \"reason\": \"Adjustment due to billing error\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/wallet/credits",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "wallet", "credits"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Remove credits from company wallet.\n\nValidates sufficient balance before removal.\n\n**Required:**\n- amount (> 0)\n- reason (5-500 chars)"
+          },
+          "response": []
+        },
+        {
+          "name": "Freeze Wallet",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/wallet/freeze",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "wallet", "freeze"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Freeze company wallet - blocks all redemptions.\n\nSets `isFrozen = true`"
+          },
+          "response": []
+        },
+        {
+          "name": "Unfreeze Wallet",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/wallet/unfreeze",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "wallet", "unfreeze"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Unfreeze company wallet - restores redemption capability.\n\nSets `isFrozen = false`"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Billing & Plan",
+      "item": [
+        {
+          "name": "Update Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planType\": \"PROFESSIONAL\",\n  \"pricePerUser\": 12.00,\n  \"startDate\": \"2024-02-01T00:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "plan"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Update company plan.\n\nEnds current plan (if exists) and creates new one.\n\n**Required:**\n- planType (ESSENTIAL or PROFESSIONAL)\n\n**Optional:**\n- pricePerUser (custom pricing override)\n- startDate (defaults to now)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Billing Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/billing",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "billing"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Get company billing information:\n- Current MRR (Monthly Recurring Revenue)\n- Active users count\n- Plan type\n- Price per user\n- Estimated monthly amount\n- Next billing date\n- Billing email"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Get Metrics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/backoffice/companies/:id/metrics?startDate=2024-01-01T00:00:00Z&endDate=2024-01-31T23:59:59Z",
+          "host": ["{{baseUrl}}"],
+          "path": ["backoffice", "companies", ":id", "metrics"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "2024-01-01T00:00:00Z",
+              "description": "ISO date-time (optional)"
+            },
+            {
+              "key": "endDate",
+              "value": "2024-01-31T23:59:59Z",
+              "description": "ISO date-time (optional)"
+            }
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{companyId}}",
+              "description": "Company ID"
+            }
+          ]
+        },
+        "description": "Get company metrics:\n\n**Users:**\n- Total, active, inactive\n\n**Compliments:**\n- Sent, received\n- Period breakdown (if dates provided)\n\n**Engagement:**\n- WAU (Weekly Active Users)\n- Compliment usage rate\n\n**Redemptions:**\n- Total, vouchers, products\n- Average ticket\n\n**Values:**\n- Total, active"
+      },
+      "response": []
+    },
+    {
+      "name": "Contacts",
+      "item": [
+        {
+          "name": "Add Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user-id-here\",\n  \"role\": \"CEO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/contacts",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "contacts"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Link an existing user as a company contact.\n\n**Note:** User must already exist in the system.\n\n**Required:**\n- userId (existing user ID)\n- role (e.g., CEO, CFO, HR Manager)\n\nNew contacts are NOT primary by default."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"Chief Executive Officer\",\n  \"isPrimary\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/contacts/:contactId",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "contacts", ":contactId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                },
+                {
+                  "key": "contactId",
+                  "value": "{{contactId}}",
+                  "description": "Contact ID"
+                }
+              ]
+            },
+            "description": "Update company contact information.\n\nAll fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Contact",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/contacts/:contactId",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "contacts", ":contactId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                },
+                {
+                  "key": "contactId",
+                  "value": "{{contactId}}",
+                  "description": "Contact ID"
+                }
+              ]
+            },
+            "description": "Remove a contact from company.\n\nUnlinks the user from the company contact list."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SSO Domains",
+      "item": [
+        {
+          "name": "Add Allowed Domain",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"domain\": \"acme-subsidiary.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/domains",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "domains"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                }
+              ]
+            },
+            "description": "Add an allowed email domain for SSO.\n\nUsers with emails from this domain can login to the company.\n\n**Example:**\n- Main domain: acme.com.br\n- Allowed: acme-subsidiary.com\n- Both domains can access the same company"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Allowed Domain",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/backoffice/companies/:id/domains/:domainId",
+              "host": ["{{baseUrl}}"],
+              "path": ["backoffice", "companies", ":id", "domains", ":domainId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{companyId}}",
+                  "description": "Company ID"
+                },
+                {
+                  "key": "domainId",
+                  "value": "{{domainId}}",
+                  "description": "Allowed Domain ID"
+                }
+              ]
+            },
+            "description": "Remove an allowed email domain.\n\nUsers from this domain will no longer be able to login (unless they match the main domain)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "company-id-here",
+      "type": "string"
+    },
+    {
+      "key": "contactId",
+      "value": "contact-id-here",
+      "type": "string"
+    },
+    {
+      "key": "domainId",
+      "value": "domain-id-here",
+      "type": "string"
+    }
+  ]
+}
