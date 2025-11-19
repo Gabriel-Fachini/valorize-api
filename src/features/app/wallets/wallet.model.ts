@@ -6,6 +6,15 @@ import { WalletTransactionModel, TransactionType, BalanceType } from './wallet-t
 export type WalletData = Omit<Wallet, 'createdAt' | 'updatedAt'>
 export type CreateWalletData = Omit<WalletData, 'id'>
 
+/**
+ * Calculate expiration date for redeemable coins (18 months from credit date)
+ */
+export function calculateCoinExpirationDate(creditedAt: Date = new Date()): Date {
+  const expiresAt = new Date(creditedAt)
+  expiresAt.setMonth(expiresAt.getMonth() + 18)
+  return expiresAt
+}
+
 export class WalletModel {
   public complimentBalance: number
   public redeemableBalance: number
@@ -136,7 +145,10 @@ export class WalletModel {
         },
       })
 
-      // Record the transaction
+      // Calculate expiration date (18 months from now)
+      const expiresAt = calculateCoinExpirationDate()
+
+      // Record the transaction with expiration date
       await WalletTransactionModel.create({
         walletId: updatedWallet.id,
         userId,
@@ -147,6 +159,9 @@ export class WalletModel {
         newBalance,
         reason,
         metadata: metadata ?? null,
+        expiresAt, // Track when these coins will expire
+        isExpired: false,
+        expiredAt: null,
       }, tx)
 
       return new WalletModel(updatedWallet)

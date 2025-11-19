@@ -2,22 +2,47 @@ import { FastifyInstance } from 'fastify'
 import { requirePermission } from '@/middleware/rbac'
 import { getCurrentUser } from '@/middleware/auth'
 import { User } from '../users/user.model'
-import { walletService } from './wallet.service'
+import { walletService, getExpiringCoins } from './wallet.service'
 import { BalanceType, TransactionType } from './wallet-transaction.model'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 
 export default async function walletRoutes(fastify: FastifyInstance) {
-  // Get user's wallet balance
+  // Get user's wallet balance (includes expiring coins information)
   fastify.get('/balance', async (request, reply) => {
     const currentUser = getCurrentUser(request)
     const user = await User.findByAuth0Id(currentUser.sub)
-    
+
     if (!user) {
       return reply.code(404).send({ message: 'User not found.' })
     }
-    
-    const balance = await walletService.getUserBalance(user.id)
-    return reply.send(balance)
+
+    try {
+      // Get balance and expiring coins data in parallel
+      const [balance, expiringCoins] = await Promise.all([
+        walletService.getUserBalance(user.id),
+        getExpiringCoins(user.id),
+      ])
+
+      return reply.send({
+        ...balance,
+        expiringCoins: {
+          next30Days: expiringCoins.totalExpiringNext30Days,
+          next90Days: expiringCoins.totalExpiringNext90Days,
+          urgentExpiration: expiringCoins.urgentExpiration,
+          details: expiringCoins.batches.map(batch => ({
+            amount: batch.amount,
+            expiresAt: batch.expiresAt,
+            daysLeft: batch.daysUntilExpiration,
+            isUrgent: batch.isUrgent,
+          })),
+        },
+      })
+    } catch (error) {
+      return reply.code(500).send({
+        message: 'Failed to retrieve wallet balance',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+    }
   })
 
   // Get user's transaction history

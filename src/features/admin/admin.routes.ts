@@ -148,6 +148,18 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     { prefix: '/redemptions' },
   )
 
+  // Wallet Management routes - /admin/wallet-management/*
+  // Coin expiration management and reports
+  await fastify.register(
+    async function (fastify) {
+      const { default: walletManagementRoutes } = await import(
+        '@/features/admin/wallet-management/wallet-management.routes'
+      )
+      await fastify.register(walletManagementRoutes)
+    },
+    { prefix: '/wallet-management' },
+  )
+
   // Future admin routes can be added here
   // Example:
   // await fastify.register(

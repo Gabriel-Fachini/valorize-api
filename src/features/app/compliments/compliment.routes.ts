@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { getCurrentUser } from '@/middleware/auth'
 import { complimentService } from './compliment.service'
-import { 
-  sendComplimentSchema, 
+import {
+  sendComplimentSchema,
   SendComplimentInput,
   complimentHistorySchema,
   ComplimentHistoryQuery,
@@ -81,8 +81,27 @@ export default async function complimentRoutes(fastify: FastifyInstance) {
         page,
         limit,
       )
-      
+
       return reply.send(result)
+    } catch (error) {
+      return reply.code(400).send({
+        message:
+          error instanceof Error ? error.message : 'An error occurred.',
+      })
+    }
+  })
+
+  fastify.get('/feed', async (request, reply) => {
+    const currentUser = getCurrentUser(request)
+    const user = await User.findByAuth0Id(currentUser.sub)
+
+    if (!user) {
+      return reply.code(404).send({ message: 'Current user not found.' })
+    }
+
+    try {
+      const feed = await complimentService.getFeed(user.companyId)
+      return reply.send(feed)
     } catch (error) {
       return reply.code(400).send({
         message:

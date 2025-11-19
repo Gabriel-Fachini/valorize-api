@@ -55,6 +55,61 @@ export const complimentHistorySchema = {
   },
 }
 
+// Schema for feed response
+export const feedResponseSchema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      sender: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          avatar: { type: ['string', 'null'] },
+          department: { type: ['string', 'null'] },
+        },
+        required: ['id', 'name', 'avatar', 'department'],
+      },
+      receiver: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          avatar: { type: ['string', 'null'] },
+          department: { type: ['string', 'null'] },
+        },
+        required: ['id', 'name', 'avatar', 'department'],
+      },
+      companyValue: {
+        type: 'object',
+        properties: {
+          id: { type: 'number' },
+          title: { type: 'string' },
+          iconName: { type: ['string', 'null'] },
+          iconColor: { type: ['string', 'null'] },
+        },
+        required: ['id', 'title', 'iconName', 'iconColor'],
+      },
+      coins: { type: 'number' },
+      message: { type: 'string' },
+      createdAt: { type: 'string' },
+      timeAgo: { type: 'string' },
+    },
+    required: [
+      'id',
+      'sender',
+      'receiver',
+      'companyValue',
+      'coins',
+      'message',
+      'createdAt',
+      'timeAgo',
+    ],
+  },
+}
+
 // TypeScript types for compliment schemas
 export interface SendComplimentInput {
   receiverId: string

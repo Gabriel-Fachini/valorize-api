@@ -58,6 +58,7 @@ model User {
   companyContacts    CompanyContact[]
   wallet             Wallet?
   walletTransactions WalletTransaction[]
+  coinExpirations    CoinExpiration[]
   auditLogs          AuditLog[]
 
   complimentsSent     Compliment[] @relation("ComplimentSender")
@@ -298,8 +299,9 @@ model Wallet {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions WalletTransaction[]
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions    WalletTransaction[]
+  coinExpirations CoinExpiration[]
 
   @@index([complimentBalance])
   @@map("wallets")
@@ -331,17 +333,20 @@ model Compliment {
 }
 
 model WalletTransaction {
-  id              String   @id @default(cuid())
-  walletId        String   @map("wallet_id")
-  userId          String   @map("user_id")
-  transactionType String   @map("transaction_type") // DEBIT, CREDIT, RESET
-  balanceType     String   @map("balance_type") // COMPLIMENT, REDEEMABLE
+  id              String    @id @default(cuid())
+  walletId        String    @map("wallet_id")
+  userId          String    @map("user_id")
+  transactionType String    @map("transaction_type") // DEBIT, CREDIT, RESET, EXPIRED
+  balanceType     String    @map("balance_type") // COMPLIMENT, REDEEMABLE
   amount          Int
-  previousBalance Int      @map("previous_balance")
-  newBalance      Int      @map("new_balance")
+  previousBalance Int       @map("previous_balance")
+  newBalance      Int       @map("new_balance")
   reason          String // Reason for the transaction
   metadata        Json? // Additional data (compliment ID, admin ID, etc.)
-  createdAt       DateTime @default(now()) @map("created_at")
+  expiresAt       DateTime? @map("expires_at") // Expiration date for CREDIT REDEEMABLE transactions (18 months)
+  isExpired       Boolean   @default(false) @map("is_expired") // Marks if coins from this transaction have expired
+  expiredAt       DateTime? @map("expired_at") // When the coins were actually expired
+  createdAt       DateTime  @default(now()) @map("created_at")
 
   wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -351,7 +356,31 @@ model WalletTransaction {
   @@index([transactionType])
   @@index([createdAt])
   @@index([userId, createdAt])
+  @@index([transactionType, balanceType, expiresAt, isExpired]) // Optimized for expiration queries
+  @@index([userId, expiresAt])
   @@map("wallet_transactions")
+}
+
+model CoinExpiration {
+  id                    String   @id @default(cuid())
+  userId                String   @map("user_id")
+  walletId              String   @map("wallet_id")
+  originalTransactionId String   @map("original_transaction_id") // WalletTransaction that originated these coins
+  coinsExpired          Int      @map("coins_expired")
+  expirationDate        DateTime @map("expiration_date") // Date when coins expired
+  notified90Days        Boolean  @default(false) @map("notified_90_days") // Whether user was notified 90 days before
+  notified30Days        Boolean  @default(false) @map("notified_30_days") // Whether user was notified 30 days before
+  processedAt           DateTime @default(now()) @map("processed_at")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expirationDate])
+  @@index([originalTransactionId])
+  @@index([notified90Days, notified30Days])
+  @@map("coin_expirations")
 }
 
 model Prize {

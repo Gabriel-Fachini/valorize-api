@@ -4,6 +4,24 @@ import { User } from '../users/user.model'
 import { WalletModel } from '../wallets/wallet.model'
 import { ComplimentModel } from './compliment.model'
 import { SendComplimentInput } from './compliment.schemas'
+import { FeedCompliment } from './compliment.types'
+
+/**
+ * Helper function to format a date into a human-readable "time ago" string
+ */
+function getTimeAgo(date: Date): string {
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  if (days > 0) return `há ${days} dia${days > 1 ? 's' : ''}`
+  if (hours > 0) return `há ${hours} hora${hours > 1 ? 's' : ''}`
+  if (minutes > 0) return `há ${minutes} minuto${minutes > 1 ? 's' : ''}`
+  return 'agora mesmo'
+}
 
 export const complimentService = {
   async sendCompliment(senderId: string, data: SendComplimentInput) {
@@ -182,5 +200,57 @@ export const complimentService = {
         hasPreviousPage: page > 1,
       },
     }
+  },
+
+  async getFeed(companyId: string): Promise<FeedCompliment[]> {
+    const compliments = await prisma.compliment.findMany({
+      where: {
+        companyId,
+        isPublic: true,
+      },
+      include: {
+        sender: {
+          include: {
+            department: true,
+          },
+        },
+        receiver: {
+          include: {
+            department: true,
+          },
+        },
+        companyValue: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 10,
+    })
+
+    return compliments.map(c => ({
+      id: c.id,
+      sender: {
+        id: c.sender.id,
+        name: c.sender.name,
+        avatar: c.sender.avatar,
+        department: c.sender.department?.name || null,
+      },
+      receiver: {
+        id: c.receiver.id,
+        name: c.receiver.name,
+        avatar: c.receiver.avatar,
+        department: c.receiver.department?.name || null,
+      },
+      companyValue: {
+        id: c.companyValue.id,
+        title: c.companyValue.title,
+        iconName: c.companyValue.iconName,
+        iconColor: c.companyValue.iconColor,
+      },
+      coins: c.coins,
+      message: c.message,
+      createdAt: c.createdAt.toISOString(),
+      timeAgo: getTimeAgo(c.createdAt),
+    }))
   },
 }

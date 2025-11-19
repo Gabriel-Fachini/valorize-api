@@ -5,13 +5,18 @@ import { WalletTransaction, Prisma } from '@prisma/client'
 export type WalletTransactionData = WalletTransaction
 export type CreateWalletTransactionData = Omit<
   WalletTransaction,
-  'id' | 'createdAt'
->
+  'id' | 'createdAt' | 'expiresAt' | 'isExpired' | 'expiredAt'
+> & {
+  expiresAt?: Date | null
+  isExpired?: boolean
+  expiredAt?: Date | null
+}
 
 export enum TransactionType {
   DEBIT = 'DEBIT',
   CREDIT = 'CREDIT',
   RESET = 'RESET',
+  EXPIRED = 'EXPIRED',
 }
 
 export enum BalanceType {
