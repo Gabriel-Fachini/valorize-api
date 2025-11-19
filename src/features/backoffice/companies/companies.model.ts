@@ -324,7 +324,6 @@ export class BackofficeCompany {
       balance: Number(wallet.balance),
       totalDeposited: Number(wallet.totalDeposited),
       totalSpent: Number(wallet.totalSpent),
-      overdraftLimit: Number(wallet.overdraftLimit),
       isFrozen: wallet.isFrozen,
       burnRate: monthlyBurnRate,
       coverageIndex: coverageMonths,

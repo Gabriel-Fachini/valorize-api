@@ -9,7 +9,6 @@ export interface WalletBalanceCard {
   total_loaded: number // R$
   total_spent: number // R$
   available_balance: number // R$
-  overdraft_limit: number // R$
   percentage_of_ideal: number // %
   status: MetricStatus
 }

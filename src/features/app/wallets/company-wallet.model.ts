@@ -15,13 +15,11 @@ export class CompanyWalletModel {
   public balance: number
   public totalDeposited: number
   public totalSpent: number
-  public overdraftLimit: number
 
   constructor(private data: CompanyWalletData) {
     this.balance = data.balance.toNumber()
     this.totalDeposited = data.totalDeposited.toNumber()
     this.totalSpent = data.totalSpent.toNumber()
-    this.overdraftLimit = data.overdraftLimit.toNumber()
   }
 
   static async findByCompanyId(
@@ -69,15 +67,13 @@ export class CompanyWalletModel {
       const previousBalance = currentWallet.balance.toNumber()
       const newBalance = previousBalance - amountBRL
 
-      // 2. Verificar se tem saldo suficiente (considerando overdraft)
-      const effectiveLimit = -currentWallet.overdraftLimit.toNumber()
-      if (newBalance < effectiveLimit) {
+      // 2. Verificar se tem saldo suficiente (sem overdraft - não permite saldo negativo)
+      if (newBalance < 0) {
         logger.warn('Insufficient company wallet balance', {
           companyId,
           previousBalance,
           amountBRL,
           newBalance,
-          overdraftLimit: currentWallet.overdraftLimit.toNumber(),
           reason,
         })
         throw new InsufficientCompanyBalanceError()
@@ -174,7 +170,6 @@ export class CompanyWalletModel {
       balance: this.balance,
       totalDeposited: this.totalDeposited,
       totalSpent: this.totalSpent,
-      overdraftLimit: this.overdraftLimit,
     }
   }
 }

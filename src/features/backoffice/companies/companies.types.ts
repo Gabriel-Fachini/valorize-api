@@ -82,7 +82,6 @@ export interface CompanyWalletStatus {
   balance: number
   totalDeposited: number
   totalSpent: number
-  overdraftLimit: number
   isFrozen: boolean
   burnRate: number | null // Monthly burn rate
   coverageIndex: number | null // Months of coverage

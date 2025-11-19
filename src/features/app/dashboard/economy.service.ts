@@ -81,7 +81,6 @@ export const economyDashboardService = {
     const balance = wallet.balance.toNumber()
     const totalLoaded = wallet.totalDeposited.toNumber()
     const totalSpent = wallet.totalSpent.toNumber()
-    const overdraftLimit = wallet.overdraftLimit.toNumber()
 
     const avgMonthlyConsumption = await this.calculateAvgMonthlyConsumption(companyId)
     const idealBalance = avgMonthlyConsumption * (IDEAL_RUNWAY_DAYS / 30)
@@ -95,7 +94,6 @@ export const economyDashboardService = {
       total_loaded: totalLoaded,
       total_spent: totalSpent,
       available_balance: balance,
-      overdraft_limit: overdraftLimit,
       percentage_of_ideal: Math.round(percentageOfIdeal),
       status,
     }

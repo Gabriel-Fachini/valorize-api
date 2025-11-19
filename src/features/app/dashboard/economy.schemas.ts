@@ -15,7 +15,6 @@ export const getEconomyDashboardSchema = {
             total_loaded: { type: 'number' },
             total_spent: { type: 'number' },
             available_balance: { type: 'number' },
-            overdraft_limit: { type: 'number' },
             percentage_of_ideal: { type: 'number' },
             status: { type: 'string' },
           },

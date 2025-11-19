@@ -116,8 +116,7 @@ feature/
 
 ### Wallet Budget Control
 - Companies define internal budget (no longer custody model with fintech)
-- Block vouchers when: Balance < cheapest available prize cost
-- Allow overdraft up to 120% (safety limit - may change during MVP)
+- Block redemptions when: Balance < prize cost (no overdraft allowed)
 - Conversion index: R$ 0.06/coin (FIXED)
 
 ### Redemption Flow (Critical)

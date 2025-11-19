@@ -30,7 +30,6 @@ export class CompanyWalletSeeder extends BaseSeeder {
           balance: new Decimal('10000.00'),
           totalDeposited: new Decimal('30000.00'),
           totalSpent,
-          overdraftLimit: new Decimal('12000.00'), // 120% do saldo atual
         },
       })
 

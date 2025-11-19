@@ -505,7 +505,6 @@ model CompanyWallet {
   balance        Decimal  @default(0) @db.Decimal(10, 2)
   totalDeposited Decimal  @default(0) @map("total_deposited") @db.Decimal(10, 2)
   totalSpent     Decimal  @default(0) @map("total_spent") @db.Decimal(10, 2)
-  overdraftLimit Decimal  @default(0) @map("overdraft_limit") @db.Decimal(10, 2)
   isFrozen       Boolean  @default(false) @map("is_frozen") // Wallet congelado (quando empresa está inativa)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")

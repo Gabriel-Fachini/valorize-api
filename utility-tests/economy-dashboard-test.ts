@@ -27,7 +27,6 @@ interface WalletBalanceCard {
   total_loaded: number
   total_spent: number
   available_balance: number
-  overdraft_limit: number
   percentage_of_ideal: number
   status: MetricStatus
 }
@@ -208,7 +207,6 @@ class EconomyDashboardTester {
     console.log(`   Total Loaded: R$ ${this.formatCurrency(dashboard.wallet_balance.total_loaded)}`)
     console.log(`   Total Spent: R$ ${this.formatCurrency(dashboard.wallet_balance.total_spent)}`)
     console.log(`   Available Balance: R$ ${this.formatCurrency(dashboard.wallet_balance.available_balance)}`)
-    console.log(`   Overdraft Limit: R$ ${this.formatCurrency(dashboard.wallet_balance.overdraft_limit)}`)
     console.log(`   Percentage of Ideal: ${dashboard.wallet_balance.percentage_of_ideal.toFixed(2)}%\n`)
 
     // Prize Fund Card

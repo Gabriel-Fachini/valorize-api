@@ -201,7 +201,6 @@ export const backofficeCompanyService = {
           balance: input.initialWalletBudget || 0,
           totalDeposited: input.initialWalletBudget || 0,
           totalSpent: 0,
-          overdraftLimit: 0,
           isFrozen: false,
         },
       })
