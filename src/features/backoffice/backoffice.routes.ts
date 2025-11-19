@@ -3,6 +3,7 @@ import { backofficeAuthRoutes } from './auth/backoffice-auth.routes'
 import { backofficeCompaniesRoutes } from './companies/companies.routes'
 import { backofficeAuditLogsRoutes } from './audit-logs/audit-logs.routes'
 import financialRoutes from './financial/financial.routes'
+import { backofficeVouchersRoutes } from './vouchers/vouchers.routes'
 
 /**
  * Backoffice Routes Aggregator
@@ -23,7 +24,9 @@ export async function backofficeRoutes(fastify: FastifyInstance) {
   // Financial management routes (Super Admin only)
   await fastify.register(financialRoutes, { prefix: '/financial' })
 
+  // Global voucher catalog management (Super Admin only)
+  await fastify.register(backofficeVouchersRoutes, { prefix: '/vouchers' })
+
   // Future backoffice modules will be registered here:
-  // await fastify.register(globalPrizesRoutes, { prefix: '/prizes' })
   // await fastify.register(crossCompanyAnalyticsRoutes, { prefix: '/analytics' })
 }

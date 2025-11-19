@@ -1,10 +1,11 @@
 /**
  * @fileoverview Voucher Product Admin Routes
  *
- * Routes for managing voucher product catalog:
- * - POST /admin/voucher-products/sync - Sync catalog from provider
+ * Routes for viewing voucher product catalog (read-only):
  * - GET /admin/voucher-products - List products with filters
  * - GET /admin/voucher-products/:id - Get product details
+ *
+ * Note: Catalog sync is done via backoffice at POST /backoffice/vouchers/sync
  *
  * @module features/prizes/vouchers/voucher-product.routes
  */
@@ -15,45 +16,6 @@ import { logger } from '@/lib/logger'
 
 export default async function voucherProductRoutes(fastify: FastifyInstance) {
   const service = new VoucherProductService()
-
-  /**
-   * POST /admin/voucher-products/sync
-   *
-   * Sincroniza catálogo de produtos do provider (Tremendous)
-   *
-   * Busca produtos disponíveis para Brasil (BR, BRL) e salva no banco
-   */
-  fastify.post('/sync', async (request, reply) => {
-    // TODO: Adicionar middleware de autenticação/permissão admin
-
-    try {
-      logger.info('[VoucherProductRoutes] Sync requested')
-
-      const result = await service.syncCatalog('tremendous')
-
-      logger.info('[VoucherProductRoutes] Sync completed successfully', {
-        result,
-      })
-
-      return reply.code(200).send({
-        success: true,
-        message: 'Catalog synced successfully',
-        result,
-      })
-    } catch (error) {
-      logger.error('[VoucherProductRoutes] Sync failed', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      })
-
-      return reply.code(500).send({
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Failed to sync voucher catalog',
-      })
-    }
-  })
 
   /**
    * GET /admin/voucher-products
