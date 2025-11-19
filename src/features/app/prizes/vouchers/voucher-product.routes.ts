@@ -10,9 +10,11 @@
  * @module features/prizes/vouchers/voucher-product.routes
  */
 
-import { FastifyInstance, FastifyRequest } from 'fastify'
+import { FastifyInstance } from 'fastify'
 import { VoucherProductService } from './voucher-product.service'
 import { logger } from '@/lib/logger'
+import { requirePermission } from '@/middleware/rbac'
+import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 
 export default async function voucherProductRoutes(fastify: FastifyInstance) {
   const service = new VoucherProductService()
@@ -31,24 +33,22 @@ export default async function voucherProductRoutes(fastify: FastifyInstance) {
    * - limit: number
    * - offset: number
    */
-  fastify.get(
+  fastify.get<{
+    Querystring: {
+      provider?: string
+      category?: string
+      currency?: string
+      country?: string
+      isActive?: string // Vem como string do query param
+      limit?: string
+      offset?: string
+    }
+  }>(
     '/',
-    async (
-      request: FastifyRequest<{
-        Querystring: {
-          provider?: string
-          category?: string
-          currency?: string
-          country?: string
-          isActive?: string // Vem como string do query param
-          limit?: string
-          offset?: string
-        }
-      }>,
-      reply,
-    ) => {
-      // TODO: Adicionar middleware de autenticação/permissão admin
-
+    {
+      preHandler: [requirePermission(PERMISSION.PRIZES_READ)],
+    },
+    async (request, reply) => {
       try {
         const {
           provider,
@@ -93,16 +93,14 @@ export default async function voucherProductRoutes(fastify: FastifyInstance) {
    *
    * Busca produto específico por ID
    */
-  fastify.get(
+  fastify.get<{
+    Params: { id: string }
+  }>(
     '/:id',
-    async (
-      request: FastifyRequest<{
-        Params: { id: string }
-      }>,
-      reply,
-    ) => {
-      // TODO: Adicionar middleware de autenticação/permissão admin
-
+    {
+      preHandler: [requirePermission(PERMISSION.PRIZES_READ)],
+    },
+    async (request, reply) => {
       try {
         const { id } = request.params
 

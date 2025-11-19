@@ -7,7 +7,7 @@
 import { VoucherProviderFactory } from '@/lib/voucher-providers'
 import { VoucherProductRepository } from './voucher-product.repository'
 import { VoucherPrizeRepository } from './voucher-prize.repository'
-import { ListVoucherProductsFilters } from './voucher-product.model'
+import { ListVoucherProductsFilters, UpdateVoucherProductDTO } from './voucher-product.model'
 import { logger } from '@/lib/logger'
 
 export class VoucherProductService {
@@ -134,6 +134,31 @@ export class VoucherProductService {
     logger.info('[VoucherProductService] Listing products', { filters })
 
     return this.repository.list(filters)
+  }
+
+  /**
+   * Atualiza produto do catálogo (backoffice only)
+   *
+   * @param id ID do produto
+   * @param data Dados para atualização
+   * @returns Produto atualizado
+   */
+  async updateProduct(id: string, data: UpdateVoucherProductDTO) {
+    logger.info('[VoucherProductService] Updating product', { id, data })
+
+    const product = await this.repository.findById(id)
+    if (!product) {
+      throw new Error('Product not found')
+    }
+
+    const updated = await this.repository.update(id, data)
+
+    logger.info('[VoucherProductService] Product updated successfully', {
+      id,
+      updatedFields: Object.keys(data),
+    })
+
+    return updated
   }
 
   /**

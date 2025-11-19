@@ -122,6 +122,79 @@ class SupabaseStorageService {
   }
 
   /**
+   * Upload a voucher image to Supabase Storage
+   * @param file - File buffer
+   * @param fileName - Original file name
+   * @param mimeType - MIME type of the file
+   * @returns Public URL and storage path
+   */
+  async uploadVoucherImage(
+    file: Buffer,
+    fileName: string,
+    mimeType: string,
+  ): Promise<UploadResult> {
+    this.ensureConfigured()
+
+    try {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+      if (!allowedTypes.includes(mimeType)) {
+        throw new Error(
+          `Invalid file type: ${mimeType}. Allowed types: ${allowedTypes.join(', ')}`,
+        )
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024 // 5MB in bytes
+      if (file.length > maxSize) {
+        throw new Error(`File size exceeds maximum allowed size of 5MB. File size: ${(file.length / 1024 / 1024).toFixed(2)}MB`)
+      }
+
+      // Generate unique file name
+      const timestamp = Date.now()
+      const randomString = Math.random().toString(36).substring(2, 8)
+      const extension = fileName.split('.').pop()
+      const uniqueFileName = `voucher-${timestamp}-${randomString}.${extension}`
+      const filePath = `vouchers/${uniqueFileName}`
+
+      logger.info(`Uploading voucher image to Supabase: ${filePath}`, {
+        originalName: fileName,
+        mimeType,
+        size: file.length,
+      })
+
+      // Upload to Supabase Storage
+      const { data, error } = await this.client!.storage
+        .from(this.bucket)
+        .upload(filePath, file, {
+          contentType: mimeType,
+          cacheControl: '3600',
+          upsert: false,
+        })
+
+      if (error) {
+        logger.error('Supabase upload error', { error, filePath })
+        throw new Error(`Upload failed: ${error.message}`)
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = this.client!.storage.from(this.bucket).getPublicUrl(data.path)
+
+      logger.info(`Voucher image uploaded successfully: ${publicUrl}`)
+
+      return {
+        publicUrl,
+        path: data.path,
+      }
+    } catch (error) {
+      logger.error('Error uploading voucher image to Supabase', { error, fileName })
+      throw error
+    }
+  }
+
+  /**
    * Upload a company logo to Supabase Storage
    * @param file - File buffer
    * @param fileName - Original file name

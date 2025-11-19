@@ -8,12 +8,19 @@ import { prisma } from '@/lib/database'
 import {
   ListVoucherProductsFilters,
   SyncVoucherProductDTO,
+  UpdateVoucherProductDTO,
   VoucherProduct,
 } from './voucher-product.model'
 
 export class VoucherProductRepository {
   /**
    * Sincroniza/atualiza produto do provider (upsert)
+   *
+   * NOTE: On UPDATE, only technical fields from provider are synced.
+   * Customizable fields (description, brand, images, isActive) are preserved
+   * to respect manual changes made by Super Admins in backoffice.
+   *
+   * IMPORTANT: Category is always forced to "voucher" to distinguish from physical prizes
    */
   async sync(data: SyncVoucherProductDTO): Promise<VoucherProduct> {
     const result = await prisma.voucherProduct.upsert({
@@ -28,7 +35,7 @@ export class VoucherProductRepository {
         externalId: data.externalId,
         name: data.name,
         description: data.description ?? null,
-        category: data.category,
+        category: 'voucher', // Always "voucher" for digital vouchers
         brand: data.brand ?? null,
         images: data.images ?? [],
         minValue: data.minValue,
@@ -39,19 +46,41 @@ export class VoucherProductRepository {
         lastSyncAt: new Date(),
       },
       update: {
+        // Update technical fields from provider
         name: data.name,
-        description: data.description ?? null,
-        category: data.category,
-        brand: data.brand ?? null,
-        images: data.images ?? [],
+        category: 'voucher', // Always "voucher" for digital vouchers
         minValue: data.minValue,
         maxValue: data.maxValue,
         currency: data.currency,
         countries: data.countries,
-        isActive: data.isActive ?? true,
         lastSyncAt: new Date(),
+        // NOTE: Customizable fields are intentionally omitted to preserve backoffice changes:
+        // - description (can be customized)
+        // - brand (can be customized)
+        // - images (can be uploaded via backoffice)
+        // - isActive (can be manually deactivated)
       },
     })
+    return this.mapToVoucherProduct(result)
+  }
+
+  /**
+   * Atualiza produto (backoffice only)
+   */
+  async update(id: string, data: UpdateVoucherProductDTO): Promise<VoucherProduct> {
+    const updateData: any = {}
+
+    if (data.name !== undefined) updateData.name = data.name
+    if (data.description !== undefined) updateData.description = data.description
+    if (data.brand !== undefined) updateData.brand = data.brand
+    if (data.images !== undefined) updateData.images = data.images
+    if (data.isActive !== undefined) updateData.isActive = data.isActive
+
+    const result = await prisma.voucherProduct.update({
+      where: { id },
+      data: updateData,
+    })
+
     return this.mapToVoucherProduct(result)
   }
 

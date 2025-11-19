@@ -43,6 +43,17 @@ export interface SyncVoucherProductDTO {
 }
 
 /**
+ * DTO para atualizar produto (backoffice)
+ */
+export interface UpdateVoucherProductDTO {
+  name?: string
+  description?: string
+  brand?: string
+  images?: string[]
+  isActive?: boolean
+}
+
+/**
  * Filtros para buscar produtos
  */
 export interface ListVoucherProductsFilters {
