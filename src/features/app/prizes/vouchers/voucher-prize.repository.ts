@@ -75,7 +75,19 @@ export class VoucherPrizeRepository {
       name: data.name,
     })
 
-    // Converter valor do voucher em moedas: 1 real = 10 moedas
+    /**
+     * CONVERSÃO FIXA: 1 moeda = R$ 0.06 (ou R$ 1 = 10 moedas)
+     * Definida em: src/features/app/economy/economy.constants.ts
+     *
+     * O coinPrice é calculado baseado no VALOR MÍNIMO (minValue) do voucher:
+     * - Multiplica minValue por BRL_TO_COIN_RATE (10)
+     * - Arredonda para CIMA com Math.ceil() (ex: R$ 10.50 = 105 moedas)
+     *
+     * Para vouchers VARIÁVEIS (range de valores):
+     * - Este coinPrice serve como BASE para exibição no catálogo
+     * - No momento do resgate, se customAmount for fornecido, o custo real
+     *   é recalculado em redemption.service.ts usando a mesma fórmula
+     */
     const coinPrice = Math.ceil(data.minValue * BRL_TO_COIN_RATE)
 
     const prize = await prisma.prize.create({

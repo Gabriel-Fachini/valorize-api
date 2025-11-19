@@ -6,7 +6,7 @@ import { WalletModel } from '@/features/app/wallets/wallet.model'
 import { CompanyWalletModel } from '@/features/app/wallets/company-wallet.model'
 import { AddressModel } from '@/features/app/addresses/address.model'
 import { VoucherProviderFactory } from '@/lib/voucher-providers'
-import { COIN_TO_BRL_RATE } from '@/features/app/economy/economy.constants'
+import { COIN_TO_BRL_RATE, BRL_TO_COIN_RATE } from '@/features/app/economy/economy.constants'
 import {
   VOUCHER_STATUS,
   PRODUCT_STATUS,
@@ -288,7 +288,7 @@ export const redemptionService = {
           const voucherResult = await voucherProvider.createVoucherViaEmail({
             externalId: redemption.id, // Usar redemptionId para idempotência
             productId: voucherPrize.externalId,
-            amount: voucherPrize.minValue.toNumber(),
+            amount: Number(voucherPrize.minValue.toFixed(2)), // Garantir precisão decimal
             currency: voucherPrize.currency,
             recipient: {
               name: user.name ?? '',
@@ -830,7 +830,7 @@ export const redemptionService = {
       const voucherResult = await voucherProvider.createVoucher({
         externalId: redemption.id,
         productId: voucherPrize.externalId,
-        amount: voucherPrize.minValue.toNumber(),
+        amount: Number(voucherPrize.minValue.toFixed(2)), // Garantir precisão decimal
         currency: voucherPrize.currency,
         recipient: {
           name: user.name ?? '',
@@ -1027,19 +1027,30 @@ export const redemptionService = {
         this.validateCustomAmount(customAmount, prize.voucherPrize)
       }
 
-      // 2. Calcular custo - usar customAmount ou coinPrice como fallback
+      /**
+       * CONVERSÃO FIXA: 1 moeda = R$ 0.06 (ou R$ 1 = 10 moedas)
+       * Definida em: src/features/app/economy/economy.constants.ts
+       *
+       * Para vouchers variáveis, o custo em moedas deve ser recalculado
+       * baseado no valor escolhido pelo usuário (customAmount), não no minValue fixo.
+       */
+      // 2. Calcular custo baseado no valor real (customAmount ou minValue)
       const amount = customAmount ?? Number(prize.voucherPrize.minValue)
-      const totalBRL = prize.coinPrice * COIN_TO_BRL_RATE
+      const coinsToDebit = Math.ceil(amount * BRL_TO_COIN_RATE)
+      const totalBRL = amount // O valor real em BRL que será enviado à Tremendous
 
       logger.info('[RedemptionService] Sending single voucher to user', {
         userId,
         prizeId: actualPrizeId,
         originalInputId: prizeId,
         companyId,
+        amount,
+        coinsToDebit,
         totalBRL,
+        isCustomAmount: customAmount !== undefined,
       })
 
-      // 3. Debitar CompanyWallet
+      // 3. Debitar CompanyWallet (valor real em BRL)
       await CompanyWalletModel.debitBalance(
         companyId,
         totalBRL,
@@ -1049,6 +1060,8 @@ export const redemptionService = {
           prizeId: prize.id,
           prizeName: prize.name,
           userId,
+          amount,
+          coinsDebited: coinsToDebit,
         },
       )
 
@@ -1062,14 +1075,14 @@ export const redemptionService = {
         throw new Error(`User not found: ${userId}`)
       }
 
-      // 5. Criar redemption com Prize ID resolvido
+      // 5. Criar redemption com Prize ID resolvido e moedas calculadas corretamente
       const redemption = await RedemptionModel.create(
         {
           userId,
           prizeId: actualPrizeId,
           variantId: null,
           companyId,
-          coinsSpent: prize.coinPrice,
+          coinsSpent: coinsToDebit, // Usar moedas calculadas, não o coinPrice fixo
           addressId: null,
         },
         tx,

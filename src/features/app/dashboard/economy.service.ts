@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
+import { COIN_TO_BRL_RATE } from '../economy'
 import {
   EconomyDashboardResponse,
   WalletBalanceCard,
@@ -14,7 +15,6 @@ import {
 } from './economy.types'
 
 // Constantes
-const COIN_TO_BRL_RATE = 0.06
 const IDEAL_RUNWAY_DAYS = 45
 const WARNING_RUNWAY_DAYS = 30
 const CRITICAL_RUNWAY_DAYS = 15
