@@ -233,11 +233,15 @@ export async function expireCoins(dryRun = false): Promise<ExpirationReport> {
     const now = new Date()
 
     // Find all CREDIT REDEEMABLE transactions that are expired and not yet marked as such
+    // Only consider transactions that still have remaining coins (remainingAmount > 0)
     const expiredTransactions = await prisma.walletTransaction.findMany({
       where: {
         transactionType: TransactionType.CREDIT,
         balanceType: BalanceType.REDEEMABLE,
         isExpired: false,
+        remainingAmount: {
+          gt: 0, // Only expire credits that still have coins remaining
+        },
         expiresAt: {
           lte: now,
         },
@@ -274,7 +278,11 @@ export async function expireCoins(dryRun = false): Promise<ExpirationReport> {
     if (dryRun) {
       // Dry run: just calculate what would be expired
       for (const [userId, transactions] of expirationsByUserId.entries()) {
-        const userTotalExpired = transactions.reduce((sum, tx) => sum + tx.amount, 0)
+        // Use remainingAmount instead of amount (only expire what's left, not what was consumed)
+        const userTotalExpired = transactions.reduce(
+          (sum, tx) => sum + (tx.remainingAmount ?? 0),
+          0,
+        )
         totalCoinsExpired += userTotalExpired
 
         expirationsByUser.push({
@@ -293,7 +301,11 @@ export async function expireCoins(dryRun = false): Promise<ExpirationReport> {
       // Real execution: process expirations in transaction
       await prisma.$transaction(async (tx) => {
         for (const [userId, transactions] of expirationsByUserId.entries()) {
-          const userTotalExpired = transactions.reduce((sum, tx) => sum + tx.amount, 0)
+          // Use remainingAmount instead of amount (only expire what's left, not what was consumed)
+          const userTotalExpired = transactions.reduce(
+            (sum, tx) => sum + (tx.remainingAmount ?? 0),
+            0,
+          )
           totalCoinsExpired += userTotalExpired
 
           // Get current wallet
@@ -333,7 +345,7 @@ export async function expireCoins(dryRun = false): Promise<ExpirationReport> {
             },
           })
 
-          // Mark original transactions as expired
+          // Mark original transactions as expired and set remainingAmount to 0
           await tx.walletTransaction.updateMany({
             where: {
               id: {
@@ -343,17 +355,18 @@ export async function expireCoins(dryRun = false): Promise<ExpirationReport> {
             data: {
               isExpired: true,
               expiredAt: now,
+              remainingAmount: 0, // Set to 0 after expiration
             },
           })
 
-          // Create CoinExpiration records for audit
+          // Create CoinExpiration records for audit (using remainingAmount)
           for (const transaction of transactions) {
             await tx.coinExpiration.create({
               data: {
                 userId,
                 walletId: currentWallet.id,
                 originalTransactionId: transaction.id,
-                coinsExpired: transaction.amount,
+                coinsExpired: transaction.remainingAmount ?? 0, // Use remaining, not original amount
                 expirationDate: transaction.expiresAt!,
               },
             })
@@ -407,12 +420,16 @@ export async function getExpiringCoins(userId: string): Promise<ExpiringCoinsDat
     in90Days.setDate(in90Days.getDate() + 90)
 
     // Get all non-expired CREDIT REDEEMABLE transactions expiring within 90 days
+    // Only consider transactions that still have remaining coins
     const expiringTransactions = await prisma.walletTransaction.findMany({
       where: {
         userId,
         transactionType: TransactionType.CREDIT,
         balanceType: BalanceType.REDEEMABLE,
         isExpired: false,
+        remainingAmount: {
+          gt: 0, // Only credits that still have balance
+        },
         expiresAt: {
           gte: now,
           lte: in90Days,
@@ -433,14 +450,17 @@ export async function getExpiringCoins(userId: string): Promise<ExpiringCoinsDat
       )
       const isUrgent = daysUntilExpiration <= 30
 
+      // Use remainingAmount instead of original amount
+      const remainingCoins = tx.remainingAmount ?? 0
+
       if (isUrgent) {
-        totalExpiringNext30Days += tx.amount
+        totalExpiringNext30Days += remainingCoins
       }
-      totalExpiringNext90Days += tx.amount
+      totalExpiringNext90Days += remainingCoins
 
       return {
         transactionId: tx.id,
-        amount: tx.amount,
+        amount: remainingCoins, // Show how many will actually expire, not the original amount
         expiresAt: tx.expiresAt!,
         daysUntilExpiration,
         isUrgent,
@@ -483,11 +503,15 @@ export async function getExpirationReport(days = 90): Promise<{
     in90Days.setDate(in90Days.getDate() + Math.min(days, 90))
 
     // Get all non-expired transactions expiring within the period
+    // Only consider transactions that still have remaining coins
     const expiringTransactions = await prisma.walletTransaction.findMany({
       where: {
         transactionType: TransactionType.CREDIT,
         balanceType: BalanceType.REDEEMABLE,
         isExpired: false,
+        remainingAmount: {
+          gt: 0, // Only credits that still have balance
+        },
         expiresAt: {
           gte: now,
           lte: in90Days,
@@ -517,10 +541,13 @@ export async function getExpirationReport(days = 90): Promise<{
         earliestExpiration: null,
       }
 
-      existing.coins90Days += tx.amount
+      // Use remainingAmount instead of original amount
+      const remainingCoins = tx.remainingAmount ?? 0
+
+      existing.coins90Days += remainingCoins
 
       if (tx.expiresAt! <= in30Days) {
-        existing.coins30Days += tx.amount
+        existing.coins30Days += remainingCoins
       }
 
       if (!existing.earliestExpiration || tx.expiresAt! < existing.earliestExpiration) {

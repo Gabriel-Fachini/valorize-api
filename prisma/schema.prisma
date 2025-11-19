@@ -339,6 +339,7 @@ model WalletTransaction {
   transactionType String    @map("transaction_type") // DEBIT, CREDIT, RESET, EXPIRED
   balanceType     String    @map("balance_type") // COMPLIMENT, REDEEMABLE
   amount          Int
+  remainingAmount Int?      @map("remaining_amount") // For CREDIT REDEEMABLE: tracks how many coins remain (FIFO consumption)
   previousBalance Int       @map("previous_balance")
   newBalance      Int       @map("new_balance")
   reason          String // Reason for the transaction
@@ -358,6 +359,7 @@ model WalletTransaction {
   @@index([userId, createdAt])
   @@index([transactionType, balanceType, expiresAt, isExpired]) // Optimized for expiration queries
   @@index([userId, expiresAt])
+  @@index([userId, transactionType, balanceType, isExpired, remainingAmount, createdAt]) // Optimized for FIFO consumption
   @@map("wallet_transactions")
 }
 

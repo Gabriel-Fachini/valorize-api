@@ -155,6 +155,7 @@ export class WalletModel {
         transactionType: TransactionType.CREDIT,
         balanceType: BalanceType.REDEEMABLE,
         amount,
+        remainingAmount: amount, // Initialize with full amount for FIFO tracking
         previousBalance,
         newBalance,
         reason,
@@ -187,7 +188,7 @@ export class WalletModel {
       const currentWallet = await tx.wallet.findUnique({
         where: { userId },
       })
-      
+
       if (!currentWallet) {
         throw new Error('Wallet not found')
       }
@@ -199,6 +200,62 @@ export class WalletModel {
         throw new Error('Insufficient redeemable balance')
       }
 
+      // FIFO: Get all available credit transactions ordered by creation date (oldest first)
+      const availableCredits = await tx.walletTransaction.findMany({
+        where: {
+          userId,
+          transactionType: TransactionType.CREDIT,
+          balanceType: BalanceType.REDEEMABLE,
+          isExpired: false,
+          remainingAmount: {
+            gt: 0, // Only credits that still have balance
+          },
+        },
+        orderBy: {
+          createdAt: 'asc', // FIFO: oldest first
+        },
+      })
+
+      // Consume credits from oldest to newest (FIFO)
+      let remainingToDebit = amount
+      const consumedCredits: Array<{ transactionId: string; amountConsumed: number }> = []
+
+      for (const credit of availableCredits) {
+        if (remainingToDebit <= 0) break
+
+        const availableInThisCredit = credit.remainingAmount ?? 0
+        const toConsume = Math.min(availableInThisCredit, remainingToDebit)
+
+        // Update the credit's remaining amount
+        await tx.walletTransaction.update({
+          where: { id: credit.id },
+          data: {
+            remainingAmount: availableInThisCredit - toConsume,
+          },
+        })
+
+        consumedCredits.push({
+          transactionId: credit.id,
+          amountConsumed: toConsume,
+        })
+
+        remainingToDebit -= toConsume
+
+        logger.debug('Consumed coins from credit transaction', {
+          creditId: credit.id,
+          amountConsumed: toConsume,
+          remainingInCredit: availableInThisCredit - toConsume,
+          stillToDebit: remainingToDebit,
+        })
+      }
+
+      // Sanity check: ensure we consumed exactly the requested amount
+      if (remainingToDebit > 0) {
+        throw new Error(
+          `Failed to consume all coins. Missing ${remainingToDebit} coins. This should not happen.`,
+        )
+      }
+
       // Update wallet balance
       const updatedWallet = await tx.wallet.update({
         where: { userId },
@@ -207,7 +264,7 @@ export class WalletModel {
         },
       })
 
-      // Record the transaction
+      // Record the debit transaction with FIFO tracking metadata
       await WalletTransactionModel.create({
         walletId: updatedWallet.id,
         userId,
@@ -217,8 +274,17 @@ export class WalletModel {
         previousBalance,
         newBalance,
         reason,
-        metadata: metadata ?? null,
+        metadata: {
+          ...(metadata ?? {}),
+          consumedCredits, // Track which credits were consumed (audit trail)
+        } as Prisma.JsonObject,
       }, tx)
+
+      logger.info('Debited redeemable balance using FIFO', {
+        userId,
+        amount,
+        creditsConsumed: consumedCredits.length,
+      })
 
       return new WalletModel(updatedWallet)
     } catch (error) {
