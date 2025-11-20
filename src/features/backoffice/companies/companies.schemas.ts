@@ -121,11 +121,11 @@ export const getCompanySchema: FastifySchema = {
  */
 export const createCompanySchema: FastifySchema = {
   tags: ['Backoffice', 'Companies'],
-  description: 'Create a new company (wizard)',
+  description: 'Create a new company with first admin user (wizard)',
   security: [{ bearerAuth: [] }],
   body: {
     type: 'object',
-    required: ['name', 'domain', 'country', 'timezone', 'plan', 'initialValues'],
+    required: ['name', 'domain', 'country', 'timezone', 'plan', 'initialValues', 'firstAdmin'],
     properties: {
       name: { type: 'string', minLength: 2, maxLength: 100 },
       domain: { type: 'string', minLength: 3, maxLength: 100 },
@@ -154,6 +154,14 @@ export const createCompanySchema: FastifySchema = {
           naturezaJuridica: { type: 'string', maxLength: 100 },
           porteEmpresa: { type: 'string', maxLength: 50 },
           situacaoCadastral: { type: 'string', maxLength: 50 },
+        },
+      },
+      firstAdmin: {
+        type: 'object',
+        required: ['name', 'email'],
+        properties: {
+          name: { type: 'string', minLength: 2, maxLength: 100 },
+          email: { type: 'string', format: 'email' },
         },
       },
       plan: {
@@ -192,7 +200,24 @@ export const createCompanySchema: FastifySchema = {
         data: {
           type: 'object',
           properties: {
-            id: { type: 'string' },
+            company: { type: 'object', additionalProperties: true },
+            firstAdmin: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+                email: { type: 'string' },
+                auth0Id: { type: 'string' },
+                roles: { type: 'array', items: { type: 'string' } },
+              },
+            },
+            passwordResetUrl: { type: 'string' },
+          },
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            timestamp: { type: 'string' },
           },
         },
       },

@@ -165,13 +165,21 @@ export const backofficeCompaniesRoutes = async (
         )
 
         logger.info('Company created successfully', {
-          companyId: result.id,
+          companyId: result.company.id,
+          firstAdminEmail: result.firstAdmin.email,
           createdBy: user.id,
         })
 
         return reply.code(201).send({
           success: true,
-          data: result,
+          data: {
+            company: result.company.toJSON(),
+            firstAdmin: result.firstAdmin,
+            passwordResetUrl: result.passwordResetUrl,
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+          },
         })
       } catch (error) {
         const errorMessage =
@@ -196,7 +204,8 @@ export const backofficeCompaniesRoutes = async (
 
         if (
           errorMessage.includes('required') ||
-          errorMessage.includes('minimum 2')
+          errorMessage.includes('minimum 2') ||
+          errorMessage.includes('must belong')
         ) {
           return reply.code(400).send({
             success: false,

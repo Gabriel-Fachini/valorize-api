@@ -19,6 +19,8 @@ import type {
   MetricsQueryParams,
 } from './companies.types'
 import type { PlanType } from '@prisma/client'
+import { companyService } from '@/features/app/companies/company.service'
+import { Company } from '@/features/app/companies/company.model'
 
 /**
  * Backoffice Company Service
@@ -110,11 +112,22 @@ export const backofficeCompanyService = {
 
   /**
    * Create new company (full wizard)
+   * Creates company, default roles, first admin user, and all related entities
    */
   async createCompany(
     input: CreateCompanyInput,
     createdBy: string
-  ): Promise<{ id: string }> {
+  ): Promise<{
+    company: Company
+    firstAdmin: {
+      id: string
+      name: string
+      email: string
+      auth0Id: string
+      roles: string[]
+    }
+    passwordResetUrl: string
+  }> {
     // Validate domain uniqueness
     const domainTaken = await BackofficeCompany.isDomainTaken(input.domain)
     if (domainTaken) {
@@ -134,6 +147,12 @@ export const backofficeCompanyService = {
     // Validate minimum 2 initial values
     if (!input.initialValues || input.initialValues.length < 2) {
       throw new Error('At least 2 initial company values are required')
+    }
+
+    // Validate that first admin email belongs to company domain
+    const adminEmailDomain = input.firstAdmin.email.split('@')[1]
+    if (adminEmailDomain !== input.domain) {
+      throw new Error(`Admin email must belong to company domain ${input.domain}`)
     }
 
     // Get default plan pricing
@@ -229,6 +248,22 @@ export const backofficeCompanyService = {
       return newCompany
     })
 
+    // 9. Create default roles (outside transaction for modularity)
+    await companyService.createDefaultRoles(company.id)
+
+    // 10. Create first admin user with Auth0
+    const firstAdmin = await companyService.createFirstAdmin(
+      input.firstAdmin,
+      company.id,
+      input.domain
+    )
+
+    // 11. Reload company with all relations
+    const updatedCompany = await Company.findById(company.id)
+    if (!updatedCompany) {
+      throw new Error('Failed to reload company after creation')
+    }
+
     // Audit log
     await auditLogger.log({
       userId: createdBy,
@@ -241,10 +276,21 @@ export const backofficeCompanyService = {
         country: input.country,
         planType: input.plan.planType,
         initialBudget: input.initialWalletBudget || 0,
+        firstAdminEmail: firstAdmin.email,
       },
     })
 
-    return { id: company.id }
+    return {
+      company: updatedCompany,
+      firstAdmin: {
+        id: firstAdmin.id,
+        name: firstAdmin.name,
+        email: firstAdmin.email,
+        auth0Id: firstAdmin.auth0Id,
+        roles: firstAdmin.roles,
+      },
+      passwordResetUrl: firstAdmin.passwordResetUrl,
+    }
   },
 
   /**

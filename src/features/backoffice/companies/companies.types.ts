@@ -168,6 +168,12 @@ export interface CreateCompanyInput {
     situacaoCadastral: string
   }
 
+  // First admin user (required)
+  firstAdmin: {
+    name: string
+    email: string
+  }
+
   // Contacts are managed separately via dedicated endpoints after company creation
 
   // Plan

@@ -42,20 +42,62 @@ export default async function companyRoutes(fastify: FastifyInstance) {
   })
 
   /**
-   * Criar nova empresa
+   * Create new company with first admin user
    */
   fastify.post('/create-company', {
     schema: createCompanySchema,
     handler: async (request: FastifyRequest<{ Body: CreateCompanyRequest }>, reply: FastifyReply) => {
-      const company = await companyService.createCompany(request.body)
-      
-      return reply.code(201).send({
-        success: true,
-        data: company.toJSON(),
-        meta: {
-          timestamp: new Date().toISOString(),
-        },
-      })
+      try {
+        const result = await companyService.createCompany(request.body)
+
+        return reply.code(201).send({
+          success: true,
+          data: {
+            company: result.company.toJSON(),
+            firstAdmin: result.firstAdmin,
+            passwordResetUrl: result.passwordResetUrl,
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+          },
+        })
+      } catch (error) {
+        logger.error('Failed to create company', {
+          error: error instanceof Error ? error.message : String(error),
+          body: request.body,
+        })
+
+        // Determine error type and return appropriate status code
+        const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+
+        if (errorMessage.includes('already exists') || errorMessage.includes('CNPJ')) {
+          return reply.code(409).send({
+            success: false,
+            error: {
+              message: errorMessage,
+              code: 'CONFLICT',
+            },
+          })
+        }
+
+        if (errorMessage.includes('Invalid') || errorMessage.includes('must belong')) {
+          return reply.code(400).send({
+            success: false,
+            error: {
+              message: errorMessage,
+              code: 'VALIDATION_ERROR',
+            },
+          })
+        }
+
+        return reply.code(500).send({
+          success: false,
+          error: {
+            message: errorMessage,
+            code: 'INTERNAL_ERROR',
+          },
+        })
+      }
     },
   })
 

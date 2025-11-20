@@ -81,6 +81,25 @@ const userDataSchema = {
   },
 } as const
 
+const firstAdminSchema = {
+  type: 'object',
+  required: ['name', 'email'],
+  properties: {
+    name: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 255,
+      description: 'Administrator full name',
+    },
+    email: {
+      type: 'string',
+      format: 'email',
+      minLength: 1,
+      description: 'Administrator email (must match company domain)',
+    },
+  },
+} as const
+
 const companyContactDataSchema = {
   type: 'object',
   properties: {
@@ -110,7 +129,7 @@ const fullCompanyDataSchema = {
 // Request body schemas
 const createCompanyBodySchema = {
   type: 'object',
-  required: ['name', 'domain'],
+  required: ['name', 'domain', 'firstAdmin'],
   properties: {
     name: {
       type: 'string',
@@ -135,6 +154,7 @@ const createCompanyBodySchema = {
       type: 'string',
       description: 'Timezone',
     },
+    firstAdmin: firstAdminSchema,
     brazilData: {
       type: 'object',
       properties: {
@@ -224,6 +244,35 @@ const companyResponseSchema = {
   },
 } as const
 
+const firstAdminDataSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string' },
+    name: { type: 'string' },
+    email: { type: 'string' },
+    auth0Id: { type: 'string' },
+    roles: {
+      type: 'array',
+      items: { type: 'string' },
+    },
+  },
+} as const
+
+const createCompanyResponseSchema = {
+  type: 'object',
+  properties: {
+    ...commonSuccessResponse.properties,
+    data: {
+      type: 'object',
+      properties: {
+        company: fullCompanyDataSchema,
+        firstAdmin: firstAdminDataSchema,
+        passwordResetUrl: { type: 'string' },
+      },
+    },
+  },
+} as const
+
 const companiesListResponseSchema = {
   type: 'object',
   properties: {
@@ -288,10 +337,10 @@ const deleteResponseSchema = {
 export const createCompanySchema: FastifySchema = {
   tags: ['Companies'],
   summary: 'Create a new company',
-  description: 'Create a new company with optional Brazil-specific data',
+  description: 'Create a new company with first admin user and optional Brazil-specific data',
   body: createCompanyBodySchema,
   response: {
-    201: companyResponseSchema,
+    201: createCompanyResponseSchema,
     400: commonErrorResponse,
     409: commonErrorResponse,
     500: commonErrorResponse,
