@@ -43,21 +43,21 @@ export class UserSeeder extends BaseSeeder {
       valorizeCompany,
       valorizeDeptsAndJobs,
       'valorize.com.br',
-      REALISTIC_VOLUMES.users.valorize
+      REALISTIC_VOLUMES.users.valorize,
     )
 
     await this.seedFactoryUsers(
       techstartCompany,
       techstartDeptsAndJobs,
       'techstart.com.br',
-      REALISTIC_VOLUMES.users.techstart
+      REALISTIC_VOLUMES.users.techstart,
     )
 
     await this.seedFactoryUsers(
       globalCompany,
       globalDeptsAndJobs,
       'globalsolutions.com',
-      REALISTIC_VOLUMES.users.global
+      REALISTIC_VOLUMES.users.global,
     )
 
     // Count total users created
@@ -139,7 +139,7 @@ export class UserSeeder extends BaseSeeder {
       this.logInfo(
         `Created user '${userData.name}' with roles: ${userData.roles.join(', ')}`
         + (userData.jobTitleName ? `, jobTitle: ${userData.jobTitleName}` : '')
-        + (userData.departmentName ? `, department: ${userData.departmentName}` : '')
+        + (userData.departmentName ? `, department: ${userData.departmentName}` : ''),
       )
     }
   }
@@ -148,7 +148,7 @@ export class UserSeeder extends BaseSeeder {
     company: { id: string; name: string },
     deptsAndJobs: { departments: any[]; jobTitles: any[] },
     emailDomain: string,
-    count: number
+    count: number,
   ): Promise<void> {
     // Generate realistic users using factory
     const generatedUsers = UserFactory.generateBulkUsers({

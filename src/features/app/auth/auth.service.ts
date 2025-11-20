@@ -78,14 +78,14 @@ export const authService = {
 
       // Get user from database to check permissions
       const user = await this.getUserByAuthUserId(loginResult.user_info.sub)
-      
+
       if (!user) {
         throw new Error('User not found in database')
       }
 
       // Get user permissions and roles
       const userPermissions = await rbacService.getUserPermissions(loginResult.user_info.sub)
-      
+
       // Define admin permissions
       const adminPermissions = [
         PERMISSION.ADMIN_ACCESS_PANEL,
@@ -765,7 +765,7 @@ export const authService = {
 
   /**
    * Create admin user in Supabase Auth (for CSV imports and company creation)
-   * Creates user with auto-confirmed email and returns password reset ticket
+   * Creates user with auto-confirmed email and sends password reset email
    */
   async createAdminUser(userData: { email: string; name: string }): Promise<{ authUserId: string; ticketUrl: string }> {
     try {
@@ -797,12 +797,35 @@ export const authService = {
         email: userData.email,
       })
 
-      // Generate password reset ticket/URL
-      const resetTicket = await this.generateTemporaryPassword(authData.user.id)
+      // Send password reset email directly (user not yet in local database)
+      const supabase = getSupabaseAuth()
+      const redirectUrl = process.env.FRONTEND_PASSWORD_RESET_URL ?? `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`
+
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email.toLowerCase(), {
+        redirectTo: redirectUrl,
+      })
+
+      if (resetError) {
+        logger.error('Failed to send password reset email for new admin', {
+          authUserId: authData.user.id,
+          email: userData.email,
+          error: resetError.message,
+        })
+        // Don't throw - user is created, just warn about email
+        logger.warn('Admin user created but password reset email failed', {
+          authUserId: authData.user.id,
+          email: userData.email,
+        })
+      } else {
+        logger.info('Password reset email sent to new admin', {
+          authUserId: authData.user.id,
+          email: userData.email,
+        })
+      }
 
       return {
         authUserId: authData.user.id,
-        ticketUrl: resetTicket.ticket_url,
+        ticketUrl: redirectUrl,
       }
     } catch (error) {
       logger.error('Failed to create admin user', {

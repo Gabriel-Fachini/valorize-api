@@ -110,8 +110,8 @@ export const prizeRepository = {
       } else if (filters?.sortBy === 'most_redeemed') {
         orderBy = {
           redemptions: {
-            _count: 'desc'
-          }
+            _count: 'desc',
+          },
         }
       }
       // 'popular' uses default createdAt desc

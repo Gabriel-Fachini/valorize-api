@@ -68,7 +68,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -118,7 +118,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -176,7 +176,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -235,7 +235,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -293,7 +293,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -351,7 +351,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -413,7 +413,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -465,7 +465,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           fileName,
           fileType,
           fileSize,
-          user.id
+          user.id,
         )
 
         return reply.code(201).send(result)
@@ -498,7 +498,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -551,6 +551,6 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 }

@@ -116,7 +116,7 @@ export function getRealisticVolumes() {
  */
 export function calculateExpectedCompliments(
   totalUsers: number,
-  baseComplimentsPerUser: number
+  baseComplimentsPerUser: number,
 ): number {
   const distribution = REALISTIC_VOLUMES.activityDistribution
   const powerUsers = totalUsers * distribution.powerUsersPercentage

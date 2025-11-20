@@ -148,7 +148,7 @@ export default async function complimentsDashboardRoutes(fastify: FastifyInstanc
           companyId,
           startDate,
           endDate,
-          filters
+          filters,
         )
 
         // Log successful generation
@@ -273,6 +273,6 @@ export default async function complimentsDashboardRoutes(fastify: FastifyInstanc
           message: 'Failed to generate network graph',
         })
       }
-    }
+    },
   )
 }

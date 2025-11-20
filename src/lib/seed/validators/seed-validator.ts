@@ -567,7 +567,7 @@ export class SeedValidator {
 
     // Balance consistency
     if (errors.length === 0) {
-      passedChecks.push(`✅ Balance Consistency: All wallets match transaction sums`)
+      passedChecks.push('✅ Balance Consistency: All wallets match transaction sums')
     } else {
       failedChecks.push(`❌ Balance Inconsistencies: ${errors.length} issues found`)
     }
@@ -632,36 +632,36 @@ export class SeedValidator {
 
     console.log('\n👥 USERS:')
     console.log(`  Total: ${result.metrics.users.total}`)
-    console.log(`  By Company:`)
+    console.log('  By Company:')
     Object.entries(result.metrics.users.byCompany).forEach(([company, count]) => {
       console.log(`    - ${company}: ${count}`)
     })
-    console.log(`  By Activity Group:`)
+    console.log('  By Activity Group:')
     console.log(`    - Power Users (20%): ${result.metrics.users.byActivityGroup.powerUsers}`)
     console.log(`    - Normal Users (60%): ${result.metrics.users.byActivityGroup.normalUsers}`)
     console.log(`    - Inactive Users (20%): ${result.metrics.users.byActivityGroup.inactiveUsers}`)
 
     console.log('\n💬 COMPLIMENTS:')
     console.log(`  Total: ${result.metrics.compliments.total}`)
-    console.log(`  By Company:`)
+    console.log('  By Company:')
     Object.entries(result.metrics.compliments.byCompany).forEach(([company, count]) => {
       console.log(`    - ${company}: ${count}`)
     })
     console.log(
       `  Temporal Distribution: ${result.metrics.compliments.distribution.recentPercentage.toFixed(1)}% recent (last 30 days)`,
     )
-    console.log(`  Day of Week Distribution:`)
+    console.log('  Day of Week Distribution:')
     Object.entries(result.metrics.compliments.byDayOfWeek).forEach(([day, count]) => {
       const percentage = ((count / result.metrics.compliments.total) * 100).toFixed(1)
       console.log(`    - ${day}: ${count} (${percentage}%)`)
     })
 
     console.log('\n💰 BALANCES:')
-    console.log(`  Compliment Balance:`)
+    console.log('  Compliment Balance:')
     console.log(`    - Total: ${result.metrics.balances.compliment.total.toFixed(0)} coins`)
     console.log(`    - Average: ${result.metrics.balances.compliment.average.toFixed(0)} coins/user`)
     console.log(`    - Range: ${result.metrics.balances.compliment.min}-${result.metrics.balances.compliment.max}`)
-    console.log(`  Redeemable Balance:`)
+    console.log('  Redeemable Balance:')
     console.log(`    - Total: ${result.metrics.balances.redeemable.total.toFixed(0)} coins`)
     console.log(`    - Average: ${result.metrics.balances.redeemable.average.toFixed(0)} coins/user`)
     console.log(`    - Earned: ${result.metrics.balances.redeemable.earned.toFixed(0)} coins`)

@@ -17,7 +17,7 @@ import {
  */
 export const backofficeAuditLogsRoutes = async (
   fastify: FastifyInstance,
-  _options: FastifyPluginOptions
+  _options: FastifyPluginOptions,
 ) => {
   /**
    * GET /backoffice/audit-logs
@@ -56,7 +56,7 @@ export const backofficeAuditLogsRoutes = async (
         const result = await backofficeAuditLogsService.listAllAuditLogs(
           filters,
           pagination,
-          sorting
+          sorting,
         )
 
         return reply.code(200).send({
@@ -72,7 +72,7 @@ export const backofficeAuditLogsRoutes = async (
           message: 'Failed to list audit logs',
         })
       }
-    }
+    },
   )
 
   /**
@@ -113,7 +113,7 @@ export const backofficeAuditLogsRoutes = async (
           companyId,
           filters,
           pagination,
-          sorting
+          sorting,
         )
 
         return reply.code(200).send({
@@ -142,7 +142,7 @@ export const backofficeAuditLogsRoutes = async (
           message: 'Failed to list company audit logs',
         })
       }
-    }
+    },
   )
 
   /**
@@ -183,7 +183,7 @@ export const backofficeAuditLogsRoutes = async (
           userId,
           filters,
           pagination,
-          sorting
+          sorting,
         )
 
         return reply.code(200).send({
@@ -212,6 +212,6 @@ export const backofficeAuditLogsRoutes = async (
           message: 'Failed to list user audit logs',
         })
       }
-    }
+    },
   )
 }

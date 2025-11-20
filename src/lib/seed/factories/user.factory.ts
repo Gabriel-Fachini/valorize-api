@@ -140,7 +140,7 @@ export class UserFactory {
    */
   static generateEmailsForUsers(
     users: Array<{ name: string; id: string }>,
-    domain: string
+    domain: string,
   ): Map<string, string> {
     const emailMap = new Map<string, string>()
 

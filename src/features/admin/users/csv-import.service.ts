@@ -409,9 +409,9 @@ export async function importUsers(
       const errorMsg = auth0Error.message.toLowerCase()
 
       if (errorMsg.includes('already exists') || errorMsg.includes('duplicate')) {
-        errorMessage = `Email already exists in Supabase Auth. Please ensure all emails in the CSV are new users.`
+        errorMessage = 'Email already exists in Supabase Auth. Please ensure all emails in the CSV are new users.'
       } else if (errorMsg.includes('invalid email')) {
-        errorMessage = `Invalid email format detected in CSV`
+        errorMessage = 'Invalid email format detected in CSV'
       } else if (errorMsg.includes('rate limit')) {
         errorMessage = 'Auth0 rate limit exceeded. Please try again later.'
       } else {
@@ -656,7 +656,7 @@ async function assignAllManagers(
     if (!managerId) {
       throw new Error(
         `Manager not found: ${row.email_gestor} (for user ${row.email}). ` +
-          `Make sure the manager is included in the CSV.`,
+          'Make sure the manager is included in the CSV.',
       )
     }
 

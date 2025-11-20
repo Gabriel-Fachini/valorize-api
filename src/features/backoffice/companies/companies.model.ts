@@ -18,7 +18,7 @@ export class BackofficeCompany {
   static async findWithFilters(
     filters: CompanyFilters,
     pagination: PaginationParams,
-    sorting: SortingParams
+    sorting: SortingParams,
   ): Promise<{ companies: CompanyListItem[]; total: number }> {
     const { search, status, planType, country, createdAfter, createdBefore } =
       filters
@@ -291,7 +291,7 @@ export class BackofficeCompany {
 
     const totalSpent30Days = redemptions.reduce(
       (sum, r) => sum + r.coinsSpent,
-      0
+      0,
     )
     const dailyBurnRate = totalSpent30Days / 30
     const monthlyBurnRate = dailyBurnRate * 30
@@ -306,7 +306,7 @@ export class BackofficeCompany {
     if (coverageMonths && coverageMonths > 0) {
       projectedDepletion = new Date()
       projectedDepletion.setDate(
-        projectedDepletion.getDate() + Math.floor(coverageMonths * 30)
+        projectedDepletion.getDate() + Math.floor(coverageMonths * 30),
       )
     }
 

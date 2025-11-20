@@ -190,7 +190,7 @@ export class ComplimentFactory {
     users: Array<{ authUserId: string; id: string }>,
     valueIds: string[],
     targetCount: number,
-    activityDistribution?: Map<string, number>
+    activityDistribution?: Map<string, number>,
   ): GeneratedCompliment[] {
     const compliments: GeneratedCompliment[] = []
 
@@ -254,7 +254,7 @@ export class ComplimentFactory {
     senders: Array<{ authUserId: string }>,
     targetAuthUserId: string,
     countPerSender: number,
-    valueIds: string[]
+    valueIds: string[],
   ): GeneratedCompliment[] {
     const compliments: GeneratedCompliment[] = []
 

@@ -16,12 +16,12 @@ const periodSchema = {
       type: 'object',
       properties: {
         startDate: { type: 'string', format: 'date-time' },
-        endDate: { type: 'string', format: 'date-time' }
+        endDate: { type: 'string', format: 'date-time' },
       },
-      required: ['startDate', 'endDate']
-    }
+      required: ['startDate', 'endDate'],
+    },
   },
-  required: ['startDate', 'endDate', 'previousPeriod']
+  required: ['startDate', 'endDate', 'previousPeriod'],
 }
 
 /**
@@ -37,9 +37,9 @@ const overviewSchema = {
       properties: {
         count: { type: 'number' },
         percentage: { type: 'number' },
-        total: { type: 'number' }
+        total: { type: 'number' },
       },
-      required: ['count', 'percentage', 'total']
+      required: ['count', 'percentage', 'total'],
     },
     avgCoinsPerCompliment: { type: 'number' },
     engagementRate: { type: 'number' },
@@ -51,12 +51,12 @@ const overviewSchema = {
         coinsChange: { type: 'number' },
         coinsChangeLabel: { type: 'string' },
         usersChange: { type: 'number' },
-        usersChangeLabel: { type: 'string' }
+        usersChangeLabel: { type: 'string' },
       },
-      required: ['complimentsChange', 'complimentsChangeLabel', 'coinsChange', 'coinsChangeLabel', 'usersChange', 'usersChangeLabel']
-    }
+      required: ['complimentsChange', 'complimentsChangeLabel', 'coinsChange', 'coinsChangeLabel', 'usersChange', 'usersChangeLabel'],
+    },
   },
-  required: ['totalCompliments', 'totalCoinsDistributed', 'activeUsers', 'avgCoinsPerCompliment', 'engagementRate', 'comparison']
+  required: ['totalCompliments', 'totalCoinsDistributed', 'activeUsers', 'avgCoinsPerCompliment', 'engagementRate', 'comparison'],
 }
 
 /**
@@ -76,10 +76,10 @@ const valueDistributionSchema = {
       percentage: { type: 'number' },
       totalCoins: { type: 'number' },
       trend: { type: 'string', enum: ['up', 'down', 'stable'] },
-      trendPercentage: { type: 'number' }
+      trendPercentage: { type: 'number' },
     },
-    required: ['valueId', 'valueName', 'count', 'percentage', 'totalCoins', 'trend', 'trendPercentage']
-  }
+    required: ['valueId', 'valueName', 'count', 'percentage', 'totalCoins', 'trend', 'trendPercentage'],
+  },
 }
 
 /**
@@ -101,10 +101,10 @@ const topUsersSchema = {
           jobTitle: { type: ['string', 'null'] },
           sentCount: { type: 'number' },
           totalCoinsSent: { type: 'number' },
-          avgCoinsPerCompliment: { type: 'number' }
+          avgCoinsPerCompliment: { type: 'number' },
         },
-        required: ['userId', 'name', 'email', 'sentCount', 'totalCoinsSent', 'avgCoinsPerCompliment']
-      }
+        required: ['userId', 'name', 'email', 'sentCount', 'totalCoinsSent', 'avgCoinsPerCompliment'],
+      },
     },
     receivers: {
       type: 'array',
@@ -119,10 +119,10 @@ const topUsersSchema = {
           jobTitle: { type: ['string', 'null'] },
           receivedCount: { type: 'number' },
           totalCoinsReceived: { type: 'number' },
-          avgCoinsPerCompliment: { type: 'number' }
+          avgCoinsPerCompliment: { type: 'number' },
         },
-        required: ['userId', 'name', 'email', 'receivedCount', 'totalCoinsReceived', 'avgCoinsPerCompliment']
-      }
+        required: ['userId', 'name', 'email', 'receivedCount', 'totalCoinsReceived', 'avgCoinsPerCompliment'],
+      },
     },
     balanced: {
       type: 'array',
@@ -136,13 +136,13 @@ const topUsersSchema = {
           department: { type: ['string', 'null'] },
           sentCount: { type: 'number' },
           receivedCount: { type: 'number' },
-          balanceScore: { type: 'number' }
+          balanceScore: { type: 'number' },
         },
-        required: ['userId', 'name', 'email', 'sentCount', 'receivedCount', 'balanceScore']
-      }
-    }
+        required: ['userId', 'name', 'email', 'sentCount', 'receivedCount', 'balanceScore'],
+      },
+    },
   },
-  required: ['senders', 'receivers', 'balanced']
+  required: ['senders', 'receivers', 'balanced'],
 }
 
 /**
@@ -167,12 +167,12 @@ const departmentAnalyticsSchema = {
             type: ['object', 'null'],
             properties: {
               valueName: { type: 'string' },
-              count: { type: 'number' }
-            }
-          }
+              count: { type: 'number' },
+            },
+          },
         },
-        required: ['departmentId', 'departmentName', 'totalUsers', 'activeUsers', 'totalCompliments', 'avgPerUser', 'engagementRate']
-      }
+        required: ['departmentId', 'departmentName', 'totalUsers', 'activeUsers', 'totalCompliments', 'avgPerUser', 'engagementRate'],
+      },
     },
     crossDepartmentFlow: {
       type: 'array',
@@ -184,13 +184,13 @@ const departmentAnalyticsSchema = {
           toDepartmentId: { type: ['string', 'null'] },
           toDepartmentName: { type: ['string', 'null'] },
           complimentCount: { type: 'number' },
-          coinAmount: { type: 'number' }
+          coinAmount: { type: 'number' },
         },
-        required: ['complimentCount', 'coinAmount']
-      }
-    }
+        required: ['complimentCount', 'coinAmount'],
+      },
+    },
   },
-  required: ['departments', 'crossDepartmentFlow']
+  required: ['departments', 'crossDepartmentFlow'],
 }
 
 /**
@@ -207,10 +207,10 @@ const temporalPatternsSchema = {
           weekStart: { type: 'string' },
           weekEnd: { type: 'string' },
           count: { type: 'number' },
-          coins: { type: 'number' }
+          coins: { type: 'number' },
         },
-        required: ['weekStart', 'weekEnd', 'count', 'coins']
-      }
+        required: ['weekStart', 'weekEnd', 'count', 'coins'],
+      },
     },
     dayOfWeekDistribution: {
       type: 'array',
@@ -220,10 +220,10 @@ const temporalPatternsSchema = {
           dayOfWeek: { type: 'number' },
           dayName: { type: 'string' },
           count: { type: 'number' },
-          percentage: { type: 'number' }
+          percentage: { type: 'number' },
         },
-        required: ['dayOfWeek', 'dayName', 'count', 'percentage']
-      }
+        required: ['dayOfWeek', 'dayName', 'count', 'percentage'],
+      },
     },
     hourlyDistribution: {
       type: 'array',
@@ -232,10 +232,10 @@ const temporalPatternsSchema = {
         properties: {
           hour: { type: 'number' },
           count: { type: 'number' },
-          percentage: { type: 'number' }
+          percentage: { type: 'number' },
         },
-        required: ['hour', 'count', 'percentage']
-      }
+        required: ['hour', 'count', 'percentage'],
+      },
     },
     monthlyGrowth: {
       type: 'object',
@@ -245,25 +245,25 @@ const temporalPatternsSchema = {
           properties: {
             month: { type: 'string' },
             count: { type: 'number' },
-            coins: { type: 'number' }
+            coins: { type: 'number' },
           },
-          required: ['month', 'count', 'coins']
+          required: ['month', 'count', 'coins'],
         },
         previousMonth: {
           type: 'object',
           properties: {
             month: { type: 'string' },
             count: { type: 'number' },
-            coins: { type: 'number' }
+            coins: { type: 'number' },
           },
-          required: ['month', 'count', 'coins']
+          required: ['month', 'count', 'coins'],
         },
-        growthRate: { type: 'number' }
+        growthRate: { type: 'number' },
       },
-      required: ['currentMonth', 'previousMonth', 'growthRate']
-    }
+      required: ['currentMonth', 'previousMonth', 'growthRate'],
+    },
   },
-  required: ['weeklyTrend', 'dayOfWeekDistribution', 'hourlyDistribution', 'monthlyGrowth']
+  required: ['weeklyTrend', 'dayOfWeekDistribution', 'hourlyDistribution', 'monthlyGrowth'],
 }
 
 /**
@@ -280,10 +280,10 @@ const insightsSchema = {
       description: { type: 'string' },
       metric: { type: ['number', 'null'] },
       actionable: { type: 'boolean' },
-      priority: { type: 'string', enum: ['high', 'medium', 'low'] }
+      priority: { type: 'string', enum: ['high', 'medium', 'low'] },
     },
-    required: ['type', 'category', 'title', 'description', 'actionable', 'priority']
-  }
+    required: ['type', 'category', 'title', 'description', 'actionable', 'priority'],
+  },
 }
 
 /**
@@ -301,9 +301,9 @@ const recentActivitySchema = {
           id: { type: 'string' },
           name: { type: 'string' },
           avatar: { type: ['string', 'null'] },
-          department: { type: ['string', 'null'] }
+          department: { type: ['string', 'null'] },
         },
-        required: ['id', 'name']
+        required: ['id', 'name'],
       },
       receiver: {
         type: 'object',
@@ -311,9 +311,9 @@ const recentActivitySchema = {
           id: { type: 'string' },
           name: { type: 'string' },
           avatar: { type: ['string', 'null'] },
-          department: { type: ['string', 'null'] }
+          department: { type: ['string', 'null'] },
         },
-        required: ['id', 'name']
+        required: ['id', 'name'],
       },
       companyValue: {
         type: 'object',
@@ -321,17 +321,17 @@ const recentActivitySchema = {
           id: { type: 'number' },
           title: { type: 'string' },
           iconName: { type: ['string', 'null'] },
-          iconColor: { type: ['string', 'null'] }
+          iconColor: { type: ['string', 'null'] },
         },
-        required: ['id', 'title']
+        required: ['id', 'title'],
       },
       coins: { type: 'number' },
       message: { type: 'string' },
       createdAt: { type: 'string' },
-      timeAgo: { type: 'string' }
+      timeAgo: { type: 'string' },
     },
-    required: ['id', 'sender', 'receiver', 'companyValue', 'coins', 'message', 'createdAt', 'timeAgo']
-  }
+    required: ['id', 'sender', 'receiver', 'companyValue', 'coins', 'message', 'createdAt', 'timeAgo'],
+  },
 }
 
 /**
@@ -356,16 +356,16 @@ const engagementMetricsSchema = {
               userId: { type: 'string' },
               name: { type: 'string' },
               department: { type: ['string', 'null'] },
-              lastActivity: { type: ['string', 'null'] }
+              lastActivity: { type: ['string', 'null'] },
             },
-            required: ['userId', 'name']
-          }
-        }
+            required: ['userId', 'name'],
+          },
+        },
       },
-      required: ['count', 'percentage', 'list']
-    }
+      required: ['count', 'percentage', 'list'],
+    },
   },
-  required: ['participationRate', 'averageComplimentsPerUser', 'medianCoinsPerCompliment', 'inactiveUsers']
+  required: ['participationRate', 'averageComplimentsPerUser', 'medianCoinsPerCompliment', 'inactiveUsers'],
 }
 
 /**
@@ -380,9 +380,9 @@ const metadataSchema = {
       type: 'object',
       properties: {
         departmentId: { type: ['string', 'null'] },
-        jobTitleId: { type: ['string', 'null'] }
+        jobTitleId: { type: ['string', 'null'] },
       },
-      required: ['departmentId', 'jobTitleId']
+      required: ['departmentId', 'jobTitleId'],
     },
     companyInfo: {
       type: 'object',
@@ -390,12 +390,12 @@ const metadataSchema = {
         totalEmployees: { type: 'number' },
         activeEmployees: { type: 'number' },
         totalValues: { type: 'number' },
-        activeValues: { type: 'number' }
+        activeValues: { type: 'number' },
       },
-      required: ['totalEmployees', 'activeEmployees', 'totalValues', 'activeValues']
-    }
+      required: ['totalEmployees', 'activeEmployees', 'totalValues', 'activeValues'],
+    },
   },
-  required: ['generatedAt', 'executionTime', 'filters', 'companyInfo']
+  required: ['generatedAt', 'executionTime', 'filters', 'companyInfo'],
 }
 
 /**
@@ -413,7 +413,7 @@ const dashboardResponseSchema = {
     insights: insightsSchema,
     recentActivity: recentActivitySchema,
     engagementMetrics: engagementMetricsSchema,
-    metadata: metadataSchema
+    metadata: metadataSchema,
   },
   required: [
     'period',
@@ -425,8 +425,8 @@ const dashboardResponseSchema = {
     'insights',
     'recentActivity',
     'engagementMetrics',
-    'metadata'
-  ]
+    'metadata',
+  ],
 }
 
 /**
@@ -441,23 +441,23 @@ export const getComplimentsDashboardSchema = {
       startDate: {
         type: 'string',
         format: 'date',
-        description: 'Start date (YYYY-MM-DD)'
+        description: 'Start date (YYYY-MM-DD)',
       },
       endDate: {
         type: 'string',
         format: 'date',
-        description: 'End date (YYYY-MM-DD)'
+        description: 'End date (YYYY-MM-DD)',
       },
       departmentId: {
         type: 'string',
-        description: 'Filter by department ID'
+        description: 'Filter by department ID',
       },
       jobTitleId: {
         type: 'string',
-        description: 'Filter by job title ID'
-      }
+        description: 'Filter by job title ID',
+      },
     },
-    additionalProperties: false
+    additionalProperties: false,
   },
   response: {
     200: dashboardResponseSchema,
@@ -465,31 +465,31 @@ export const getComplimentsDashboardSchema = {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
+        message: { type: 'string' },
+      },
     },
     401: {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
+        message: { type: 'string' },
+      },
     },
     403: {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
+        message: { type: 'string' },
+      },
     },
     500: {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
-    }
-  }
+        message: { type: 'string' },
+      },
+    },
+  },
 }
 
 /**
@@ -506,9 +506,9 @@ const networkNodeSchema = {
     role: { type: 'string' },
     department: { type: 'string' },
     complimentsGiven: { type: 'number' },
-    complimentsReceived: { type: 'number' }
+    complimentsReceived: { type: 'number' },
   },
-  required: ['id', 'name', 'avatar', 'role', 'department', 'complimentsGiven', 'complimentsReceived']
+  required: ['id', 'name', 'avatar', 'role', 'department', 'complimentsGiven', 'complimentsReceived'],
 }
 
 // Link schema
@@ -520,10 +520,10 @@ const networkLinkSchema = {
     value: { type: 'number' },
     compliments: {
       type: 'array',
-      items: { type: 'string' }
-    }
+      items: { type: 'string' },
+    },
   },
-  required: ['source', 'target', 'value', 'compliments']
+  required: ['source', 'target', 'value', 'compliments'],
 }
 
 // Response schema
@@ -532,14 +532,14 @@ const networkGraphResponseSchema = {
   properties: {
     nodes: {
       type: 'array',
-      items: networkNodeSchema
+      items: networkNodeSchema,
     },
     links: {
       type: 'array',
-      items: networkLinkSchema
-    }
+      items: networkLinkSchema,
+    },
   },
-  required: ['nodes', 'links']
+  required: ['nodes', 'links'],
 }
 
 /**
@@ -554,34 +554,34 @@ export const getNetworkGraphSchema = {
       startDate: {
         type: 'string',
         format: 'date',
-        description: 'Start date (YYYY-MM-DD)'
+        description: 'Start date (YYYY-MM-DD)',
       },
       endDate: {
         type: 'string',
         format: 'date',
-        description: 'End date (YYYY-MM-DD)'
+        description: 'End date (YYYY-MM-DD)',
       },
       department: {
         type: 'string',
-        description: 'Filter by department name'
+        description: 'Filter by department name',
       },
       minConnections: {
         type: 'number',
         minimum: 1,
-        description: 'Minimum total compliments (given + received) to include user'
+        description: 'Minimum total compliments (given + received) to include user',
       },
       limit: {
         type: 'number',
         minimum: 1,
         maximum: 100,
-        description: 'Maximum number of nodes to return (default: 50, max: 100)'
+        description: 'Maximum number of nodes to return (default: 50, max: 100)',
       },
       userIds: {
         type: 'string',
-        description: 'Comma-separated list of user IDs to filter by (e.g., "id1,id2,id3")'
-      }
+        description: 'Comma-separated list of user IDs to filter by (e.g., "id1,id2,id3")',
+      },
     },
-    additionalProperties: false
+    additionalProperties: false,
   },
   response: {
     200: networkGraphResponseSchema,
@@ -589,29 +589,29 @@ export const getNetworkGraphSchema = {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
+        message: { type: 'string' },
+      },
     },
     401: {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
+        message: { type: 'string' },
+      },
     },
     403: {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
+        message: { type: 'string' },
+      },
     },
     500: {
       type: 'object',
       properties: {
         error: { type: 'string' },
-        message: { type: 'string' }
-      }
-    }
-  }
+        message: { type: 'string' },
+      },
+    },
+  },
 }

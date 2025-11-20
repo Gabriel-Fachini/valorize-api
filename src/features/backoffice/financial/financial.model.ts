@@ -22,7 +22,7 @@ export class FinancialModel {
    */
   static async findCharges(
     filters: ListChargesFilters,
-    pagination: ListChargesPagination
+    pagination: ListChargesPagination,
   ): Promise<{ charges: ChargeWithRelations[]; total: number }> {
     const {
       companyId,
@@ -201,7 +201,7 @@ export class FinancialModel {
    */
   static async createCharge(
     data: CreateChargeRequest,
-    createdBy: string
+    createdBy: string,
   ): Promise<Charge> {
     return prisma.charge.create({
       data: {
@@ -223,7 +223,7 @@ export class FinancialModel {
    */
   static async updateCharge(
     chargeId: string,
-    data: UpdateChargeRequest
+    data: UpdateChargeRequest,
   ): Promise<Charge> {
     const updateData: Prisma.ChargeUpdateInput = {}
 
@@ -280,7 +280,7 @@ export class FinancialModel {
     fileUrl: string,
     fileSize: number,
     fileType: string,
-    uploadedBy: string
+    uploadedBy: string,
   ): Promise<ChargeAttachment> {
     return prisma.chargeAttachment.create({
       data: {
@@ -298,7 +298,7 @@ export class FinancialModel {
    * Find attachment by ID
    */
   static async findAttachmentById(
-    attachmentId: string
+    attachmentId: string,
   ): Promise<ChargeAttachment | null> {
     return prisma.chargeAttachment.findUnique({
       where: { id: attachmentId },
@@ -320,7 +320,7 @@ export class FinancialModel {
   static async registerPayment(
     chargeId: string,
     data: RegisterPaymentRequest,
-    registeredBy: string
+    registeredBy: string,
   ): Promise<ChargePayment> {
     return prisma.chargePayment.create({
       data: {
@@ -338,7 +338,7 @@ export class FinancialModel {
    * Calculate charge balance and suggest status
    */
   static async calculateChargeBalance(
-    chargeId: string
+    chargeId: string,
   ): Promise<CalculateChargeBalanceResult> {
     const charge = await prisma.charge.findUnique({
       where: { id: chargeId },
@@ -398,7 +398,7 @@ export class FinancialModel {
    * Calculate aggregations for charges
    */
   static async calculateAggregations(
-    filters: ListChargesFilters
+    filters: ListChargesFilters,
   ): Promise<ChargeAggregations> {
     const { companyId } = filters
 
@@ -444,7 +444,7 @@ export class FinancialModel {
       } else if (charge.status === 'PARTIAL') {
         const totalPaid = charge.payments.reduce(
           (sum, p) => sum.add(p.amount),
-          new Decimal(0)
+          new Decimal(0),
         )
         const balance = new Decimal(charge.amount).sub(totalPaid)
         partialAmount = partialAmount.add(balance)
