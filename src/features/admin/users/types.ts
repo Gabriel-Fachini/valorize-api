@@ -45,6 +45,7 @@ export interface CSVRow {
   email: string
   departamento?: string
   cargo?: string
+  email_gestor?: string
 }
 
 export interface CSVRowError {
@@ -94,7 +95,7 @@ export interface ImportError {
 
 export interface ImportResult {
   jobId?: string
-  status: 'completed' | 'processing'
+  status: 'completed' | 'partial' | 'failed' | 'processing'
   report: {
     created: number
     updated: number

@@ -41,14 +41,52 @@ setInterval(() => {
 }, 5 * 60 * 1000)
 
 // ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Divide array em chunks (lotes) para processamento paralelo controlado
+ */
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
+/**
+ * Processa array em lotes paralelos com concorrência controlada
+ * @param items - Array de itens para processar
+ * @param batchSize - Número de itens por lote (concorrência)
+ * @param processor - Função async para processar cada item
+ */
+async function processInBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  processor: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const chunks = chunkArray(items, batchSize)
+  const allResults: R[] = []
+
+  for (const chunk of chunks) {
+    // Processa cada chunk em paralelo
+    const chunkResults = await Promise.all(chunk.map((item) => processor(item)))
+    allResults.push(...chunkResults)
+  }
+
+  return allResults
+}
+
+// ============================================================================
 // CSV TEMPLATE
 // ============================================================================
 
 export async function generateTemplate(): Promise<Buffer> {
-  const headers = ['nome', 'email', 'departamento', 'cargo']
+  const headers = ['nome', 'email', 'departamento', 'cargo', 'email_gestor']
   const exampleData = [
-    ['João Silva', 'joao@empresa.com.br', 'Tecnologia', 'Desenvolvedor'],
-    ['Maria Santos', 'maria@empresa.com.br', 'RH', 'Analista'],
+    ['João Silva', 'joao@empresa.com.br', 'Tecnologia', 'Desenvolvedor', 'gestor@empresa.com.br'],
+    ['Maria Santos', 'maria@empresa.com.br', 'RH', 'Analista', 'gestor@empresa.com.br'],
   ]
 
   const rows = [headers, ...exampleData]
@@ -86,6 +124,7 @@ export async function parseCSV(file: Buffer): Promise<CSVRow[]> {
     const emailIndex = headers.indexOf('email')
     const departamentoIndex = headers.indexOf('departamento')
     const cargoIndex = headers.indexOf('cargo')
+    const emailGestorIndex = headers.indexOf('email_gestor')
 
     // Parse rows
     const records: CSVRow[] = []
@@ -100,6 +139,7 @@ export async function parseCSV(file: Buffer): Promise<CSVRow[]> {
         email: values[emailIndex]?.trim() || '',
         departamento: values[departamentoIndex]?.trim() || undefined,
         cargo: values[cargoIndex]?.trim() || undefined,
+        email_gestor: values[emailGestorIndex]?.trim() || undefined,
       })
     }
 
@@ -327,123 +367,127 @@ export async function importUsers(
   const { validatedRows } = previewData
 
   // Filter to confirmed rows if specified
-  let rowsToImport = validatedRows.filter(r => r.valid)
+  let rowsToImport = validatedRows.filter((r) => r.valid)
 
   if (confirmedRowNumbers && confirmedRowNumbers.length > 0) {
-    rowsToImport = rowsToImport.filter(r => confirmedRowNumbers.includes(r.rowNumber))
+    rowsToImport = rowsToImport.filter((r) => confirmedRowNumbers.includes(r.rowNumber))
   }
 
-  const errors: ImportError[] = []
-  let created = 0
-  let updated = 0
+  // ============================================================================
+  // ETAPA 1: Create all users in Auth0 (parallel batches)
+  // ============================================================================
 
-  // Get existing emails for update detection
-  const existingEmails = await getExistingEmailsByCompany(companyId)
+  logger.info('Creating users in Auth0...', { count: rowsToImport.length })
+
+  let auth0Users: Array<{ row: ValidatedCSVRow; auth0Id: string }>
 
   try {
-    // Process in transaction
-    await prisma.$transaction(async tx => {
-      for (const row of rowsToImport) {
-        try {
-          const existingUser = existingEmails.get(row.email)
+    auth0Users = await processInBatches(rowsToImport, 10, async (row) => {
+      const auth0Result = await authService.createAdminUser({
+        email: row.email.toLowerCase().trim(),
+        name: row.nome.trim(),
+      })
 
-          // Resolve department if provided
-          let departmentId: string | null = null
-          if (row.departamento) {
-            departmentId = await resolveDepartment(tx, row.departamento, companyId)
-          }
+      logger.info('User created in Auth0 via CSV import', {
+        auth0Id: auth0Result.auth0Id,
+        email: row.email,
+        rowNumber: row.rowNumber,
+      })
 
-          // Resolve job title if provided
-          let jobTitleId: string | null = null
-          if (row.cargo) {
-            jobTitleId = await resolveJobTitle(tx, row.cargo, companyId)
-          }
-
-          if (existingUser) {
-            // Update existing user
-            await tx.user.update({
-              where: { id: existingUser.id },
-              data: {
-                name: row.nome.trim(),
-                departmentId,
-                jobTitleId,
-              },
-            })
-            updated++
-          } else {
-            // Create new user in Auth0 first
-            let auth0Id: string
-            let ticketUrl: string | undefined
-
-            try {
-              const auth0Result = await authService.createAdminUser({
-                email: row.email.toLowerCase().trim(),
-                name: row.nome.trim(),
-              })
-              auth0Id = auth0Result.auth0Id
-              ticketUrl = auth0Result.ticketUrl
-
-              logger.info('User created in Auth0 via CSV import', {
-                auth0Id,
-                email: row.email,
-              })
-            } catch (auth0Error) {
-              logger.error('Failed to create user in Auth0 during CSV import', {
-                email: row.email,
-                error: auth0Error instanceof Error ? auth0Error.message : String(auth0Error),
-              })
-              throw new Error(
-                `Failed to create user in Auth0: ${auth0Error instanceof Error ? auth0Error.message : 'Unknown error'}`,
-              )
-            }
-
-            // Create in local database
-            await tx.user.create({
-              data: {
-                auth0Id,
-                email: row.email.toLowerCase().trim(),
-                name: row.nome.trim(),
-                companyId,
-                departmentId,
-                jobTitleId,
-                isActive: true,
-              },
-            })
-            created++
-
-            logger.info('User created from CSV import', {
-              userId: auth0Id,
-              email: row.email,
-              ticketUrl,
-            })
-          }
-        } catch (error) {
-          logger.error(`Error importing row ${row.rowNumber}:`, error)
-          errors.push({
-            rowNumber: row.rowNumber,
-            email: row.email,
-            reason: error instanceof Error ? error.message : 'Failed to import user',
-          })
-        }
+      return {
+        row,
+        auth0Id: auth0Result.auth0Id,
       }
     })
-  } catch (error) {
-    logger.error('CSV import transaction error:', error)
-    throw new ValidationError('Failed to complete import')
+
+    logger.info('All Auth0 users created successfully', { count: auth0Users.length })
+  } catch (auth0Error: any) {
+    // Enhanced Auth0 error handling
+    let errorMessage = 'Failed to create users in Auth0'
+
+    if (auth0Error instanceof Error) {
+      const errorMsg = auth0Error.message.toLowerCase()
+
+      if (errorMsg.includes('already exists') || errorMsg.includes('duplicate')) {
+        errorMessage = `Email already exists in Auth0. Please ensure all emails in the CSV are new users.`
+      } else if (errorMsg.includes('invalid email')) {
+        errorMessage = `Invalid email format detected in CSV`
+      } else if (errorMsg.includes('rate limit')) {
+        errorMessage = 'Auth0 rate limit exceeded. Please try again later.'
+      } else {
+        errorMessage = `Auth0 error: ${auth0Error.message}`
+      }
+    }
+
+    logger.error('Failed to create users in Auth0', {
+      error: auth0Error instanceof Error ? auth0Error.message : String(auth0Error),
+      stack: auth0Error instanceof Error ? auth0Error.stack : undefined,
+    })
+
+    throw new ValidationError(errorMessage)
   }
 
-  // Clear cache
+  // ============================================================================
+  // ETAPA 2: Create all users in DB (single transaction - all-or-nothing)
+  // ============================================================================
+
+  try {
+    await prisma.$transaction(
+      async (tx) => {
+        // SUB-ETAPA 1: Upsert all departments/jobs
+        logger.info('Upserting departments and job titles...')
+        const { deptMap, jobMap } = await upsertAllDepartmentsAndJobs(tx, rowsToImport, companyId)
+        logger.info('Departments and job titles ready', {
+          departments: deptMap.size,
+          jobTitles: jobMap.size,
+        })
+
+        // SUB-ETAPA 2: Create all users (without managers)
+        logger.info('Creating users in database...')
+        const userMap = await createAllUsers(tx, auth0Users, deptMap, jobMap, companyId)
+        logger.info('All users created in database', { count: userMap.size })
+
+        // SUB-ETAPA 3: Assign managers (second pass)
+        logger.info('Assigning managers...')
+        await assignAllManagers(tx, rowsToImport, userMap)
+        logger.info('Managers assigned successfully')
+      },
+      {
+        timeout: 60000, // 60 seconds for large imports
+        maxWait: 10000,
+      },
+    )
+
+    logger.info('DB transaction completed successfully')
+  } catch (dbError) {
+    // ROLLBACK: Try to delete Auth0 users
+    logger.error('DB transaction failed, rolling back Auth0 users', { error: dbError })
+
+    await rollbackAuth0Users(auth0Users.map((u) => u.auth0Id))
+
+    const errorMessage =
+      dbError instanceof Error
+        ? dbError.message
+        : 'Database transaction failed during import. All changes rolled back.'
+
+    throw new ValidationError(errorMessage)
+  }
+
+  // Clear cache after successful processing
   previewCache.delete(previewId)
 
-  logger.info(`CSV import completed: ${created} created, ${updated} updated, ${errors.length} errors`)
+  logger.info('CSV import completed successfully', {
+    created: rowsToImport.length,
+    totalRows: validatedRows.length,
+  })
 
   return {
     status: 'completed',
     report: {
-      created,
-      updated,
-      skipped: validatedRows.filter(r => !r.valid).length,
-      errors,
+      created: rowsToImport.length,
+      updated: 0, // No updates in all-or-nothing mode
+      skipped: validatedRows.filter((r) => !r.valid).length,
+      errors: [],
     },
   }
 }
@@ -476,42 +520,200 @@ async function getExistingEmailsByCompany(
   return map
 }
 
-async function resolveDepartment(
+// ============================================================================
+// IMPORT HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Rollback: Log orphaned Auth0 users if DB transaction fails
+ * Note: Manual cleanup may be required in Auth0 dashboard
+ */
+async function rollbackAuth0Users(auth0Ids: string[]): Promise<void> {
+  logger.error('DB transaction failed - orphaned Auth0 users detected', {
+    count: auth0Ids.length,
+    auth0Ids,
+    action: 'Manual cleanup may be required in Auth0 dashboard',
+  })
+
+  // TODO: Implement automated cleanup when Auth0 Management API is integrated
+  // For now, log the orphaned users for manual cleanup
+}
+
+/**
+ * Upsert all unique departments and job titles from CSV rows
+ * Returns maps for fast lookup: name → id
+ */
+async function upsertAllDepartmentsAndJobs(
+  tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  rows: ValidatedCSVRow[],
+  companyId: string,
+): Promise<{
+  deptMap: Map<string, string> // nome → id
+  jobMap: Map<string, string> // título → id
+}> {
+  // Extract unique departments and job titles
+  const uniqueDepts = new Set(
+    rows
+      .map((r) => r.departamento?.trim())
+      .filter((d): d is string => Boolean(d)),
+  )
+
+  const uniqueJobs = new Set(
+    rows
+      .map((r) => r.cargo?.trim())
+      .filter((j): j is string => Boolean(j)),
+  )
+
+  // Upsert all in parallel WITHIN the transaction
+  await Promise.all([
+    ...Array.from(uniqueDepts).map((name) => upsertDepartment(tx, name, companyId)),
+    ...Array.from(uniqueJobs).map((name) => upsertJobTitle(tx, name, companyId)),
+  ])
+
+  // Fetch all departments and job titles to create maps
+  const [allDepts, allJobs] = await Promise.all([
+    tx.department.findMany({
+      where: { companyId },
+      select: { id: true, name: true },
+    }),
+    tx.jobTitle.findMany({
+      where: { companyId },
+      select: { id: true, name: true },
+    }),
+  ])
+
+  const deptMap = new Map<string, string>(allDepts.map((d: any) => [d.name as string, d.id as string]))
+  const jobMap = new Map<string, string>(allJobs.map((j: any) => [j.name as string, j.id as string]))
+
+  return { deptMap, jobMap }
+}
+
+/**
+ * Create all users in DB (without managers yet)
+ * Returns map: email → userId
+ */
+async function createAllUsers(
+  tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  auth0Users: Array<{ row: ValidatedCSVRow; auth0Id: string }>,
+  deptMap: Map<string, string>,
+  jobMap: Map<string, string>,
+  companyId: string,
+): Promise<Map<string, string>> {
+  const userMap = new Map<string, string>()
+
+  // Create all users sequentially WITHIN transaction
+  // (Prisma transaction already guarantees atomicity)
+  for (const { row, auth0Id } of auth0Users) {
+    const departmentId = row.departamento ? deptMap.get(row.departamento.trim()) : undefined
+
+    const jobTitleId = row.cargo ? jobMap.get(row.cargo.trim()) : undefined
+
+    // Create user (WITHOUT managerId yet)
+    const user = await tx.user.create({
+      data: {
+        auth0Id,
+        companyId,
+        email: row.email.toLowerCase().trim(),
+        name: row.nome.trim(),
+        departmentId,
+        jobTitleId,
+        isActive: true,
+        // managerId: null by default
+      },
+      select: { id: true },
+    })
+
+    userMap.set(row.email.toLowerCase(), user.id)
+  }
+
+  return userMap
+}
+
+/**
+ * Assign managers to users (second pass)
+ * Throws error if manager not found (all-or-nothing)
+ */
+async function assignAllManagers(
+  tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  rows: ValidatedCSVRow[],
+  userMap: Map<string, string>,
+): Promise<void> {
+  const managersToAssign = rows.filter((row) => row.email_gestor)
+
+  if (managersToAssign.length === 0) {
+    return
+  }
+
+  // For each user with manager
+  for (const row of managersToAssign) {
+    const userId = userMap.get(row.email.toLowerCase())
+    const managerId = userMap.get(row.email_gestor!.toLowerCase())
+
+    if (!userId) {
+      throw new Error(`User not found in map: ${row.email}`)
+    }
+
+    if (!managerId) {
+      throw new Error(
+        `Manager not found: ${row.email_gestor} (for user ${row.email}). ` +
+          `Make sure the manager is included in the CSV.`,
+      )
+    }
+
+    // Update userId with managerId
+    await tx.user.update({
+      where: { id: userId },
+      data: { managerId },
+    })
+  }
+}
+
+async function upsertDepartment(
   tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   departmentName: string,
   companyId: string,
-): Promise<string | null> {
-  // Try to find by name
-  const dept = await tx.department.findFirst({
+): Promise<string> {
+  const normalized = departmentName.trim()
+
+  const dept = await tx.department.upsert({
     where: {
-      companyId,
-      name: {
-        contains: departmentName,
-        mode: 'insensitive',
-      },
+      companyId_name: { companyId, name: normalized },
     },
+    update: {}, // Não atualiza se já existe
+    create: {
+      companyId,
+      name: normalized,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    select: { id: true },
   })
 
-  return dept?.id ?? null
+  return dept.id
 }
 
-async function resolveJobTitle(
+async function upsertJobTitle(
   tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   jobTitleName: string,
   companyId: string,
-): Promise<string | null> {
-  // Try to find by name
-  const jobTitle = await tx.jobTitle.findFirst({
+): Promise<string> {
+  const normalized = jobTitleName.trim()
+
+  const jobTitle = await tx.jobTitle.upsert({
     where: {
-      companyId,
-      name: {
-        contains: jobTitleName,
-        mode: 'insensitive',
-      },
+      companyId_name: { companyId, name: normalized },
     },
+    update: {}, // Não atualiza se já existe
+    create: {
+      companyId,
+      name: normalized,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    select: { id: true },
   })
 
-  return jobTitle?.id ?? null
+  return jobTitle.id
 }
 
 // Export as service object

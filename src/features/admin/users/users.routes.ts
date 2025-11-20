@@ -352,11 +352,42 @@ export default async function usersRoutes(fastify: FastifyInstance) {
 
         const { previewId, confirmedRows } = body
 
+        // Import users and get detailed result
         const result = await csvImportService.importUsers(companyId, previewId, confirmedRows)
 
-        return reply.code(200).send(result)
+        // Log summary for monitoring
+        logger.info('CSV import request completed', {
+          companyId,
+          status: result.status,
+          created: result.report.created,
+          updated: result.report.updated,
+          errors: result.report.errors.length,
+          totalErrors: result.report.errors.length,
+        })
+
+        // Always return the full result with detailed errors
+        // Use 200 for completed/partial, 207 Multi-Status for partial success
+        const statusCode = result.status === 'failed' ? 422 : result.status === 'partial' ? 207 : 200
+
+        return reply.code(statusCode).send({
+          success: result.status === 'completed',
+          status: result.status,
+          message:
+            result.status === 'completed'
+              ? 'All users imported successfully'
+              : result.status === 'partial'
+                ? 'Import completed with some errors'
+                : 'Import failed - all rows had errors',
+          report: result.report,
+        })
       } catch (error) {
-        logger.error('Failed to import CSV', { error })
+        logger.error('CSV import endpoint error', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        })
+
+        // Re-throw to let global error handler deal with it
+        // This ensures consistent error format across the API
         throw error
       }
     },
