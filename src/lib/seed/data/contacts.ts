@@ -4,7 +4,7 @@
 
 export interface CompanyContactData {
   companyId: string
-  userAuth0Id: string
+  userAuthUserId: string
   role: string
   isPrimary: boolean
 }
@@ -13,19 +13,19 @@ export const DEMO_COMPANY_CONTACTS: CompanyContactData[] = [
   // Valorize Corp contacts
   {
     companyId: 'demo-company-001',
-    userAuth0Id: 'auth0|688aa3e7f3f1dbd119c3b600',
+    userAuthUserId: '28a805cd-218f-49e0-a4ec-4acd5996f543',
     role: 'CEO & Founder',
     isPrimary: true,
   },
   {
     companyId: 'demo-company-001',
-    userAuth0Id: 'auth0|demo-company-admin-valorize',
+    userAuthUserId: '33333333-3333-3333-3333-333333333333',
     role: 'CTO',
     isPrimary: false,
   },
   {
     companyId: 'demo-company-001',
-    userAuth0Id: 'auth0|demo-hr-manager-valorize',
+    userAuthUserId: '44444444-4444-4444-4444-444444444444',
     role: 'HR Manager',
     isPrimary: false,
   },
@@ -33,19 +33,19 @@ export const DEMO_COMPANY_CONTACTS: CompanyContactData[] = [
   // TechStart Brasil contacts
   {
     companyId: 'demo-company-002',
-    userAuth0Id: 'auth0|demo-company-admin-techstart',
+    userAuthUserId: 'b0000002-0002-0002-0002-000000000001',
     role: 'CEO',
     isPrimary: true,
   },
   {
     companyId: 'demo-company-002',
-    userAuth0Id: 'auth0|demo-hr-manager-techstart',
+    userAuthUserId: 'b0000002-0002-0002-0002-000000000002',
     role: 'Head of People',
     isPrimary: false,
   },
   {
     companyId: 'demo-company-002',
-    userAuth0Id: 'auth0|demo-team-lead-techstart',
+    userAuthUserId: 'b0000002-0002-0002-0002-000000000003',
     role: 'Tech Lead',
     isPrimary: false,
   },
@@ -53,13 +53,13 @@ export const DEMO_COMPANY_CONTACTS: CompanyContactData[] = [
   // Global Solutions Inc contacts
   {
     companyId: 'demo-company-003',
-    userAuth0Id: 'auth0|demo-company-admin-global',
+    userAuthUserId: 'c0000003-0003-0003-0003-000000000001',
     role: 'President',
     isPrimary: true,
   },
   {
     companyId: 'demo-company-003',
-    userAuth0Id: 'auth0|demo-hr-manager-global',
+    userAuthUserId: 'c0000003-0003-0003-0003-000000000002',
     role: 'VP of Human Resources',
     isPrimary: false,
   },

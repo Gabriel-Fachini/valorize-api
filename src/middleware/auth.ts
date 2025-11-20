@@ -24,11 +24,13 @@ const isPublicRoute = (url: string): boolean => {
 }
 
 export interface AuthenticatedUser {
-  sub: string // Auth0 user ID
+  sub: string // Supabase user ID
   email?: string
   email_verified?: boolean
+  email_confirmed_at?: string
   name?: string
   avatar?: string
+  role?: string
   [key: string]: unknown
 }
 
@@ -88,47 +90,35 @@ export const auth0Middleware = async (
 
     try {
       // Verify the JWT token using Fastify's JWT plugin
-      // The plugin is configured with Auth0's JWKS URL in app.ts
+      // The plugin is configured with Supabase JWT secret in app.ts
       const decoded = await request.jwtVerify()
-      
+
       // Extract user information from the decoded token
       const decodedPayload = decoded as Record<string, unknown>
-      
-      // Validate Auth0 issuer
-      const expectedIssuer = `https://${process.env.AUTH0_DOMAIN}/`
-      if (decodedPayload.iss !== expectedIssuer) {
-        logger.warn('Invalid JWT issuer', {
-          expected: expectedIssuer,
-          received: decodedPayload.iss,
-        })
-        throw new UnauthorizedError('Invalid token issuer')
-      }
-      
-      // Validate Auth0 audience (if configured)
-      if (process.env.AUTH0_AUDIENCE) {
-        const audience = decodedPayload.aud as string | string[]
-        const expectedAudience = process.env.AUTH0_AUDIENCE
-        
-        // Check if audience matches (handle both string and array formats)
-        const audienceValid = Array.isArray(audience) 
-          ? audience.includes(expectedAudience)
-          : audience === expectedAudience
-          
-        if (!audienceValid) {
-          logger.warn('Invalid JWT audience', {
-            expected: expectedAudience,
-            received: audience,
+
+      // Validate Supabase issuer (optional but recommended)
+      const supabaseUrl = process.env.SUPABASE_URL
+      if (supabaseUrl) {
+        const expectedIssuer = `${supabaseUrl}/auth/v1`
+        if (decodedPayload.iss && decodedPayload.iss !== expectedIssuer) {
+          logger.warn('Invalid JWT issuer', {
+            expected: expectedIssuer,
+            received: decodedPayload.iss,
           })
-          throw new UnauthorizedError('Invalid token audience')
+          throw new UnauthorizedError('Invalid token issuer')
         }
       }
-      
+
+      // Extract user information from Supabase token structure
+      const userMetadata = decodedPayload.user_metadata as Record<string, unknown> | undefined
       const user: AuthenticatedUser = {
         sub: decodedPayload.sub as string,
         email: decodedPayload.email as string,
         email_verified: decodedPayload.email_verified as boolean,
-        name: decodedPayload.name as string,
-        avatar: decodedPayload.avatar as string,
+        email_confirmed_at: decodedPayload.email_confirmed_at as string,
+        name: userMetadata?.name as string | undefined,
+        avatar: userMetadata?.avatar as string | undefined,
+        role: decodedPayload.role as string,
         ...decodedPayload,
       }
 
@@ -204,8 +194,8 @@ export const isAuthenticated = (request: FastifyRequest): boolean => {
   return !!request.authenticatedUser
 }
 
-// Helper function to get auth0 id
-export const getAuth0Id = (request: FastifyRequest): string => {
+// Helper function to get auth user id (Supabase user ID)
+export const getAuthUserId = (request: FastifyRequest): string => {
   if (!request.authenticatedUser) {
     throw new UnauthorizedError('User not authenticated')
   }

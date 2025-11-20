@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { backofficeCompanyService } from './companies.service'
 import { requireSuperAdmin } from '@/middleware/backoffice'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { logger } from '@/lib/logger'
 import {
   listCompaniesSchema,
@@ -147,10 +147,10 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
         // Get current user for audit trail
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -238,9 +238,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -308,9 +308,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -372,9 +372,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -480,9 +480,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -549,9 +549,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -620,9 +620,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -664,9 +664,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -747,9 +747,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -869,9 +869,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -922,9 +922,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { contactId } = request.params as { contactId: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -981,9 +981,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { contactId } = request.params as { contactId: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -1041,9 +1041,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -1105,9 +1105,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { domainId } = request.params as { domainId: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,

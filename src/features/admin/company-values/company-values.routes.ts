@@ -17,16 +17,16 @@ import {
 } from './company-values.schemas'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 
 /**
  * Get company ID from authenticated user
  */
-async function getCompanyIdFromUser(auth0Id: string): Promise<string> {
+async function getCompanyIdFromUser(authUserId: string): Promise<string> {
   const user = await prisma.user.findUnique({
-    where: { auth0Id },
+    where: { authUserId },
     select: { companyId: true },
   })
 
@@ -50,8 +50,8 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         const values = await companyValuesService.listValues(companyId)
         return reply.code(200).send(values)
@@ -78,8 +78,8 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const valueId = parseInt((request.params as any).id, 10)
 
         if (isNaN(valueId)) {
@@ -121,8 +121,8 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         const value = await companyValuesService.createValue(companyId, request.body as any)
 
@@ -160,8 +160,8 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const valueId = parseInt((request.params as any).id, 10)
 
         if (isNaN(valueId)) {
@@ -218,8 +218,8 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         const body = request.body as { ordered_ids: number[] }
         const values = await companyValuesService.reorderValues(companyId, body.ordered_ids)
@@ -261,8 +261,8 @@ export default async function companyValuesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const valueId = parseInt((request.params as any).id, 10)
 
         if (isNaN(valueId)) {

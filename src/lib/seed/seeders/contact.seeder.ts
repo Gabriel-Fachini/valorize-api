@@ -14,13 +14,13 @@ export class ContactSeeder extends BaseSeeder {
     this.logStart()
     
     for (const contactData of DEMO_COMPANY_CONTACTS) {
-      // Find user by auth0Id
+      // Find user by authUserId
       const user = await this.prisma.user.findUnique({
-        where: { auth0Id: contactData.userAuth0Id },
+        where: { authUserId: contactData.userAuthUserId },
       })
-      
+
       if (!user) {
-        this.logWarning(`User not found for auth0Id: ${contactData.userAuth0Id}`)
+        this.logWarning(`User not found for authUserId: ${contactData.userAuthUserId}`)
         continue
       }
       

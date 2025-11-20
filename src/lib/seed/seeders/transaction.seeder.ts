@@ -6,11 +6,11 @@
 
 import { Prisma } from '@prisma/client'
 import { BaseSeeder } from './base.seeder'
-import { 
+import {
   SAMPLE_ADDITIONAL_TRANSACTIONS,
   TRANSACTION_DATA,
 } from '../data/transactions'
-import { GABRIEL_AUTH0_ID } from '../data/compliments'
+import { GABRIEL_AUTH_USER_ID } from '../data/compliments'
 
 export class TransactionSeeder extends BaseSeeder {
   protected get name(): string {
@@ -22,7 +22,7 @@ export class TransactionSeeder extends BaseSeeder {
     
     // Get Gabriel's user and wallet
     const gabriel = await this.prisma.user.findUnique({
-      where: { auth0Id: GABRIEL_AUTH0_ID },
+      where: { authUserId: GABRIEL_AUTH_USER_ID },
       include: { wallet: true },
     })
     

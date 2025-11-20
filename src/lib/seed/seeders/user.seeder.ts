@@ -93,7 +93,7 @@ export class UserSeeder extends BaseSeeder {
       }
 
       const user = await this.prisma.user.upsert({
-        where: { auth0Id: userData.auth0Id },
+        where: { authUserId: userData.authUserId },
         update: {
           email: userData.email,
           name: userData.name,
@@ -103,7 +103,7 @@ export class UserSeeder extends BaseSeeder {
           departmentId: departmentRecord?.id ?? null,
         },
         create: {
-          auth0Id: userData.auth0Id,
+          authUserId: userData.authUserId,
           email: userData.email,
           name: userData.name,
           avatar: userData.avatarUrl ?? undefined,
@@ -173,7 +173,7 @@ export class UserSeeder extends BaseSeeder {
 
     // Batch create users
     const usersToCreate = generatedUsers.map(u => ({
-      auth0Id: u.auth0Id,
+      authUserId: u.authUserId,
       email: u.email,
       name: u.name,
       companyId: company.id,
@@ -190,7 +190,7 @@ export class UserSeeder extends BaseSeeder {
     // Get the created users to assign roles
     const users = await this.prisma.user.findMany({
       where: {
-        auth0Id: { in: generatedUsers.map(u => u.auth0Id) },
+        authUserId: { in: generatedUsers.map(u => u.authUserId) },
       },
     })
 

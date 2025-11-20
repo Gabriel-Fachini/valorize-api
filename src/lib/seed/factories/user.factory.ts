@@ -7,7 +7,7 @@ import { faker } from '@faker-js/faker/locale/pt_BR'
 export interface GeneratedUser {
   name: string
   email: string
-  auth0Id: string
+  authUserId: string
   avatarUrl?: string
   departmentId?: string
   jobTitleId?: string
@@ -43,7 +43,7 @@ export class UserFactory {
     return {
       name,
       email,
-      auth0Id: `auth0|${faker.string.uuid()}`,
+      authUserId: faker.string.uuid(),
       avatarUrl: `https://i.pravatar.cc/150?img=${avatarIndex}&u=${email}`,
       isActive: true,
       ...overrides,
@@ -78,8 +78,8 @@ export class UserFactory {
 
       const email = `${baseEmail}.${i + 1}@${config.emailDomain}`.toLowerCase()
 
-      // Generate auth0Id in format: auth0|company-role-index
-      const auth0Id = `auth0|demo-employee-${config.companyId.split('-')[2] || 'unknown'}-${i + 1}`
+      // Generate authUserId in UUID format (Supabase Auth compatible)
+      const authUserId = faker.string.uuid()
 
       // Random department and job title
       const departmentId = config.departmentIds[i % departmentCount]
@@ -93,7 +93,7 @@ export class UserFactory {
       users.push({
         name,
         email,
-        auth0Id,
+        authUserId,
         departmentId,
         jobTitleId,
         avatarUrl,
@@ -119,17 +119,17 @@ export class UserFactory {
 
     // Power users (20%): 4x activity
     for (let i = 0; i < powerUsersCount; i++) {
-      activityMap.set(shuffled[i].auth0Id, 4)
+      activityMap.set(shuffled[i].authUserId, 4)
     }
 
     // Inactive users (20%): 0.2x activity
     for (let i = users.length - inactiveUsersCount; i < users.length; i++) {
-      activityMap.set(shuffled[i].auth0Id, 0.2)
+      activityMap.set(shuffled[i].authUserId, 0.2)
     }
 
     // Normal users (60%): 1x activity (default)
     for (let i = powerUsersCount; i < users.length - inactiveUsersCount; i++) {
-      activityMap.set(shuffled[i].auth0Id, 1)
+      activityMap.set(shuffled[i].authUserId, 1)
     }
 
     return activityMap

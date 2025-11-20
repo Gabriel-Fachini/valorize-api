@@ -37,7 +37,7 @@ export default async function addressRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const user = await User.findByAuth0Id(currentUser.sub)
+      const user = await User.findByAuthUserId(currentUser.sub)
 
       if (!user) {
         return reply.code(404).send({ message: 'User not found' })
@@ -86,7 +86,7 @@ export default async function addressRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request)
-      const user = await User.findByAuth0Id(currentUser.sub)
+      const user = await User.findByAuthUserId(currentUser.sub)
 
       if (!user) {
         return reply.code(404).send({ message: 'User not found' })
@@ -120,7 +120,7 @@ export default async function addressRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const user = await User.findByAuth0Id(currentUser.sub)
+      const user = await User.findByAuthUserId(currentUser.sub)
 
       if (!user) {
         return reply.code(404).send({ message: 'User not found' })
@@ -177,7 +177,7 @@ export default async function addressRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const user = await User.findByAuth0Id(currentUser.sub)
+      const user = await User.findByAuthUserId(currentUser.sub)
 
       if (!user) {
         return reply.code(404).send({ message: 'User not found' })
@@ -225,7 +225,7 @@ export default async function addressRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const user = await User.findByAuth0Id(currentUser.sub)
+      const user = await User.findByAuthUserId(currentUser.sub)
 
       if (!user) {
         return reply.code(404).send({ message: 'User not found' })
@@ -266,7 +266,7 @@ export default async function addressRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const user = await User.findByAuth0Id(currentUser.sub)
+      const user = await User.findByAuthUserId(currentUser.sub)
 
       if (!user) {
         return reply.code(404).send({ message: 'User not found' })

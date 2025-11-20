@@ -123,7 +123,7 @@ export const backofficeCompanyService = {
       id: string
       name: string
       email: string
-      auth0Id: string
+      authUserId: string
       roles: string[]
     }
     passwordResetUrl: string
@@ -251,7 +251,7 @@ export const backofficeCompanyService = {
     // 9. Create default roles (outside transaction for modularity)
     await companyService.createDefaultRoles(company.id)
 
-    // 10. Create first admin user with Auth0
+    // 10. Create first admin user with Supabase Auth
     const firstAdmin = await companyService.createFirstAdmin(
       input.firstAdmin,
       company.id,
@@ -286,7 +286,7 @@ export const backofficeCompanyService = {
         id: firstAdmin.id,
         name: firstAdmin.name,
         email: firstAdmin.email,
-        auth0Id: firstAdmin.auth0Id,
+        authUserId: firstAdmin.authUserId,
         roles: firstAdmin.roles,
       },
       passwordResetUrl: firstAdmin.passwordResetUrl,

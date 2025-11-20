@@ -13,16 +13,16 @@ import {
 } from './company-coin-economy.schemas'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 
 /**
  * Get company ID from authenticated user
  */
-async function getCompanyIdFromUser(auth0Id: string): Promise<string> {
+async function getCompanyIdFromUser(authUserId: string): Promise<string> {
   const user = await prisma.user.findUnique({
-    where: { auth0Id },
+    where: { authUserId },
     select: { companyId: true },
   })
 
@@ -45,8 +45,8 @@ export default async function companyCoinEconomyRoutes(fastify: FastifyInstance)
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         const settings = await companyCoinEconomyService.getCoinEconomy(companyId)
         return reply.code(200).send(settings)
@@ -73,8 +73,8 @@ export default async function companyCoinEconomyRoutes(fastify: FastifyInstance)
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         const settings = await companyCoinEconomyService.updateCoinEconomy(
           companyId,

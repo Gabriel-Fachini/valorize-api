@@ -4,8 +4,8 @@
  */
 
 export interface ComplimentData {
-  senderAuth0Id: string
-  receiverAuth0Id: string
+  senderAuthUserId: string
+  receiverAuthUserId: string
   companyId: string
   valueIndex: number // Index in the company's values array
   message: string
@@ -21,58 +21,58 @@ export function daysAgo(days: number): Date {
   return date
 }
 
-// All Valorize Corp user auth0Ids (17 real + 33 temp)
+// All Valorize Corp user authUserIds (17 real + 33 temp)
 const VALORIZE_USERS = [
-  'auth0|688aa3e7f3f1dbd119c3b600',                    // Gabriel
-  'auth0|demo-super-admin',                            // Super Admin
-  'auth0|demo-company-admin-valorize',                 // João
-  'auth0|demo-hr-manager-valorize',                    // Maria
-  'auth0|demo-team-lead-valorize',                     // Carlos
-  'auth0|demo-employee-valorize-1',                    // Ana
-  'auth0|demo-employee-valorize-2',                    // Pedro
-  'auth0|demo-employee-valorize-3',                    // Beatriz
-  'auth0|demo-employee-valorize-4',                    // Lucas
-  'auth0|demo-employee-valorize-5',                    // Camila
-  'auth0|demo-employee-valorize-6',                    // Rafael
-  'auth0|demo-employee-valorize-7',                    // Juliana
-  'auth0|demo-employee-valorize-8',                    // Felipe
-  'auth0|demo-employee-valorize-9',                    // Larissa
-  'auth0|demo-employee-valorize-10',                   // Rodrigo
-  'auth0|demo-employee-valorize-11',                   // Patricia
-  'auth0|demo-employee-valorize-12',                   // Thiago
-  'auth0|temp-employee-valorize-01',
-  'auth0|temp-employee-valorize-02',
-  'auth0|temp-employee-valorize-03',
-  'auth0|temp-employee-valorize-04',
-  'auth0|temp-employee-valorize-05',
-  'auth0|temp-employee-valorize-06',
-  'auth0|temp-employee-valorize-07',
-  'auth0|temp-employee-valorize-08',
-  'auth0|temp-employee-valorize-09',
-  'auth0|temp-employee-valorize-10',
-  'auth0|temp-employee-valorize-11',
-  'auth0|temp-employee-valorize-12',
-  'auth0|temp-employee-valorize-13',
-  'auth0|temp-employee-valorize-14',
-  'auth0|temp-employee-valorize-15',
-  'auth0|temp-employee-valorize-16',
-  'auth0|temp-employee-valorize-17',
-  'auth0|temp-employee-valorize-18',
-  'auth0|temp-employee-valorize-19',
-  'auth0|temp-employee-valorize-20',
-  'auth0|temp-employee-valorize-21',
-  'auth0|temp-employee-valorize-22',
-  'auth0|temp-employee-valorize-23',
-  'auth0|temp-employee-valorize-24',
-  'auth0|temp-employee-valorize-25',
-  'auth0|temp-employee-valorize-26',
-  'auth0|temp-employee-valorize-27',
-  'auth0|temp-employee-valorize-28',
-  'auth0|temp-employee-valorize-29',
-  'auth0|temp-employee-valorize-30',
-  'auth0|temp-employee-valorize-31',
-  'auth0|temp-employee-valorize-32',
-  'auth0|temp-employee-valorize-33',
+  '28a805cd-218f-49e0-a4ec-4acd5996f543',              // Gabriel
+  '22222222-2222-2222-2222-222222222222',              // Super Admin
+  '33333333-3333-3333-3333-333333333333',              // João
+  '44444444-4444-4444-4444-444444444444',              // Maria
+  '55555555-5555-5555-5555-555555555555',              // Carlos
+  'a0000001-0001-0001-0001-000000000001',              // Ana
+  'a0000001-0001-0001-0001-000000000002',              // Pedro
+  'a0000001-0001-0001-0001-000000000003',              // Beatriz
+  'a0000001-0001-0001-0001-000000000004',              // Lucas
+  'a0000001-0001-0001-0001-000000000005',              // Camila
+  'a0000001-0001-0001-0001-000000000006',              // Rafael
+  'a0000001-0001-0001-0001-000000000007',              // Juliana
+  'a0000001-0001-0001-0001-000000000008',              // Felipe
+  'a0000001-0001-0001-0001-000000000009',              // Larissa
+  'a0000001-0001-0001-0001-000000000010',              // Rodrigo
+  'a0000001-0001-0001-0001-000000000011',              // Patricia
+  'a0000001-0001-0001-0001-000000000012',              // Thiago
+  't0000001-0001-0001-0001-000000000001',
+  't0000001-0001-0001-0001-000000000002',
+  't0000001-0001-0001-0001-000000000003',
+  't0000001-0001-0001-0001-000000000004',
+  't0000001-0001-0001-0001-000000000005',
+  't0000001-0001-0001-0001-000000000006',
+  't0000001-0001-0001-0001-000000000007',
+  't0000001-0001-0001-0001-000000000008',
+  't0000001-0001-0001-0001-000000000009',
+  't0000001-0001-0001-0001-000000000010',
+  't0000001-0001-0001-0001-000000000011',
+  't0000001-0001-0001-0001-000000000012',
+  't0000001-0001-0001-0001-000000000013',
+  't0000001-0001-0001-0001-000000000014',
+  't0000001-0001-0001-0001-000000000015',
+  't0000001-0001-0001-0001-000000000016',
+  't0000001-0001-0001-0001-000000000017',
+  't0000001-0001-0001-0001-000000000018',
+  't0000001-0001-0001-0001-000000000019',
+  't0000001-0001-0001-0001-000000000020',
+  't0000001-0001-0001-0001-000000000021',
+  't0000001-0001-0001-0001-000000000022',
+  't0000001-0001-0001-0001-000000000023',
+  't0000001-0001-0001-0001-000000000024',
+  't0000001-0001-0001-0001-000000000025',
+  't0000001-0001-0001-0001-000000000026',
+  't0000001-0001-0001-0001-000000000027',
+  't0000001-0001-0001-0001-000000000028',
+  't0000001-0001-0001-0001-000000000029',
+  't0000001-0001-0001-0001-000000000030',
+  't0000001-0001-0001-0001-000000000031',
+  't0000001-0001-0001-0001-000000000032',
+  't0000001-0001-0001-0001-000000000033',
 ]
 
 const COMPLIMENT_MESSAGES = [
@@ -129,8 +129,8 @@ function generateCompliments(): Omit<ComplimentData, 'companyId'>[] {
       const valueIndex = complimentIndex % 5
 
       compliments.push({
-        senderAuth0Id: sender,
-        receiverAuth0Id: receiver,
+        senderAuthUserId: sender,
+        receiverAuthUserId: receiver,
         valueIndex,
         message,
         coins,
@@ -144,15 +144,15 @@ function generateCompliments(): Omit<ComplimentData, 'companyId'>[] {
 }
 
 // Keep original Gabriel compliments (smaller set for specific narrative)
-export const COMPLIMENTS_FROM_GABRIEL: Omit<ComplimentData, 'senderAuth0Id' | 'companyId'>[] = [
-  { receiverAuth0Id: 'auth0|demo-company-admin-valorize', valueIndex: 0, message: 'João, excelente apresentação para o cliente hoje!', coins: 60, isPublic: true, daysAgo: 2 },
-  { receiverAuth0Id: 'auth0|demo-hr-manager-valorize', valueIndex: 1, message: 'Maria, sua colaboração no projeto foi incrível!', coins: 50, isPublic: true, daysAgo: 3 },
-  { receiverAuth0Id: 'auth0|demo-team-lead-valorize', valueIndex: 2, message: 'Carlos, revisão de código impecável!', coins: 75, isPublic: true, daysAgo: 4 },
+export const COMPLIMENTS_FROM_GABRIEL: Omit<ComplimentData, 'senderAuthUserId' | 'companyId'>[] = [
+  { receiverAuthUserId: '33333333-3333-3333-3333-333333333333', valueIndex: 0, message: 'João, excelente apresentação para o cliente hoje!', coins: 60, isPublic: true, daysAgo: 2 },
+  { receiverAuthUserId: '44444444-4444-4444-4444-444444444444', valueIndex: 1, message: 'Maria, sua colaboração no projeto foi incrível!', coins: 50, isPublic: true, daysAgo: 3 },
+  { receiverAuthUserId: '55555555-5555-5555-5555-555555555555', valueIndex: 2, message: 'Carlos, revisão de código impecável!', coins: 75, isPublic: true, daysAgo: 4 },
 ]
 
-export const COMPLIMENTS_TO_GABRIEL: Omit<ComplimentData, 'receiverAuth0Id' | 'companyId'>[] = [
-  { senderAuth0Id: 'auth0|demo-company-admin-valorize', valueIndex: 1, message: 'Gabriel, sua liderança técnica é inspiradora!', coins: 70, isPublic: true, daysAgo: 5 },
-  { senderAuth0Id: 'auth0|demo-hr-manager-valorize', valueIndex: 2, message: 'Gabriel, muito obrigada pelo suporte na última sprint!', coins: 60, isPublic: true, daysAgo: 6 },
+export const COMPLIMENTS_TO_GABRIEL: Omit<ComplimentData, 'receiverAuthUserId' | 'companyId'>[] = [
+  { senderAuthUserId: '33333333-3333-3333-3333-333333333333', valueIndex: 1, message: 'Gabriel, sua liderança técnica é inspiradora!', coins: 70, isPublic: true, daysAgo: 5 },
+  { senderAuthUserId: '44444444-4444-4444-4444-444444444444', valueIndex: 2, message: 'Gabriel, muito obrigada pelo suporte na última sprint!', coins: 60, isPublic: true, daysAgo: 6 },
 ]
 
 // Expanded employee compliments - using generated data
@@ -160,28 +160,28 @@ export const EXPANDED_EMPLOYEE_COMPLIMENTS = generateCompliments()
 
 // TechStart Brasil compliments (smaller dataset, just 20 compliments)
 export const TECHSTART_COMPLIMENTS: Omit<ComplimentData, 'companyId'>[] = [
-  { senderAuth0Id: 'auth0|demo-company-admin-techstart', receiverAuth0Id: 'auth0|demo-hr-manager-techstart', valueIndex: 0, message: 'Excelente trabalho no onboarding!', coins: 60, isPublic: true, daysAgo: 10 },
-  { senderAuth0Id: 'auth0|demo-company-admin-techstart', receiverAuth0Id: 'auth0|demo-team-lead-techstart', valueIndex: 1, message: 'Liderança muito boa!', coins: 50, isPublic: true, daysAgo: 15 },
-  { senderAuth0Id: 'auth0|demo-hr-manager-techstart', receiverAuth0Id: 'auth0|demo-employee-techstart-1', valueIndex: 2, message: 'Código de qualidade!', coins: 55, isPublic: true, daysAgo: 20 },
-  { senderAuth0Id: 'auth0|demo-hr-manager-techstart', receiverAuth0Id: 'auth0|demo-employee-techstart-2', valueIndex: 3, message: 'QA impecável!', coins: 65, isPublic: true, daysAgo: 25 },
-  { senderAuth0Id: 'auth0|demo-team-lead-techstart', receiverAuth0Id: 'auth0|demo-employee-techstart-1', valueIndex: 4, message: 'Muito colaborativo!', coins: 50, isPublic: true, daysAgo: 30 },
-  { senderAuth0Id: 'auth0|demo-team-lead-techstart', receiverAuth0Id: 'auth0|demo-company-admin-techstart', valueIndex: 0, message: 'Gestão excelente!', coins: 60, isPublic: true, daysAgo: 35 },
-  { senderAuth0Id: 'auth0|demo-employee-techstart-1', receiverAuth0Id: 'auth0|demo-employee-techstart-2', valueIndex: 1, message: 'Ótima parceria!', coins: 45, isPublic: true, daysAgo: 40 },
-  { senderAuth0Id: 'auth0|demo-employee-techstart-1', receiverAuth0Id: 'auth0|demo-hr-manager-techstart', valueIndex: 2, message: 'Suporte ótimo!', coins: 55, isPublic: true, daysAgo: 45 },
-  { senderAuth0Id: 'auth0|demo-employee-techstart-2', receiverAuth0Id: 'auth0|demo-company-admin-techstart', valueIndex: 3, message: 'Visão estratégica!', coins: 60, isPublic: true, daysAgo: 50 },
-  { senderAuth0Id: 'auth0|demo-employee-techstart-2', receiverAuth0Id: 'auth0|demo-team-lead-techstart', valueIndex: 4, message: 'Muito inspirador!', coins: 70, isPublic: true, daysAgo: 55 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000001', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000002', valueIndex: 0, message: 'Excelente trabalho no onboarding!', coins: 60, isPublic: true, daysAgo: 10 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000001', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000003', valueIndex: 1, message: 'Liderança muito boa!', coins: 50, isPublic: true, daysAgo: 15 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000002', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000004', valueIndex: 2, message: 'Código de qualidade!', coins: 55, isPublic: true, daysAgo: 20 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000002', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000005', valueIndex: 3, message: 'QA impecável!', coins: 65, isPublic: true, daysAgo: 25 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000003', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000004', valueIndex: 4, message: 'Muito colaborativo!', coins: 50, isPublic: true, daysAgo: 30 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000003', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000001', valueIndex: 0, message: 'Gestão excelente!', coins: 60, isPublic: true, daysAgo: 35 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000004', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000005', valueIndex: 1, message: 'Ótima parceria!', coins: 45, isPublic: true, daysAgo: 40 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000004', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000002', valueIndex: 2, message: 'Suporte ótimo!', coins: 55, isPublic: true, daysAgo: 45 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000005', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000001', valueIndex: 3, message: 'Visão estratégica!', coins: 60, isPublic: true, daysAgo: 50 },
+  { senderAuthUserId: 'b0000002-0002-0002-0002-000000000005', receiverAuthUserId: 'b0000002-0002-0002-0002-000000000003', valueIndex: 4, message: 'Muito inspirador!', coins: 70, isPublic: true, daysAgo: 55 },
 ]
 
 // Global Solutions compliments (smaller dataset, just 15 compliments)
 export const GLOBAL_SOLUTIONS_COMPLIMENTS: Omit<ComplimentData, 'companyId'>[] = [
-  { senderAuth0Id: 'auth0|demo-company-admin-global', receiverAuth0Id: 'auth0|demo-hr-manager-global', valueIndex: 0, message: 'Gestão de pessoas excelente!', coins: 65, isPublic: true, daysAgo: 10 },
-  { senderAuth0Id: 'auth0|demo-company-admin-global', receiverAuth0Id: 'auth0|demo-employee-global-1', valueIndex: 1, message: 'Soluções inovadoras!', coins: 70, isPublic: true, daysAgo: 20 },
-  { senderAuth0Id: 'auth0|demo-hr-manager-global', receiverAuth0Id: 'auth0|demo-company-admin-global', valueIndex: 2, message: 'Liderança visão de futuro!', coins: 60, isPublic: true, daysAgo: 30 },
-  { senderAuth0Id: 'auth0|demo-hr-manager-global', receiverAuth0Id: 'auth0|demo-employee-global-1', valueIndex: 3, message: 'Muito transparente!', coins: 50, isPublic: true, daysAgo: 40 },
-  { senderAuth0Id: 'auth0|demo-employee-global-1', receiverAuth0Id: 'auth0|demo-company-admin-global', valueIndex: 4, message: 'Cliente sempre em primeiro!', coins: 55, isPublic: true, daysAgo: 50 },
-  { senderAuth0Id: 'auth0|demo-employee-global-1', receiverAuth0Id: 'auth0|demo-hr-manager-global', valueIndex: 0, message: 'Suporte incrível!', coins: 60, isPublic: true, daysAgo: 60 },
+  { senderAuthUserId: 'c0000003-0003-0003-0003-000000000001', receiverAuthUserId: 'c0000003-0003-0003-0003-000000000002', valueIndex: 0, message: 'Gestão de pessoas excelente!', coins: 65, isPublic: true, daysAgo: 10 },
+  { senderAuthUserId: 'c0000003-0003-0003-0003-000000000001', receiverAuthUserId: 'c0000003-0003-0003-0003-000000000003', valueIndex: 1, message: 'Soluções inovadoras!', coins: 70, isPublic: true, daysAgo: 20 },
+  { senderAuthUserId: 'c0000003-0003-0003-0003-000000000002', receiverAuthUserId: 'c0000003-0003-0003-0003-000000000001', valueIndex: 2, message: 'Liderança visão de futuro!', coins: 60, isPublic: true, daysAgo: 30 },
+  { senderAuthUserId: 'c0000003-0003-0003-0003-000000000002', receiverAuthUserId: 'c0000003-0003-0003-0003-000000000003', valueIndex: 3, message: 'Muito transparente!', coins: 50, isPublic: true, daysAgo: 40 },
+  { senderAuthUserId: 'c0000003-0003-0003-0003-000000000003', receiverAuthUserId: 'c0000003-0003-0003-0003-000000000001', valueIndex: 4, message: 'Cliente sempre em primeiro!', coins: 55, isPublic: true, daysAgo: 50 },
+  { senderAuthUserId: 'c0000003-0003-0003-0003-000000000003', receiverAuthUserId: 'c0000003-0003-0003-0003-000000000002', valueIndex: 0, message: 'Suporte incrível!', coins: 60, isPublic: true, daysAgo: 60 },
 ]
 
 // Constants for seeder integration
-export const GABRIEL_AUTH0_ID = 'auth0|688aa3e7f3f1dbd119c3b600'
+export const GABRIEL_AUTH_USER_ID = '28a805cd-218f-49e0-a4ec-4acd5996f543'
 export const VALORIZE_COMPANY_ID = 'demo-company-001'

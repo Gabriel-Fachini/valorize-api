@@ -225,7 +225,7 @@ export async function getUserStatistics(userId: string): Promise<UserStatistics>
 export async function createUser(
   companyId: string,
   input: CreateUserInput,
-  auth0Id?: string,
+  authUserId?: string,
 ): Promise<{
   id: string
   name: string
@@ -288,38 +288,38 @@ export async function createUser(
     }
   }
 
-  // Create user in Auth0 if auth0Id not provided
-  let finalAuth0Id = auth0Id
+  // Create user in Supabase Auth if authUserId not provided
+  let finalAuthUserId = authUserId
   let temporaryPasswordUrl: string | undefined
 
-  if (!finalAuth0Id) {
+  if (!finalAuthUserId) {
     try {
       const auth0Result = await authService.createAdminUser({
         email: normalizedEmail,
         name: name.trim(),
       })
-      finalAuth0Id = auth0Result.auth0Id
+      finalAuthUserId = auth0Result.authUserId
       temporaryPasswordUrl = auth0Result.ticketUrl
 
-      logger.info('User created in Auth0 via Admin Panel', {
-        auth0Id: finalAuth0Id,
+      logger.info('User created in Supabase Auth via Admin Panel', {
+        authUserId: finalAuthUserId,
         email: normalizedEmail,
       })
     } catch (error) {
-      logger.error('Failed to create user in Auth0', {
+      logger.error('Failed to create user in Supabase Auth', {
         email: normalizedEmail,
         error: error instanceof Error ? error.message : String(error),
       })
-      throw new Error(`Failed to create user in Auth0: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(`Failed to create user in Supabase Auth: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   } else {
-    // If auth0Id is provided, just generate a password reset ticket
+    // If authUserId is provided, just generate a password reset ticket
     try {
-      const passwordTicket = await authService.generateTemporaryPassword(finalAuth0Id)
+      const passwordTicket = await authService.generateTemporaryPassword(finalAuthUserId)
       temporaryPasswordUrl = passwordTicket.ticket_url
     } catch (error) {
-      logger.warn('Failed to generate temporary password for provided auth0Id', {
-        auth0Id: finalAuth0Id,
+      logger.warn('Failed to generate temporary password for provided authUserId', {
+        authUserId: finalAuthUserId,
         email: normalizedEmail,
         error: error instanceof Error ? error.message : String(error),
       })
@@ -330,7 +330,7 @@ export async function createUser(
   // Create user in local database
   const user = await prisma.user.create({
     data: {
-      auth0Id: finalAuth0Id,
+      authUserId: finalAuthUserId,
       email: normalizedEmail,
       name: name.trim(),
       companyId,
@@ -341,7 +341,7 @@ export async function createUser(
   })
 
   logger.info(`User created in admin panel: ${user.id} (${user.email})`, {
-    auth0Id: finalAuth0Id,
+    authUserId: finalAuthUserId,
   })
 
   return {
@@ -527,22 +527,22 @@ export async function resetUserPassword(
     throw new NotFoundError('User not found')
   }
 
-  if (!user.auth0Id) {
-    logger.error('User has no auth0Id', {
+  if (!user.authUserId) {
+    logger.error('User has no authUserId', {
       userId,
       email: user.email,
     })
-    throw new ValidationError('User does not have a valid Auth0 ID. Cannot reset password.')
+    throw new ValidationError('User does not have a valid Supabase Auth ID. Cannot reset password.')
   }
 
   try {
     logger.info('Attempting to reset password for user', {
       userId,
       email: user.email,
-      auth0Id: user.auth0Id,
+      authUserId: user.authUserId,
     })
 
-    const result = await authService.resetUserPassword(user.auth0Id)
+    const result = await authService.resetUserPassword(user.authUserId)
 
     logger.info('Password reset ticket generated for user', {
       userId,
@@ -559,7 +559,7 @@ export async function resetUserPassword(
     logger.error('Failed to reset user password', {
       userId,
       email: user.email,
-      auth0Id: user.auth0Id,
+      authUserId: user.authUserId,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     })

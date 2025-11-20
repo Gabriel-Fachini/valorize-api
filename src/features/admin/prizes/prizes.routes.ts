@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { prizesService } from './prizes.service'
@@ -33,11 +33,11 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
   })
 
   /**
-   * Helper function to get company ID from Auth0 user ID
+   * Helper function to get company ID from Supabase Auth user ID
    */
-  async function getCompanyIdFromUser(auth0Id: string): Promise<string> {
+  async function getCompanyIdFromUser(authUserId: string): Promise<string> {
     const user = await prisma.user.findUnique({
-      where: { auth0Id },
+      where: { authUserId },
       select: { companyId: true },
     })
 
@@ -60,14 +60,14 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Body: CreatePrizeRequest }>, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const body = request.body
 
         // Additional validation: Only SUPER_ADMIN can create global prizes
         if (body.isGlobal) {
           const { allowed, userPermissions } = await rbacService.checkPermissionWithDetails(
-            auth0Id,
+            authUserId,
             PERMISSION.PRIZES_CREATE_GLOBAL,
           )
 
@@ -116,8 +116,8 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Querystring: ListPrizesQuery }>, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const query = request.query
 
         const result = await prizesService.listPrizes(companyId, query)
@@ -145,8 +145,8 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const { id } = request.params
 
         const prize = await prizesService.getPrizeById(id, companyId)
@@ -185,8 +185,8 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
       reply: FastifyReply,
     ) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const { id } = request.params
         const body = request.body
 
@@ -230,8 +230,8 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const { id } = request.params
 
         await prizesService.deletePrize(id, companyId)
@@ -276,8 +276,8 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const { id } = request.params
 
         // Parse multipart form data
@@ -377,8 +377,8 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
       reply: FastifyReply,
     ) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const { id, imageIndex } = request.params
 
         const index = parseInt(imageIndex, 10)

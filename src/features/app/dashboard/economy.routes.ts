@@ -5,7 +5,7 @@ import { requirePermission } from '@/middleware/rbac'
 import { requireFeature } from '@/middleware/plan-guard'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { PLAN_FEATURE } from '@/features/app/plans/plan-features.constants'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { getCompanyIdFromUser } from '@/lib/utils/auth'
 import { logger } from '@/lib/logger'
 
@@ -26,8 +26,8 @@ export default async function economyDashboardRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         const dashboard = await economyDashboardService.getEconomyDashboard(companyId)
 
@@ -59,8 +59,8 @@ export default async function economyDashboardRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
         const limit = (request.query as { limit?: string }).limit
           ? parseInt((request.query as { limit?: string }).limit!)
           : 20

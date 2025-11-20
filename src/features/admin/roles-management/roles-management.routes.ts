@@ -13,7 +13,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { rolesManagementService } from './roles-management.service'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import {
@@ -37,9 +37,9 @@ import {
 /**
  * Get company ID from authenticated user
  */
-async function getCompanyIdFromUser(auth0Id: string): Promise<string> {
+async function getCompanyIdFromUser(authUserId: string): Promise<string> {
   const user = await prisma.user.findUnique({
-    where: { auth0Id },
+    where: { authUserId },
     select: { companyId: true },
   })
 
@@ -66,12 +66,12 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       preHandler: [requirePermission(PERMISSION.ROLES_READ)],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
+      const authUserId = getAuthUserId(request)
       const { rbacService } = await import('@/features/app/rbac/rbac.service')
 
-      const userPermissions = await rbacService.getUserPermissions(auth0Id)
+      const userPermissions = await rbacService.getUserPermissions(authUserId)
 
-      logger.info('Admin retrieved own permissions', { auth0Id })
+      logger.info('Admin retrieved own permissions', { authUserId })
 
       return reply.code(200).send({
         success: true,
@@ -95,8 +95,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: listRolesSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
 
       const filters = {
         search: (request.query as Record<string, unknown>).search as string | undefined,
@@ -140,8 +140,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: getRoleSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId } = request.params as { roleId: string }
 
       const role = await rolesManagementService.getRoleById(companyId, roleId)
@@ -178,8 +178,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: createRoleSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { name, description, permissionNames } = request.body as Record<string, unknown>
 
       try {
@@ -239,8 +239,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: updateRoleSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId } = request.params as { roleId: string }
       const { name, description } = request.body as Record<string, unknown>
 
@@ -299,8 +299,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: deleteRoleSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId } = request.params as { roleId: string }
 
       try {
@@ -361,8 +361,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: getRolePermissionsSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId } = request.params as { roleId: string }
 
       try {
@@ -405,8 +405,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: setRolePermissionsSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId } = request.params as { roleId: string }
       const { permissionNames } = request.body as Record<string, unknown>
 
@@ -466,8 +466,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: addRolePermissionsSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId } = request.params as { roleId: string }
       const { permissionNames } = request.body as Record<string, unknown>
 
@@ -531,8 +531,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: removeRolePermissionsSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId } = request.params as { roleId: string }
       const { permissionNames } = request.body as Record<string, unknown>
 
@@ -586,8 +586,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: listAllPermissionsSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
 
       const result = await rolesManagementService.listAllPermissions(companyId)
 
@@ -717,8 +717,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: getUserRolesSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { userId } = request.params as { userId: string }
 
       try {
@@ -762,8 +762,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: assignRoleToUserSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { roleId, userIds } = request.body as Record<string, unknown>
 
       try {
@@ -826,8 +826,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: removeRoleFromUserSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
       const { userId, roleId } = request.params as { userId: string; roleId: string }
 
       try {
@@ -881,8 +881,8 @@ export default async function rolesManagementRoutes(fastify: FastifyInstance) {
       schema: listCompanyUsersSchema,
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const auth0Id = getAuth0Id(request)
-      const companyId = await getCompanyIdFromUser(auth0Id)
+      const authUserId = getAuthUserId(request)
+      const companyId = await getCompanyIdFromUser(authUserId)
 
       const users = await rolesManagementService.listCompanyUsers(companyId)
 

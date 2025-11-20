@@ -207,7 +207,7 @@ export const GABRIEL_ADDRESS = {
  */
 export const COMPANY_REDEMPTIONS = [
   {
-    userAuth0Id: 'auth0|demo-company-admin-valorize',
+    userAuthUserId: '33333333-3333-3333-3333-333333333333',
     prizeName: 'Cartão Presente Amazon R$ 50',
     variantValue: 'R$ 50',
     coinsSpent: 250,
@@ -220,7 +220,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-hr-manager-valorize',
+    userAuthUserId: '44444444-4444-4444-4444-444444444444',
     prizeName: 'Spotify Premium - 3 Meses',
     variantValue: '3 meses',
     coinsSpent: 600,
@@ -233,7 +233,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-team-lead-valorize',
+    userAuthUserId: '55555555-5555-5555-5555-555555555555',
     prizeName: 'Cartão Presente Starbucks R$ 50',
     variantValue: 'Cartão Físico',
     coinsSpent: 250,
@@ -246,7 +246,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-1',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000001',
     prizeName: 'Fones Bluetooth Sem Fio',
     variantValue: 'Prata',
     coinsSpent: 800,
@@ -259,7 +259,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-2',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000002',
     prizeName: 'Kindle Paperwhite',
     variantValue: '8GB',
     coinsSpent: 1200,
@@ -272,7 +272,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-3',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000003',
     prizeName: 'Cartão Presente iFood R$ 50',
     variantValue: 'R$ 50',
     coinsSpent: 250,
@@ -285,7 +285,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-4',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000004',
     prizeName: 'Netflix Premium - 1 Mês',
     variantValue: '1 mês',
     coinsSpent: 200,
@@ -298,7 +298,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-5',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000005',
     prizeName: 'Cartão Presente Uber R$ 50',
     variantValue: 'R$ 50',
     coinsSpent: 250,
@@ -311,7 +311,7 @@ export const COMPANY_REDEMPTIONS = [
     ],
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-6',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000006',
     prizeName: 'Cartão Presente Amazon R$ 75',
     variantValue: 'R$ 75',
     coinsSpent: 375,
@@ -331,7 +331,7 @@ export const COMPANY_REDEMPTIONS = [
  */
 export const SAMPLE_ADDRESSES = [
   {
-    userAuth0Id: 'auth0|demo-company-admin-valorize',
+    userAuthUserId: '33333333-3333-3333-3333-333333333333',
     address: {
       name: 'Meu Endereço',
       street: 'Av. Paulista',
@@ -347,7 +347,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-hr-manager-valorize',
+    userAuthUserId: '44444444-4444-4444-4444-444444444444',
     address: {
       name: 'Meu Endereço',
       street: 'Rua Oscar Freire',
@@ -363,7 +363,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-team-lead-valorize',
+    userAuthUserId: '55555555-5555-5555-5555-555555555555',
     address: {
       name: 'Meu Endereço',
       street: 'Rua Augusta',
@@ -379,7 +379,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-1',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000001',
     address: {
       name: 'Meu Endereço',
       street: 'Rua Haddock Lobo',
@@ -395,7 +395,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-2',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000002',
     address: {
       name: 'Meu Endereço',
       street: 'Alameda Franca',
@@ -411,7 +411,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-3',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000003',
     address: {
       name: 'Meu Endereço',
       street: 'Rua Vergueiro',
@@ -427,7 +427,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-4',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000004',
     address: {
       name: 'Meu Endereço',
       street: 'Av. Rebouças',
@@ -443,7 +443,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-5',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000005',
     address: {
       name: 'Meu Endereço',
       street: 'Rua dos Três Irmãos',
@@ -459,7 +459,7 @@ export const SAMPLE_ADDRESSES = [
     },
   },
   {
-    userAuth0Id: 'auth0|demo-employee-valorize-6',
+    userAuthUserId: 'a0000001-0001-0001-0001-000000000006',
     address: {
       name: 'Meu Endereço',
       street: 'Rua Fidalga',

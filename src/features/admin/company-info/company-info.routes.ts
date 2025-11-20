@@ -15,7 +15,7 @@ import {
 } from './company-info.schemas'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { supabaseStorageService } from '@/lib/storage/supabase-storage.service'
@@ -23,9 +23,9 @@ import { supabaseStorageService } from '@/lib/storage/supabase-storage.service'
 /**
  * Get company ID from authenticated user
  */
-async function getCompanyIdFromUser(auth0Id: string): Promise<string> {
+async function getCompanyIdFromUser(authUserId: string): Promise<string> {
   const user = await prisma.user.findUnique({
-    where: { auth0Id },
+    where: { authUserId },
     select: { companyId: true },
   })
 
@@ -56,8 +56,8 @@ export default async function companyInfoRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         const info = await companyInfoService.getCompanyInfo(companyId)
         return reply.code(200).send(info)
@@ -91,8 +91,8 @@ export default async function companyInfoRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         await companyInfoService.updateCompanyInfo(
           companyId,
@@ -123,8 +123,8 @@ export default async function companyInfoRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         // Get current company info to check for existing logo
         const currentCompany = await companyInfoService.getCompanyInfo(companyId)
@@ -238,8 +238,8 @@ export default async function companyInfoRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         // Get current company info to check for existing logo
         const currentCompany = await companyInfoService.getCompanyInfo(companyId)

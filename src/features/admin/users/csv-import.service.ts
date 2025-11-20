@@ -374,42 +374,42 @@ export async function importUsers(
   }
 
   // ============================================================================
-  // ETAPA 1: Create all users in Auth0 (parallel batches)
+  // ETAPA 1: Create all users in Supabase Auth (parallel batches)
   // ============================================================================
 
-  logger.info('Creating users in Auth0...', { count: rowsToImport.length })
+  logger.info('Creating users in Supabase Auth...', { count: rowsToImport.length })
 
-  let auth0Users: Array<{ row: ValidatedCSVRow; auth0Id: string }>
+  let authUsers: Array<{ row: ValidatedCSVRow; authUserId: string }>
 
   try {
-    auth0Users = await processInBatches(rowsToImport, 10, async (row) => {
+    authUsers = await processInBatches(rowsToImport, 10, async (row) => {
       const auth0Result = await authService.createAdminUser({
         email: row.email.toLowerCase().trim(),
         name: row.nome.trim(),
       })
 
-      logger.info('User created in Auth0 via CSV import', {
-        auth0Id: auth0Result.auth0Id,
+      logger.info('User created in Supabase Auth via CSV import', {
+        authUserId: auth0Result.authUserId,
         email: row.email,
         rowNumber: row.rowNumber,
       })
 
       return {
         row,
-        auth0Id: auth0Result.auth0Id,
+        authUserId: auth0Result.authUserId,
       }
     })
 
-    logger.info('All Auth0 users created successfully', { count: auth0Users.length })
+    logger.info('All Auth0 users created successfully', { count: authUsers.length })
   } catch (auth0Error: any) {
     // Enhanced Auth0 error handling
-    let errorMessage = 'Failed to create users in Auth0'
+    let errorMessage = 'Failed to create users in Supabase Auth'
 
     if (auth0Error instanceof Error) {
       const errorMsg = auth0Error.message.toLowerCase()
 
       if (errorMsg.includes('already exists') || errorMsg.includes('duplicate')) {
-        errorMessage = `Email already exists in Auth0. Please ensure all emails in the CSV are new users.`
+        errorMessage = `Email already exists in Supabase Auth. Please ensure all emails in the CSV are new users.`
       } else if (errorMsg.includes('invalid email')) {
         errorMessage = `Invalid email format detected in CSV`
       } else if (errorMsg.includes('rate limit')) {
@@ -419,7 +419,7 @@ export async function importUsers(
       }
     }
 
-    logger.error('Failed to create users in Auth0', {
+    logger.error('Failed to create users in Supabase Auth', {
       error: auth0Error instanceof Error ? auth0Error.message : String(auth0Error),
       stack: auth0Error instanceof Error ? auth0Error.stack : undefined,
     })
@@ -444,7 +444,7 @@ export async function importUsers(
 
         // SUB-ETAPA 2: Create all users (without managers)
         logger.info('Creating users in database...')
-        const userMap = await createAllUsers(tx, auth0Users, deptMap, jobMap, companyId)
+        const userMap = await createAllUsers(tx, authUsers, deptMap, jobMap, companyId)
         logger.info('All users created in database', { count: userMap.size })
 
         // SUB-ETAPA 3: Assign managers (second pass)
@@ -463,7 +463,7 @@ export async function importUsers(
     // ROLLBACK: Try to delete Auth0 users
     logger.error('DB transaction failed, rolling back Auth0 users', { error: dbError })
 
-    await rollbackAuth0Users(auth0Users.map((u) => u.auth0Id))
+    await rollbackAuthUsers(authUsers.map((u) => u.authUserId))
 
     const errorMessage =
       dbError instanceof Error
@@ -526,13 +526,13 @@ async function getExistingEmailsByCompany(
 
 /**
  * Rollback: Log orphaned Auth0 users if DB transaction fails
- * Note: Manual cleanup may be required in Auth0 dashboard
+ * Note: Manual cleanup may be required in Supabase Auth dashboard
  */
-async function rollbackAuth0Users(auth0Ids: string[]): Promise<void> {
+async function rollbackAuthUsers(authUserIds: string[]): Promise<void> {
   logger.error('DB transaction failed - orphaned Auth0 users detected', {
-    count: auth0Ids.length,
-    auth0Ids,
-    action: 'Manual cleanup may be required in Auth0 dashboard',
+    count: authUserIds.length,
+    authUserIds,
+    action: 'Manual cleanup may be required in Supabase Auth dashboard',
   })
 
   // TODO: Implement automated cleanup when Auth0 Management API is integrated
@@ -594,7 +594,7 @@ async function upsertAllDepartmentsAndJobs(
  */
 async function createAllUsers(
   tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-  auth0Users: Array<{ row: ValidatedCSVRow; auth0Id: string }>,
+  authUsers: Array<{ row: ValidatedCSVRow; authUserId: string }>,
   deptMap: Map<string, string>,
   jobMap: Map<string, string>,
   companyId: string,
@@ -603,7 +603,7 @@ async function createAllUsers(
 
   // Create all users sequentially WITHIN transaction
   // (Prisma transaction already guarantees atomicity)
-  for (const { row, auth0Id } of auth0Users) {
+  for (const { row, authUserId } of authUsers) {
     const departmentId = row.departamento ? deptMap.get(row.departamento.trim()) : undefined
 
     const jobTitleId = row.cargo ? jobMap.get(row.cargo.trim()) : undefined
@@ -611,7 +611,7 @@ async function createAllUsers(
     // Create user (WITHOUT managerId yet)
     const user = await tx.user.create({
       data: {
-        auth0Id,
+        authUserId,
         companyId,
         email: row.email.toLowerCase().trim(),
         name: row.nome.trim(),

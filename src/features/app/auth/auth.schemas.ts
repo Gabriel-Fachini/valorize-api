@@ -200,7 +200,7 @@ export const signupSchema: FastifySchema = {
               type: 'object',
               properties: {
                 id: { type: 'string' },
-                auth0Id: { type: 'string' },
+                authUserId: { type: 'string' },
                 email: { type: 'string', format: 'email' },
                 name: { type: 'string' },
                 companyId: { type: 'string' },

@@ -34,7 +34,7 @@
 ### Core Technologies
 - **Backend**: Fastify v5.5.0 (TypeScript-first, high performance)
 - **Database**: PostgreSQL (Supabase) + Prisma v6.15.0
-- **Authentication**: Auth0 + JWT (SSO with Google Workspace)
+- **Authentication**: Supabase Auth + JWT (HS256, SSO ready)
 - **Language**: TypeScript v5.9.2 (strict mode)
 - **File Storage**: Supabase Storage (multipart upload)
 
@@ -55,7 +55,7 @@
 ```
 src/
 ├── features/           # Domain-organized features
-│   ├── auth/          # Authentication (Auth0 + JWT)
+│   ├── auth/          # Authentication (Supabase Auth + JWT)
 │   ├── users/         # User management
 │   ├── companies/     # Company system (multi-country ready)
 │   ├── rbac/          # Role-Based Access Control
@@ -134,14 +134,20 @@ feature/
 - **Cost**: FREE (no commission/markup)
 - **Note**: No sandbox testing done yet, no account created yet
 
-### Auth0
-- SSO with Google Workspace
-- Automatic domain verification
-- Multi-domain support per company (AllowedDomain model)
+### Supabase Auth
 
-### Supabase
+- JWT-based authentication (HS256 algorithm)
+- Admin API for user management (createUser, updatePassword, etc.)
+- Password reset magic links via email
+- User metadata support (name, avatar, etc.)
+- Multi-domain support per company (AllowedDomain model)
+- SSO-ready infrastructure
+
+### Supabase Infrastructure
+
 - PostgreSQL database
 - File storage bucket (multipart upload for prize images)
+- Auth service for authentication and user management
 
 ## Development Workflow
 
@@ -193,7 +199,8 @@ try {
 The current #1 priority is developing the main and critical flow for voucher and prize redemptions with Tremendous integration.
 
 ### Features Complete ✅
-- Base infrastructure (Fastify + Prisma + Auth0)
+
+- Base infrastructure (Fastify + Prisma + Supabase Auth)
 - User management
 - Company system (Brazil-specific data with CNPJ validation)
 - RBAC system with granular permissions
@@ -201,6 +208,7 @@ The current #1 priority is developing the main and critical flow for voucher and
 - Dual wallet system with full audit
 - Prize store MVP with redemption tracking
 - Tremendous API integration (operational)
+- Supabase Auth migration (completed)
 
 ### Features Planned 📋
 - Notification system (Resend - not configured yet)
@@ -301,6 +309,42 @@ npm run lint             # ESLint
 npm test                 # Vitest tests
 ```
 
+## Recent Major Changes
+
+### Auth0 → Supabase Auth Migration (November 2025)
+
+**Status**: ✅ Completed
+
+Successfully migrated from Auth0 to Supabase Auth. Key changes:
+
+**Authentication**:
+- Replaced Auth0 OAuth with Supabase Auth JWT (HS256)
+- Updated JWT verification from RS256 (JWKS) to HS256 (secret-based)
+- Migrated user management to Supabase Admin API
+
+**Database**:
+- Renamed `auth0Id` → `authUserId` across all tables and code
+- Updated Prisma schema with `@map("auth_user_id")` for backward compatibility
+- Maintained existing user records (authUserId now stores Supabase Auth user ID)
+
+**Code Changes**:
+- Updated all services, models, and routes to use `authUserId`
+- Removed `jwks-rsa` dependency
+- Updated middleware to verify Supabase JWT tokens
+- Added helper methods: `createAdminUser`, `generateTemporaryPassword`, `resetUserPassword`
+
+**Benefits**:
+- Unified stack: All services now on Supabase (Auth + Database + Storage)
+- Simplified infrastructure: No external Auth0 dependency
+- Cost reduction: Supabase Auth included in existing plan
+- Better integration: Native connection between auth and database
+
+**Migration Notes**:
+- All existing users can continue using their accounts seamlessly
+- Password reset flow now uses Supabase magic links
+- Admin user creation integrated with Supabase Admin API
+- SSO support ready for future implementation
+
 ## Remember
 
 1. **Feature-First**: Keep related files together in feature folders
@@ -313,5 +357,5 @@ npm test                 # Vitest tests
 ---
 
 **Last Updated**: November 2025
-**Version**: MVP - Tremendous Integration Phase
+**Version**: MVP - Supabase Auth Migration Complete
 **Status**: 🟢 Active Development | Preparing for Toro Investimentos Pilot

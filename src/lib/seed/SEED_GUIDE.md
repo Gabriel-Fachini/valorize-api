@@ -65,7 +65,7 @@ The seed system executes 16 seeders in strict dependency order:
   - TechStart: 35 users
   - Global: 23 users
 - Realistic Brazilian names and email addresses
-- Auth0 ID integration
+- Supabase Auth ID integration (UUID format)
 
 #### 2. **Wallet Seeder** (wallet.seeder.ts)
 - Creates dual-balance wallets for each user
