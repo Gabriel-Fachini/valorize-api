@@ -43,21 +43,21 @@ export class UserSeeder extends BaseSeeder {
       valorizeCompany,
       valorizeDeptsAndJobs,
       'valorize.com.br',
-      REALISTIC_VOLUMES.users.valorize
+      REALISTIC_VOLUMES.users.valorize,
     )
 
     await this.seedFactoryUsers(
       techstartCompany,
       techstartDeptsAndJobs,
       'techstart.com.br',
-      REALISTIC_VOLUMES.users.techstart
+      REALISTIC_VOLUMES.users.techstart,
     )
 
     await this.seedFactoryUsers(
       globalCompany,
       globalDeptsAndJobs,
       'globalsolutions.com',
-      REALISTIC_VOLUMES.users.global
+      REALISTIC_VOLUMES.users.global,
     )
 
     // Count total users created
@@ -93,7 +93,7 @@ export class UserSeeder extends BaseSeeder {
       }
 
       const user = await this.prisma.user.upsert({
-        where: { auth0Id: userData.auth0Id },
+        where: { authUserId: userData.authUserId },
         update: {
           email: userData.email,
           name: userData.name,
@@ -103,7 +103,7 @@ export class UserSeeder extends BaseSeeder {
           departmentId: departmentRecord?.id ?? null,
         },
         create: {
-          auth0Id: userData.auth0Id,
+          authUserId: userData.authUserId,
           email: userData.email,
           name: userData.name,
           avatar: userData.avatarUrl ?? undefined,
@@ -139,7 +139,7 @@ export class UserSeeder extends BaseSeeder {
       this.logInfo(
         `Created user '${userData.name}' with roles: ${userData.roles.join(', ')}`
         + (userData.jobTitleName ? `, jobTitle: ${userData.jobTitleName}` : '')
-        + (userData.departmentName ? `, department: ${userData.departmentName}` : '')
+        + (userData.departmentName ? `, department: ${userData.departmentName}` : ''),
       )
     }
   }
@@ -148,7 +148,7 @@ export class UserSeeder extends BaseSeeder {
     company: { id: string; name: string },
     deptsAndJobs: { departments: any[]; jobTitles: any[] },
     emailDomain: string,
-    count: number
+    count: number,
   ): Promise<void> {
     // Generate realistic users using factory
     const generatedUsers = UserFactory.generateBulkUsers({
@@ -173,7 +173,7 @@ export class UserSeeder extends BaseSeeder {
 
     // Batch create users
     const usersToCreate = generatedUsers.map(u => ({
-      auth0Id: u.auth0Id,
+      authUserId: u.authUserId,
       email: u.email,
       name: u.name,
       companyId: company.id,
@@ -190,7 +190,7 @@ export class UserSeeder extends BaseSeeder {
     // Get the created users to assign roles
     const users = await this.prisma.user.findMany({
       where: {
-        auth0Id: { in: generatedUsers.map(u => u.auth0Id) },
+        authUserId: { in: generatedUsers.map(u => u.authUserId) },
       },
     })
 

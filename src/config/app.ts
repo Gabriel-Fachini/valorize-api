@@ -4,8 +4,7 @@ import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUI from '@fastify/swagger-ui'
-import jwt, { FastifyJWTOptions } from '@fastify/jwt'
-import jwksClient from 'jwks-rsa'
+import jwt from '@fastify/jwt'
 
 import { logger } from '@/lib/logger'
 import { errorHandler } from '@/middleware/error-handler'
@@ -38,43 +37,19 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     timeWindow: parseInt(process.env.RATE_LIMIT_TIME_WINDOW ?? '60000'),
   })
 
-  // Register JWT for Auth0 token verification
+  // Register JWT for Supabase Auth token verification
+  const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
+
+  if (!supabaseJwtSecret) {
+    logger.error('SUPABASE_JWT_SECRET is not set in environment variables')
+    throw new Error('SUPABASE_JWT_SECRET is required for JWT verification')
+  }
+
   await app.register(jwt, {
-    secret: (_request, token, done) => {
-      if (!token || typeof token !== 'object') {
-        return done(new Error('Invalid token header - missing kid'), undefined)
-      }
-      
-      if (!token.header || typeof token.header !== 'object') {
-        return done(new Error('Invalid token header - missing kid'), undefined)
-      }
-      
-      if (!token.header.kid || typeof token.header.kid !== 'string') {
-        return done(new Error('Invalid token header - missing kid'), undefined)
-      }
-
-      const client = jwksClient({
-        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-        cache: true,
-        cacheMaxEntries: 5,
-        cacheMaxAge: 600000, // 10 minutes
-      })
-
-      client.getSigningKey(token.header.kid, (err, key) => {
-        if (err) {
-          return done(err, undefined)
-        }
-        if (key) {
-          const signingKey = key.getPublicKey()
-          done(null, signingKey)
-        } else {
-          done(new Error('signing key not found'), undefined)
-        }
-      })
-    },
+    secret: supabaseJwtSecret,
     decode: { complete: true },
-    algorithms: ['RS256'],
-  } as FastifyJWTOptions)
+    // HS256 is the default algorithm for symmetric keys (secrets)
+  })
 
   // Register Swagger
   await app.register(swagger, {

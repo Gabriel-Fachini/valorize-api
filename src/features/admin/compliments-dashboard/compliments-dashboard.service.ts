@@ -20,7 +20,7 @@ import {
   RecentCompliment,
   EngagementMetrics,
   InactiveUser,
-  DashboardMetadata
+  DashboardMetadata,
 } from './compliments-dashboard.types'
 
 class ComplimentsDashboardService {
@@ -31,7 +31,7 @@ class ComplimentsDashboardService {
     companyId: string,
     startDate: Date,
     endDate: Date,
-    filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>
+    filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>,
   ): Promise<ComplimentsDashboard> {
     const startTime = Date.now()
 
@@ -46,8 +46,8 @@ class ComplimentsDashboardService {
         endDate,
         previousPeriod: {
           startDate: previousStartDate,
-          endDate: previousEndDate
-        }
+          endDate: previousEndDate,
+        },
       }
 
       // Execute all queries in parallel for maximum performance
@@ -65,7 +65,7 @@ class ComplimentsDashboardService {
         monthlyGrowth,
         recentActivity,
         engagementMetrics,
-        companyInfo
+        companyInfo,
       ] = await Promise.all([
         this.getOverviewMetrics(companyId, startDate, endDate, previousStartDate, previousEndDate, filters),
         this.getValuesDistribution(companyId, startDate, endDate, previousStartDate, previousEndDate),
@@ -80,7 +80,7 @@ class ComplimentsDashboardService {
         this.getMonthlyGrowth(companyId),
         this.getRecentActivity(companyId, filters),
         this.getEngagementMetrics(companyId, startDate, endDate),
-        this.getCompanyInfo(companyId)
+        this.getCompanyInfo(companyId),
       ])
 
       // Generate insights based on collected data
@@ -88,7 +88,7 @@ class ComplimentsDashboardService {
         overview,
         valuesDistribution,
         departmentStats,
-        engagementMetrics
+        engagementMetrics,
       })
 
       const executionTime = Date.now() - startTime
@@ -100,17 +100,17 @@ class ComplimentsDashboardService {
         topUsers: {
           senders: topSenders,
           receivers: topReceivers,
-          balanced: balancedUsers
+          balanced: balancedUsers,
         },
         departmentAnalytics: {
           departments: departmentStats,
-          crossDepartmentFlow
+          crossDepartmentFlow,
         },
         temporalPatterns: {
           weeklyTrend,
           dayOfWeekDistribution,
           hourlyDistribution,
-          monthlyGrowth
+          monthlyGrowth,
         },
         insights,
         recentActivity,
@@ -120,10 +120,10 @@ class ComplimentsDashboardService {
           executionTime,
           filters: {
             departmentId: filters?.departmentId || null,
-            jobTitleId: filters?.jobTitleId || null
+            jobTitleId: filters?.jobTitleId || null,
           },
-          companyInfo
-        }
+          companyInfo,
+        },
       }
     } catch (error) {
       logger.error('Error generating compliments dashboard', { error, companyId })
@@ -140,21 +140,21 @@ class ComplimentsDashboardService {
     endDate: Date,
     previousStartDate: Date,
     previousEndDate: Date,
-    filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>
+    filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>,
   ): Promise<OverviewMetrics> {
     // Build where clause with optional filters
     const whereClause: Prisma.ComplimentWhereInput = {
       companyId,
       createdAt: {
         gte: startDate,
-        lte: endDate
-      }
+        lte: endDate,
+      },
     }
 
     if (filters?.departmentId) {
       whereClause.OR = [
         { sender: { departmentId: filters.departmentId } },
-        { receiver: { departmentId: filters.departmentId } }
+        { receiver: { departmentId: filters.departmentId } },
       ]
     }
 
@@ -164,7 +164,7 @@ class ComplimentsDashboardService {
       }
       whereClause.OR.push(
         { sender: { jobTitleId: filters.jobTitleId } },
-        { receiver: { jobTitleId: filters.jobTitleId } }
+        { receiver: { jobTitleId: filters.jobTitleId } },
       )
     }
 
@@ -173,21 +173,21 @@ class ComplimentsDashboardService {
       prisma.compliment.count({ where: whereClause }),
       prisma.compliment.aggregate({
         where: whereClause,
-        _sum: { coins: true }
+        _sum: { coins: true },
       }),
       prisma.compliment.findMany({
         where: whereClause,
         select: { senderId: true },
-        distinct: ['senderId']
+        distinct: ['senderId'],
       }),
       prisma.user.count({
         where: {
           companyId,
           isActive: true,
           ...(filters?.departmentId && { departmentId: filters.departmentId }),
-          ...(filters?.jobTitleId && { jobTitleId: filters.jobTitleId })
-        }
-      })
+          ...(filters?.jobTitleId && { jobTitleId: filters.jobTitleId }),
+        },
+      }),
     ])
 
     // Previous period metrics for comparison
@@ -195,21 +195,21 @@ class ComplimentsDashboardService {
       ...whereClause,
       createdAt: {
         gte: previousStartDate,
-        lte: previousEndDate
-      }
+        lte: previousEndDate,
+      },
     }
 
     const [previousCount, previousSum, previousUniqueSenders] = await Promise.all([
       prisma.compliment.count({ where: previousWhereClause }),
       prisma.compliment.aggregate({
         where: previousWhereClause,
-        _sum: { coins: true }
+        _sum: { coins: true },
       }),
       prisma.compliment.findMany({
         where: previousWhereClause,
         select: { senderId: true },
-        distinct: ['senderId']
-      })
+        distinct: ['senderId'],
+      }),
     ])
 
     const totalCoinsDistributed = currentSum._sum.coins || 0
@@ -236,7 +236,7 @@ class ComplimentsDashboardService {
       activeUsers: {
         count: activeUsersCount,
         percentage: totalUsers > 0 ? (activeUsersCount / totalUsers) * 100 : 0,
-        total: totalUsers
+        total: totalUsers,
       },
       avgCoinsPerCompliment: currentCount > 0 ? totalCoinsDistributed / currentCount : 0,
       engagementRate: activeUsersCount > 0 ? currentCount / activeUsersCount : 0,
@@ -246,8 +246,8 @@ class ComplimentsDashboardService {
         coinsChange: Math.round(coinsChange * 100) / 100,
         coinsChangeLabel: `${coinsChange >= 0 ? '+' : ''}${Math.round(coinsChange)}%`,
         usersChange: Math.round(usersChange * 100) / 100,
-        usersChangeLabel: `${usersChange >= 0 ? '+' : ''}${Math.round(usersChange)}%`
-      }
+        usersChangeLabel: `${usersChange >= 0 ? '+' : ''}${Math.round(usersChange)}%`,
+      },
     }
   }
 
@@ -259,7 +259,7 @@ class ComplimentsDashboardService {
     startDate: Date,
     endDate: Date,
     previousStartDate: Date,
-    previousEndDate: Date
+    previousEndDate: Date,
   ): Promise<ValueDistribution[]> {
     // Get current period distribution
     const currentDistribution = await prisma.compliment.groupBy({
@@ -268,13 +268,13 @@ class ComplimentsDashboardService {
         companyId,
         createdAt: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
       _count: true,
       _sum: {
-        coins: true
-      }
+        coins: true,
+      },
     })
 
     // Get previous period distribution for trend calculation
@@ -284,10 +284,10 @@ class ComplimentsDashboardService {
         companyId,
         createdAt: {
           gte: previousStartDate,
-          lte: previousEndDate
-        }
+          lte: previousEndDate,
+        },
       },
-      _count: true
+      _count: true,
     })
 
     // Get all company values info
@@ -295,9 +295,9 @@ class ComplimentsDashboardService {
       where: {
         companyId,
         id: {
-          in: currentDistribution.map(d => d.valueId)
-        }
-      }
+          in: currentDistribution.map(d => d.valueId),
+        },
+      },
     })
 
     // Create lookup maps
@@ -336,7 +336,7 @@ class ComplimentsDashboardService {
           percentage: total > 0 ? (currentCount / total) * 100 : 0,
           totalCoins: dist._sum.coins || 0,
           trend,
-          trendPercentage: Math.round(trendPercentage * 100) / 100
+          trendPercentage: Math.round(trendPercentage * 100) / 100,
         }
       })
       .sort((a: any, b: any) => b.count - a.count)
@@ -350,14 +350,14 @@ class ComplimentsDashboardService {
     startDate: Date,
     endDate: Date,
     filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<TopSender[]> {
     const whereClause: Prisma.ComplimentWhereInput = {
       companyId,
       createdAt: {
         gte: startDate,
-        lte: endDate
-      }
+        lte: endDate,
+      },
     }
 
     if (filters?.departmentId) {
@@ -370,7 +370,7 @@ class ComplimentsDashboardService {
       }
       whereClause.sender = {
         ...(whereClause.sender as any),
-        jobTitleId: filters.jobTitleId
+        jobTitleId: filters.jobTitleId,
       }
     }
 
@@ -379,26 +379,26 @@ class ComplimentsDashboardService {
       where: whereClause,
       _count: true,
       _sum: {
-        coins: true
+        coins: true,
       },
       orderBy: {
         _count: {
-          senderId: 'desc'
-        }
+          senderId: 'desc',
+        },
       },
-      take: limit
+      take: limit,
     })
 
     // Get user details
     const userIds = topSenders.map((s: any) => s.senderId)
     const users = await prisma.user.findMany({
       where: {
-        id: { in: userIds }
+        id: { in: userIds },
       },
       include: {
         department: true,
-        jobTitle: true
-      }
+        jobTitle: true,
+      },
     })
 
     const userMap = new Map(users.map((u: any) => [u.id, u]))
@@ -417,7 +417,7 @@ class ComplimentsDashboardService {
         jobTitle: user?.jobTitle?.name || null,
         sentCount: count,
         totalCoinsSent: totalCoins,
-        avgCoinsPerCompliment: count > 0 ? totalCoins / count : 0
+        avgCoinsPerCompliment: count > 0 ? totalCoins / count : 0,
       }
     })
   }
@@ -430,14 +430,14 @@ class ComplimentsDashboardService {
     startDate: Date,
     endDate: Date,
     filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<TopReceiver[]> {
     const whereClause: Prisma.ComplimentWhereInput = {
       companyId,
       createdAt: {
         gte: startDate,
-        lte: endDate
-      }
+        lte: endDate,
+      },
     }
 
     if (filters?.departmentId) {
@@ -450,7 +450,7 @@ class ComplimentsDashboardService {
       }
       whereClause.receiver = {
         ...(whereClause.receiver as any),
-        jobTitleId: filters.jobTitleId
+        jobTitleId: filters.jobTitleId,
       }
     }
 
@@ -459,26 +459,26 @@ class ComplimentsDashboardService {
       where: whereClause,
       _count: true,
       _sum: {
-        coins: true
+        coins: true,
       },
       orderBy: {
         _count: {
-          receiverId: 'desc'
-        }
+          receiverId: 'desc',
+        },
       },
-      take: limit
+      take: limit,
     })
 
     // Get user details
     const userIds = topReceivers.map((r: any) => r.receiverId)
     const users = await prisma.user.findMany({
       where: {
-        id: { in: userIds }
+        id: { in: userIds },
       },
       include: {
         department: true,
-        jobTitle: true
-      }
+        jobTitle: true,
+      },
     })
 
     const userMap = new Map(users.map((u: any) => [u.id, u]))
@@ -497,7 +497,7 @@ class ComplimentsDashboardService {
         jobTitle: user?.jobTitle?.name || null,
         receivedCount: count,
         totalCoinsReceived: totalCoins,
-        avgCoinsPerCompliment: count > 0 ? totalCoins / count : 0
+        avgCoinsPerCompliment: count > 0 ? totalCoins / count : 0,
       }
     })
   }
@@ -510,28 +510,28 @@ class ComplimentsDashboardService {
     startDate: Date,
     endDate: Date,
     filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>,
-    limit: number = 5
+    limit: number = 5,
   ): Promise<BalancedUser[]> {
     const whereClause: any = {
       companyId,
       createdAt: {
         gte: startDate,
-        lte: endDate
-      }
+        lte: endDate,
+      },
     }
 
     // Get sent counts
     const sentCounts = await prisma.compliment.groupBy({
       by: ['senderId'],
       where: whereClause,
-      _count: true
+      _count: true,
     })
 
     // Get received counts
     const receivedCounts = await prisma.compliment.groupBy({
       by: ['receiverId'],
       where: whereClause,
-      _count: true
+      _count: true,
     })
 
     // Create maps for easy lookup
@@ -541,7 +541,7 @@ class ComplimentsDashboardService {
     // Get all unique user IDs
     const allUserIds = new Set([
       ...sentCounts.map((s: any) => s.senderId),
-      ...receivedCounts.map((r: any) => r.receiverId)
+      ...receivedCounts.map((r: any) => r.receiverId),
     ])
 
     // Calculate balance scores
@@ -559,7 +559,7 @@ class ComplimentsDashboardService {
         userId,
         sent,
         received,
-        balanceScore
+        balanceScore,
       }
     }).filter(Boolean)
 
@@ -573,11 +573,11 @@ class ComplimentsDashboardService {
     const userIds = topBalanced.map((u: any) => u!.userId)
     const users = await prisma.user.findMany({
       where: {
-        id: { in: userIds }
+        id: { in: userIds },
       },
       include: {
-        department: true
-      }
+        department: true,
+      },
     })
 
     const userMap = new Map(users.map((u: any) => [u.id, u]))
@@ -593,7 +593,7 @@ class ComplimentsDashboardService {
         department: user?.department?.name || null,
         sentCount: score!.sent,
         receivedCount: score!.received,
-        balanceScore: Math.round(score!.balanceScore * 100) / 100
+        balanceScore: Math.round(score!.balanceScore * 100) / 100,
       }
     })
   }
@@ -604,24 +604,24 @@ class ComplimentsDashboardService {
   private async getDepartmentStats(
     companyId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<DepartmentStat[]> {
     // Get all departments with user counts
     const departments = await prisma.department.findMany({
       where: {
-        companyId
+        companyId,
       },
       include: {
         _count: {
           select: {
             users: {
               where: {
-                isActive: true
-              }
-            }
-          }
-        }
-      }
+                isActive: true,
+              },
+            },
+          },
+        },
+      },
     })
 
     // Get compliments by department (senders)
@@ -674,8 +674,8 @@ class ComplimentsDashboardService {
     const valueIds = topValuesByDept.map((v: any) => v.value_id)
     const companyValues = await prisma.companyValue.findMany({
       where: {
-        id: { in: valueIds }
-      }
+        id: { in: valueIds },
+      },
     })
     const valueMap = new Map(companyValues.map((v: any) => [v.id, v.title]))
 
@@ -700,8 +700,8 @@ class ComplimentsDashboardService {
         engagementRate: totalUsers > 0 ? (activeUsers / totalUsers) * 100 : 0,
         topValue: topValue ? {
           valueName: valueMap.get(topValue.value_id) || 'Unknown',
-          count: Number(topValue.value_count)
-        } : null
+          count: Number(topValue.value_count),
+        } : null,
       }
     }).sort((a: any, b: any) => b.totalCompliments - a.totalCompliments)
   }
@@ -713,7 +713,7 @@ class ComplimentsDashboardService {
     companyId: string,
     startDate: Date,
     endDate: Date,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<CrossDepartmentFlow[]> {
     const flows = await prisma.$queryRaw<Array<{
       from_dept_id: string | null
@@ -753,7 +753,7 @@ class ComplimentsDashboardService {
       toDepartmentId: flow.to_dept_id,
       toDepartmentName: flow.to_dept_name || 'No Department',
       complimentCount: Number(flow.compliment_count),
-      coinAmount: Number(flow.coin_amount)
+      coinAmount: Number(flow.coin_amount),
     }))
   }
 
@@ -763,7 +763,7 @@ class ComplimentsDashboardService {
   private async getWeeklyTrend(
     companyId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<WeeklyTrend[]> {
     const trends = await prisma.$queryRaw<Array<{
       week_start: Date
@@ -791,7 +791,7 @@ class ComplimentsDashboardService {
         weekStart: weekStart.toISOString().split('T')[0],
         weekEnd: weekEnd.toISOString().split('T')[0],
         count: Number(trend.count),
-        coins: Number(trend.coins)
+        coins: Number(trend.coins),
       }
     })
   }
@@ -802,7 +802,7 @@ class ComplimentsDashboardService {
   private async getDayOfWeekDistribution(
     companyId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<DayOfWeekDistribution[]> {
     const distribution = await prisma.$queryRaw<Array<{
       day_of_week: number
@@ -826,7 +826,7 @@ class ComplimentsDashboardService {
       dayOfWeek: Number(d.day_of_week),
       dayName: dayNames[Number(d.day_of_week)],
       count: Number(d.count),
-      percentage: total > 0 ? (Number(d.count) / total) * 100 : 0
+      percentage: total > 0 ? (Number(d.count) / total) * 100 : 0,
     }))
   }
 
@@ -836,7 +836,7 @@ class ComplimentsDashboardService {
   private async getHourlyDistribution(
     companyId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<HourlyDistribution[]> {
     const distribution = await prisma.$queryRaw<Array<{
       hour: number
@@ -864,7 +864,7 @@ class ComplimentsDashboardService {
       fullDistribution.push({
         hour,
         count,
-        percentage: total > 0 ? (count / total) * 100 : 0
+        percentage: total > 0 ? (count / total) * 100 : 0,
       })
     }
 
@@ -888,23 +888,23 @@ class ComplimentsDashboardService {
           companyId,
           createdAt: {
             gte: currentMonthStart,
-            lte: currentMonthEnd
-          }
+            lte: currentMonthEnd,
+          },
         },
         _count: true,
-        _sum: { coins: true }
+        _sum: { coins: true },
       }),
       prisma.compliment.aggregate({
         where: {
           companyId,
           createdAt: {
             gte: previousMonthStart,
-            lte: previousMonthEnd
-          }
+            lte: previousMonthEnd,
+          },
         },
         _count: true,
-        _sum: { coins: true }
-      })
+        _sum: { coins: true },
+      }),
     ])
 
     const currentCount = currentMonth._count
@@ -915,21 +915,21 @@ class ComplimentsDashboardService {
 
     const monthNames = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
     ]
 
     return {
       currentMonth: {
         month: monthNames[now.getMonth()],
         count: currentCount,
-        coins: currentMonth._sum.coins || 0
+        coins: currentMonth._sum.coins || 0,
       },
       previousMonth: {
         month: monthNames[now.getMonth() - 1] || monthNames[11],
         count: previousCount,
-        coins: previousMonth._sum.coins || 0
+        coins: previousMonth._sum.coins || 0,
       },
-      growthRate: Math.round(growthRate * 100) / 100
+      growthRate: Math.round(growthRate * 100) / 100,
     }
   }
 
@@ -939,16 +939,16 @@ class ComplimentsDashboardService {
   private async getRecentActivity(
     companyId: string,
     filters?: Omit<DashboardFilters, 'startDate' | 'endDate'>,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<RecentCompliment[]> {
     const whereClause: Prisma.ComplimentWhereInput = {
-      companyId
+      companyId,
     }
 
     if (filters?.departmentId) {
       whereClause.OR = [
         { sender: { departmentId: filters.departmentId } },
-        { receiver: { departmentId: filters.departmentId } }
+        { receiver: { departmentId: filters.departmentId } },
       ]
     }
 
@@ -957,20 +957,20 @@ class ComplimentsDashboardService {
       include: {
         sender: {
           include: {
-            department: true
-          }
+            department: true,
+          },
         },
         receiver: {
           include: {
-            department: true
-          }
+            department: true,
+          },
         },
-        companyValue: true
+        companyValue: true,
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'desc',
       },
-      take: limit
+      take: limit,
     })
 
     return compliments.map((c: any) => ({
@@ -979,24 +979,24 @@ class ComplimentsDashboardService {
         id: c.sender.id,
         name: c.sender.name,
         avatar: c.sender.avatar,
-        department: c.sender.department?.name || null
+        department: c.sender.department?.name || null,
       },
       receiver: {
         id: c.receiver.id,
         name: c.receiver.name,
         avatar: c.receiver.avatar,
-        department: c.receiver.department?.name || null
+        department: c.receiver.department?.name || null,
       },
       companyValue: {
         id: c.companyValue.id,
         title: c.companyValue.title,
         iconName: c.companyValue.iconName,
-        iconColor: c.companyValue.iconColor
+        iconColor: c.companyValue.iconColor,
       },
       coins: c.coins,
       message: c.message,
       createdAt: c.createdAt.toISOString(),
-      timeAgo: this.getTimeAgo(c.createdAt)
+      timeAgo: this.getTimeAgo(c.createdAt),
     }))
   }
 
@@ -1006,14 +1006,14 @@ class ComplimentsDashboardService {
   private async getEngagementMetrics(
     companyId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<EngagementMetrics> {
     // Get total users
     const totalUsers = await prisma.user.count({
       where: {
         companyId,
-        isActive: true
-      }
+        isActive: true,
+      },
     })
 
     // Get users who sent compliments
@@ -1022,11 +1022,11 @@ class ComplimentsDashboardService {
         companyId,
         createdAt: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
       select: { senderId: true },
-      distinct: ['senderId']
+      distinct: ['senderId'],
     })
 
     const participationRate = totalUsers > 0
@@ -1039,9 +1039,9 @@ class ComplimentsDashboardService {
         companyId,
         createdAt: {
           gte: startDate,
-          lte: endDate
-        }
-      }
+          lte: endDate,
+        },
+      },
     })
 
     const averageComplimentsPerUser = activeSenders.length > 0
@@ -1054,11 +1054,11 @@ class ComplimentsDashboardService {
         companyId,
         createdAt: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
       select: { coins: true },
-      orderBy: { coins: 'asc' }
+      orderBy: { coins: 'asc' },
     })
 
     const medianCoins = allCoins.length > 0
@@ -1074,22 +1074,22 @@ class ComplimentsDashboardService {
           none: {
             createdAt: {
               gte: startDate,
-              lte: endDate
-            }
-          }
-        }
+              lte: endDate,
+            },
+          },
+        },
       },
       include: {
-        department: true
+        department: true,
       },
-      take: 10
+      take: 10,
     })
 
     const inactiveList: InactiveUser[] = inactiveUsers.slice(0, 5).map((u: any) => ({
       userId: u.id,
       name: u.name,
       department: u.department?.name || null,
-      lastActivity: null // Could be enhanced with last login data
+      lastActivity: null, // Could be enhanced with last login data
     }))
 
     return {
@@ -1099,8 +1099,8 @@ class ComplimentsDashboardService {
       inactiveUsers: {
         count: inactiveUsers.length,
         percentage: totalUsers > 0 ? (inactiveUsers.length / totalUsers) * 100 : 0,
-        list: inactiveList
-      }
+        list: inactiveList,
+      },
     }
   }
 
@@ -1115,30 +1115,30 @@ class ComplimentsDashboardService {
   }> {
     const [totalEmployees, activeEmployees, totalValues, activeValues] = await Promise.all([
       prisma.user.count({
-        where: { companyId }
+        where: { companyId },
       }),
       prisma.user.count({
         where: {
           companyId,
-          isActive: true
-        }
+          isActive: true,
+        },
       }),
       prisma.companyValue.count({
-        where: { companyId }
+        where: { companyId },
       }),
       prisma.companyValue.count({
         where: {
           companyId,
-          isActive: true
-        }
-      })
+          isActive: true,
+        },
+      }),
     ])
 
     return {
       totalEmployees,
       activeEmployees,
       totalValues,
-      activeValues
+      activeValues,
     }
   }
 
@@ -1162,7 +1162,7 @@ class ComplimentsDashboardService {
         description: `Apenas ${Math.round(data.engagementMetrics.participationRate)}% dos colaboradores enviaram elogios neste período`,
         metric: data.engagementMetrics.participationRate,
         actionable: true,
-        priority: 'high'
+        priority: 'high',
       })
     }
 
@@ -1175,7 +1175,7 @@ class ComplimentsDashboardService {
         description: `${Math.round(data.engagementMetrics.participationRate)}% dos colaboradores estão ativamente reconhecendo colegas`,
         metric: data.engagementMetrics.participationRate,
         actionable: false,
-        priority: 'low'
+        priority: 'low',
       })
     }
 
@@ -1189,7 +1189,7 @@ class ComplimentsDashboardService {
         description: `${underutilizedValues.length} valor(es) representam menos de 10% dos elogios. Considere promover: ${underutilizedValues.map(v => v.valueName).join(', ')}`,
         metric: underutilizedValues.length,
         actionable: true,
-        priority: 'medium'
+        priority: 'medium',
       })
     }
 
@@ -1203,7 +1203,7 @@ class ComplimentsDashboardService {
         description: `${lowEngagementDepts.map(d => d.departmentName).join(', ')} têm menos de 20% de participação`,
         metric: lowEngagementDepts.length,
         actionable: true,
-        priority: 'high'
+        priority: 'high',
       })
     }
 
@@ -1216,7 +1216,7 @@ class ComplimentsDashboardService {
         description: `Elogios aumentaram ${data.overview.comparison.complimentsChangeLabel} em relação ao período anterior`,
         metric: data.overview.comparison.complimentsChange,
         actionable: false,
-        priority: 'low'
+        priority: 'low',
       })
     } else if (data.overview.comparison.complimentsChange < -20) {
       insights.push({
@@ -1226,7 +1226,7 @@ class ComplimentsDashboardService {
         description: `Elogios diminuíram ${Math.abs(data.overview.comparison.complimentsChange)}% em relação ao período anterior`,
         metric: data.overview.comparison.complimentsChange,
         actionable: true,
-        priority: 'high'
+        priority: 'high',
       })
     }
 
@@ -1239,7 +1239,7 @@ class ComplimentsDashboardService {
         description: `${data.engagementMetrics.inactiveUsers.count} colaboradores (${Math.round(data.engagementMetrics.inactiveUsers.percentage)}%) nunca enviaram elogios`,
         metric: data.engagementMetrics.inactiveUsers.percentage,
         actionable: true,
-        priority: 'high'
+        priority: 'high',
       })
     }
 
@@ -1282,7 +1282,7 @@ class ComplimentsDashboardService {
       minConnections?: number
       limit?: number
       userIds?: string[]
-    }
+    },
   ) {
     const now = new Date()
 
@@ -1309,7 +1309,7 @@ class ComplimentsDashboardService {
         companyId,
         filters.userIds,
         startDate,
-        endDate
+        endDate,
       )
 
       // Then get nodes for all these users (filtered + connected)
@@ -1322,7 +1322,7 @@ class ComplimentsDashboardService {
         filters.department,
         minConnections,
         limit,
-        allUserIds
+        allUserIds,
       )
     } else {
       // Normal flow: get nodes based on other filters
@@ -1332,7 +1332,7 @@ class ComplimentsDashboardService {
         endDate,
         filters.department,
         minConnections,
-        limit
+        limit,
       )
     }
 

@@ -22,7 +22,7 @@ const userRoutes = async (
               type: 'object',
               properties: {
                 id: { type: 'string', format: 'uuid' },
-                auth0Id: { type: 'string' },
+                authUserId: { type: 'string' },
                 email: { type: 'string', format: 'email' },
                 name: { type: 'string' },
                 avatar: { type: 'string', format: 'uri', nullable: true },
@@ -110,7 +110,7 @@ const userRoutes = async (
               type: 'object',
               properties: {
                 id: { type: 'string', format: 'uuid' },
-                auth0Id: { type: 'string' },
+                authUserId: { type: 'string' },
                 email: { type: 'string', format: 'email' },
                 name: { type: 'string' },
                 avatar: { type: 'string', format: 'uri', nullable: true },
@@ -315,7 +315,7 @@ const userRoutes = async (
     const { rbacService } = await import('@/features/app/rbac/rbac.service')
 
     try {
-      const result = await rbacService.getUserPermissions(user.auth0Id as string)
+      const result = await rbacService.getUserPermissions(user.authUserId as string)
       
       return reply.send({
         success: true,

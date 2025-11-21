@@ -36,7 +36,7 @@ export default async function walletManagementRoutes(fastify: FastifyInstance) {
       const isDryRun = dryRun === 'true'
 
       const currentUser = getCurrentUser(request)
-      const admin = await User.findByAuth0Id(currentUser.sub)
+      const admin = await User.findByAuthUserId(currentUser.sub)
 
       if (!admin) {
         return reply.code(404).send({ message: 'Admin user not found.' })
@@ -98,7 +98,7 @@ export default async function walletManagementRoutes(fastify: FastifyInstance) {
       }
 
       const currentUser = getCurrentUser(request)
-      const admin = await User.findByAuth0Id(currentUser.sub)
+      const admin = await User.findByAuthUserId(currentUser.sub)
 
       if (!admin) {
         return reply.code(404).send({ message: 'Admin user not found.' })

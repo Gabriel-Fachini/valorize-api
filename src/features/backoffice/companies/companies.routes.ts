@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { backofficeCompanyService } from './companies.service'
 import { requireSuperAdmin } from '@/middleware/backoffice'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { logger } from '@/lib/logger'
 import {
   listCompaniesSchema,
@@ -72,7 +72,7 @@ export const backofficeCompaniesRoutes = async (
         const result = await backofficeCompanyService.listCompanies(
           filters,
           pagination,
-          sorting
+          sorting,
         )
 
         return reply.code(200).send({
@@ -89,7 +89,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to list companies',
         })
       }
-    }
+    },
   )
 
   /**
@@ -129,7 +129,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to get company details',
         })
       }
-    }
+    },
   )
 
   /**
@@ -147,10 +147,10 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
         // Get current user for audit trail
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -161,7 +161,7 @@ export const backofficeCompaniesRoutes = async (
 
         const result = await backofficeCompanyService.createCompany(
           body,
-          user.id
+          user.id,
         )
 
         logger.info('Company created successfully', {
@@ -220,7 +220,7 @@ export const backofficeCompaniesRoutes = async (
           message: errorMessage, // Return the actual error message instead of generic one
         })
       }
-    }
+    },
   )
 
   /**
@@ -238,9 +238,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -291,7 +291,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to update company',
         })
       }
-    }
+    },
   )
 
   /**
@@ -308,9 +308,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -355,7 +355,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to activate company',
         })
       }
-    }
+    },
   )
 
   /**
@@ -372,9 +372,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -422,7 +422,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to deactivate company',
         })
       }
-    }
+    },
   )
 
   /**
@@ -462,7 +462,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to get wallet status',
         })
       }
-    }
+    },
   )
 
   /**
@@ -480,9 +480,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -531,7 +531,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to add credits',
         })
       }
-    }
+    },
   )
 
   /**
@@ -549,9 +549,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -603,7 +603,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to remove credits',
         })
       }
-    }
+    },
   )
 
   /**
@@ -620,9 +620,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -647,7 +647,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to freeze wallet',
         })
       }
-    }
+    },
   )
 
   /**
@@ -664,9 +664,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { id } = request.params as { id: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -691,7 +691,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to unfreeze wallet',
         })
       }
-    }
+    },
   )
 
   /**
@@ -729,7 +729,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to get plan',
         })
       }
-    }
+    },
   )
 
   /**
@@ -747,9 +747,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -778,7 +778,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to update plan',
         })
       }
-    }
+    },
   )
 
   /**
@@ -818,7 +818,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to get billing info',
         })
       }
-    }
+    },
   )
 
   /**
@@ -851,7 +851,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to get metrics',
         })
       }
-    }
+    },
   )
 
   /**
@@ -869,9 +869,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -883,7 +883,7 @@ export const backofficeCompaniesRoutes = async (
         const result = await backofficeCompanyService.addContact(
           id,
           body,
-          user.id
+          user.id,
         )
 
         logger.info('Contact added', {
@@ -904,7 +904,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to add contact',
         })
       }
-    }
+    },
   )
 
   /**
@@ -922,9 +922,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { contactId } = request.params as { contactId: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -964,7 +964,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to update contact',
         })
       }
-    }
+    },
   )
 
   /**
@@ -981,9 +981,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { contactId } = request.params as { contactId: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -1023,7 +1023,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to delete contact',
         })
       }
-    }
+    },
   )
 
   /**
@@ -1041,9 +1041,9 @@ export const backofficeCompaniesRoutes = async (
       try {
         const { id } = request.params as { id: string }
         const body = request.body as any
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -1055,7 +1055,7 @@ export const backofficeCompaniesRoutes = async (
         const result = await backofficeCompanyService.addAllowedDomain(
           id,
           body,
-          user.id
+          user.id,
         )
 
         logger.info('Allowed domain added', {
@@ -1088,7 +1088,7 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to add domain',
         })
       }
-    }
+    },
   )
 
   /**
@@ -1105,9 +1105,9 @@ export const backofficeCompaniesRoutes = async (
     async (request, reply) => {
       try {
         const { domainId } = request.params as { domainId: string }
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -1147,6 +1147,6 @@ export const backofficeCompaniesRoutes = async (
           message: 'Failed to delete domain',
         })
       }
-    }
+    },
   )
 }

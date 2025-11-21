@@ -11,7 +11,7 @@ import { ComplimentFactory, type GeneratedCompliment } from '../factories/compli
 import {
   COMPLIMENTS_FROM_GABRIEL,
   COMPLIMENTS_TO_GABRIEL,
-  GABRIEL_AUTH0_ID,
+  GABRIEL_AUTH_USER_ID,
   VALORIZE_COMPANY_ID,
   daysAgo,
   type ComplimentData,
@@ -27,7 +27,7 @@ export class ComplimentSeeder extends BaseSeeder {
     
     // Get Gabriel's user
     const gabriel = await this.prisma.user.findUnique({
-      where: { auth0Id: GABRIEL_AUTH0_ID },
+      where: { authUserId: GABRIEL_AUTH_USER_ID },
       include: { wallet: true },
     })
     
@@ -63,7 +63,7 @@ export class ComplimentSeeder extends BaseSeeder {
     
     // Create compliments from Gabriel
     for (const complimentData of COMPLIMENTS_FROM_GABRIEL) {
-      const receiver = valorizeUsers.find(u => u.auth0Id === complimentData.receiverAuth0Id)
+      const receiver = valorizeUsers.find(u => u.authUserId === complimentData.receiverAuthUserId)
       if (receiver && receiver.wallet && valorizeValues[complimentData.valueIndex]) {
         // Determine creation date (if daysAgo is specified, use it)
         const createdAt = complimentData.daysAgo ? daysAgo(complimentData.daysAgo) : new Date()
@@ -146,7 +146,7 @@ export class ComplimentSeeder extends BaseSeeder {
 
     // Create compliments to Gabriel
     for (const complimentData of COMPLIMENTS_TO_GABRIEL) {
-      const sender = valorizeUsers.find(u => u.auth0Id === complimentData.senderAuth0Id)
+      const sender = valorizeUsers.find(u => u.authUserId === complimentData.senderAuthUserId)
       if (sender && sender.wallet && valorizeValues[complimentData.valueIndex]) {
         // Determine creation date (if daysAgo is specified, use it)
         const createdAt = complimentData.daysAgo ? daysAgo(complimentData.daysAgo) : new Date()
@@ -357,11 +357,11 @@ export class ComplimentSeeder extends BaseSeeder {
     for (let i = 0; i < shuffledUsers.length; i++) {
       const user = shuffledUsers[i]
       if (i < powerUserCount) {
-        activityDistributionMap.set(user.auth0Id, distribution.powerUserComplimentMultiplier)
+        activityDistributionMap.set(user.authUserId, distribution.powerUserComplimentMultiplier)
       } else if (i < powerUserCount + normalUserCount) {
-        activityDistributionMap.set(user.auth0Id, distribution.normalUserComplimentMultiplier)
+        activityDistributionMap.set(user.authUserId, distribution.normalUserComplimentMultiplier)
       } else {
-        activityDistributionMap.set(user.auth0Id, distribution.inactiveUserComplimentMultiplier)
+        activityDistributionMap.set(user.authUserId, distribution.inactiveUserComplimentMultiplier)
       }
     }
 
@@ -373,7 +373,7 @@ export class ComplimentSeeder extends BaseSeeder {
     // BATCH 2: Generate compliments using factory and collect transactions
     // ============================================================================
     const generatedCompliments = ComplimentFactory.generateBulkCompliments(
-      users.map(u => ({ auth0Id: u.auth0Id, id: u.id })),
+      users.map(u => ({ authUserId: u.authUserId, id: u.id })),
       values.map((v, index) => index.toString()),
       targetComplimentCount,
       activityDistributionMap,
@@ -424,8 +424,8 @@ export class ComplimentSeeder extends BaseSeeder {
 
     let createdCompliments = 0
     for (const complimentData of generatedCompliments) {
-      const sender = users.find(u => u.auth0Id === complimentData.senderAuth0Id)
-      const receiver = users.find(u => u.auth0Id === complimentData.receiverAuth0Id)
+      const sender = users.find(u => u.authUserId === complimentData.senderAuthUserId)
+      const receiver = users.find(u => u.authUserId === complimentData.receiverAuthUserId)
 
       if (!sender || !receiver || !sender.wallet || !receiver.wallet) {
         progressReporter.updateProgress(complimentProgressName)

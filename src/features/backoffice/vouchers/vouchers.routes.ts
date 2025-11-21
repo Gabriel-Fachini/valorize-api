@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { VoucherProductService } from '@/features/app/prizes/vouchers/voucher-product.service'
 import { requireSuperAdmin } from '@/middleware/backoffice'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { logger } from '@/lib/logger'
 import { User } from '@/features/app/users/user.model'
 import { supabaseStorageService } from '@/lib/storage/supabase-storage.service'
@@ -55,9 +55,9 @@ export const backofficeVouchersRoutes = async (
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -175,9 +175,9 @@ export const backofficeVouchersRoutes = async (
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -267,9 +267,9 @@ export const backofficeVouchersRoutes = async (
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -385,9 +385,9 @@ export const backofficeVouchersRoutes = async (
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -521,9 +521,9 @@ export const backofficeVouchersRoutes = async (
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,
@@ -687,9 +687,9 @@ export const backofficeVouchersRoutes = async (
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        const user = await User.findByAuth0Id(auth0Id)
+        const user = await User.findByAuthUserId(authUserId)
         if (!user) {
           return reply.code(401).send({
             success: false,

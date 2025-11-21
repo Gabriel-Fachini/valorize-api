@@ -10,7 +10,7 @@ import {
   SAMPLE_ADDRESSES,
   daysAgo,
 } from '../data/redemptions'
-import { GABRIEL_AUTH0_ID, VALORIZE_COMPANY_ID } from '../data/compliments'
+import { GABRIEL_AUTH_USER_ID, VALORIZE_COMPANY_ID } from '../data/compliments'
 
 export class RedemptionSeeder extends BaseSeeder {
   protected get name(): string {
@@ -22,7 +22,7 @@ export class RedemptionSeeder extends BaseSeeder {
     
     // Get Gabriel's user
     const gabriel = await this.prisma.user.findUnique({
-      where: { auth0Id: GABRIEL_AUTH0_ID },
+      where: { authUserId: GABRIEL_AUTH_USER_ID },
       include: { wallet: true },
     })
     
@@ -169,19 +169,19 @@ export class RedemptionSeeder extends BaseSeeder {
     for (const redemptionData of COMPANY_REDEMPTIONS) {
       // Find user
       const user = await this.prisma.user.findUnique({
-        where: { auth0Id: redemptionData.userAuth0Id },
+        where: { authUserId: redemptionData.userAuthUserId },
         include: { wallet: true },
       })
 
       if (!user || !user.wallet) {
-        this.logWarning(`User "${redemptionData.userAuth0Id}" not found, skipping`)
+        this.logWarning(`User "${redemptionData.userAuthUserId}" not found, skipping`)
         continue
       }
 
       // Create address for user if not exists
-      const addressData = SAMPLE_ADDRESSES.find(a => a.userAuth0Id === redemptionData.userAuth0Id)
+      const addressData = SAMPLE_ADDRESSES.find(a => a.userAuthUserId === redemptionData.userAuthUserId)
       if (!addressData) {
-        this.logWarning(`Address data for user "${redemptionData.userAuth0Id}" not found, skipping`)
+        this.logWarning(`Address data for user "${redemptionData.userAuthUserId}" not found, skipping`)
         continue
       }
 

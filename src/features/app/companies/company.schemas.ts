@@ -250,7 +250,7 @@ const firstAdminDataSchema = {
     id: { type: 'string' },
     name: { type: 'string' },
     email: { type: 'string' },
-    auth0Id: { type: 'string' },
+    authUserId: { type: 'string' },
     roles: {
       type: 'array',
       items: { type: 'string' },

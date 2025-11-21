@@ -70,11 +70,11 @@ export const requireSuperAdmin = () => {
 
     try {
       // Get full user data with company and roles
-      const user = await User.findByAuth0Id(authUser.sub)
+      const user = await User.findByAuthUserId(authUser.sub)
 
       if (!user) {
         logger.warn('Backoffice access denied: User not found in database', {
-          auth0Id: authUser.sub,
+          authUserId: authUser.sub,
         })
         throw new BackofficeAccessDeniedError('User not found')
       }
@@ -125,7 +125,7 @@ export const requireSuperAdmin = () => {
 
       logger.error('Error checking backoffice access', {
         error,
-        auth0Id: authUser.sub,
+        authUserId: authUser.sub,
       })
 
       throw new BackofficeAccessDeniedError(

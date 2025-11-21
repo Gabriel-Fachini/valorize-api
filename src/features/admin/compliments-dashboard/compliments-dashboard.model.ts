@@ -22,7 +22,7 @@ export async function getNetworkNodes(
   department?: string,
   minConnections: number = 1,
   limit: number = 50,
-  userIds?: string[]
+  userIds?: string[],
 ): Promise<NetworkNode[]> {
   const departmentFilter = department
     ? Prisma.sql`AND d.name = ${department}`
@@ -94,7 +94,7 @@ export async function getConnectedUserIds(
   companyId: string,
   userIds: string[],
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<string[]> {
   if (userIds.length === 0) {
     return []
@@ -129,7 +129,7 @@ export async function getNetworkLinks(
   companyId: string,
   userIds: string[],
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<NetworkLink[]> {
   if (userIds.length === 0) {
     return []

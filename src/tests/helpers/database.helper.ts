@@ -24,7 +24,7 @@ import { prisma } from '@lib/database'
  * })
  */
 export async function withTransaction<T>(
-  testFn: () => Promise<T>
+  testFn: () => Promise<T>,
 ): Promise<T> {
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -107,7 +107,7 @@ export async function truncateTable(tableName: string) {
  */
 export async function getTableCount(tableName: string): Promise<number> {
   const result = await prisma.$queryRawUnsafe<[{ count: bigint }]>(
-    `SELECT COUNT(*) as count FROM "${tableName}"`
+    `SELECT COUNT(*) as count FROM "${tableName}"`,
   )
   return Number(result[0].count)
 }
@@ -120,11 +120,11 @@ export async function getTableCount(tableName: string): Promise<number> {
  */
 export async function recordExists(
   tableName: string,
-  id: string
+  id: string,
 ): Promise<boolean> {
   const result = await prisma.$queryRawUnsafe<[{ exists: boolean }]>(
     `SELECT EXISTS(SELECT 1 FROM "${tableName}" WHERE id = $1) as exists`,
-    id
+    id,
   )
   return result[0].exists
 }
@@ -140,7 +140,7 @@ export async function recordExists(
  */
 export async function getDatabaseNow(): Promise<Date> {
   const result = await prisma.$queryRawUnsafe<[{ now: Date }]>(
-    'SELECT NOW() as now'
+    'SELECT NOW() as now',
   )
   return result[0].now
 }

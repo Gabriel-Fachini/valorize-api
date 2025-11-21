@@ -20,7 +20,7 @@ export const backofficeAuditLogsService = {
   async listAllAuditLogs(
     filters: AuditLogFilters,
     pagination: PaginationParams,
-    sorting: SortingParams
+    sorting: SortingParams,
   ): Promise<PaginatedAuditLogs> {
     const where = buildWhereClause(filters)
     const orderBy = buildOrderByClause(sorting)
@@ -85,7 +85,7 @@ export const backofficeAuditLogsService = {
     companyId: string,
     filters: Omit<AuditLogFilters, 'companyId'>,
     pagination: PaginationParams,
-    sorting: SortingParams
+    sorting: SortingParams,
   ): Promise<PaginatedAuditLogs> {
     // Verify company exists
     const company = await prisma.company.findUnique({
@@ -113,7 +113,7 @@ export const backofficeAuditLogsService = {
     userId: string,
     filters: Omit<AuditLogFilters, 'userId'>,
     pagination: PaginationParams,
-    sorting: SortingParams
+    sorting: SortingParams,
   ): Promise<PaginatedAuditLogs> {
     // Verify user exists
     const user = await prisma.user.findUnique({
@@ -181,7 +181,7 @@ function buildWhereClause(filters: AuditLogFilters): Prisma.AuditLogWhereInput {
  * Helper: Build Prisma orderBy clause from sorting params
  */
 function buildOrderByClause(
-  sorting: SortingParams
+  sorting: SortingParams,
 ): Prisma.AuditLogOrderByWithRelationInput {
   return {
     createdAt: sorting.sortOrder,

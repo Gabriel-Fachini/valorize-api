@@ -28,7 +28,7 @@ export class ProgressReporter {
       {
         clearOnComplete: false,
         hideCursor: hideCursor,
-        format: `{name} │ {bar} │ {value}/{total} │ {percentage}% │ ETA: {eta_formatted}`,
+        format: '{name} │ {bar} │ {value}/{total} │ {percentage}% │ ETA: {eta_formatted}',
         barCompleteChar: '█',
         barIncompleteChar: '░',
         formatValue: (v: any, options: any, type: string) => {

@@ -153,7 +153,7 @@ export const financialService = {
   async updateCharge(
     chargeId: string,
     data: UpdateChargeRequest,
-    performedBy: string
+    performedBy: string,
   ): Promise<ChargeResponse> {
     try {
       // Get existing charge
@@ -179,7 +179,7 @@ export const financialService = {
       const changes = auditLogger.buildChanges(
         existingCharge,
         updatedCharge,
-        ['amount', 'description', 'dueDate', 'paymentMethod', 'notes']
+        ['amount', 'description', 'dueDate', 'paymentMethod', 'notes'],
       )
 
       // Log audit
@@ -333,7 +333,7 @@ export const financialService = {
   async registerPayment(
     chargeId: string,
     data: RegisterPaymentRequest,
-    performedBy: string
+    performedBy: string,
   ): Promise<PaymentResponse> {
     try {
       // Get existing charge
@@ -412,7 +412,7 @@ export const financialService = {
     fileName: string,
     fileType: string,
     fileSize: number,
-    performedBy: string
+    performedBy: string,
   ): Promise<AttachmentResponse> {
     try {
       // Validate charge exists
@@ -433,7 +433,7 @@ export const financialService = {
 
       if (!allowedTypes.includes(fileType)) {
         throw new Error(
-          `Invalid file type: ${fileType}. Allowed types: ${allowedTypes.join(', ')}`
+          `Invalid file type: ${fileType}. Allowed types: ${allowedTypes.join(', ')}`,
         )
       }
 
@@ -441,7 +441,7 @@ export const financialService = {
       const maxSize = 10 * 1024 * 1024 // 10MB
       if (fileSize > maxSize) {
         throw new Error(
-          `File size exceeds maximum allowed size of 10MB. File size: ${(fileSize / 1024 / 1024).toFixed(2)}MB`
+          `File size exceeds maximum allowed size of 10MB. File size: ${(fileSize / 1024 / 1024).toFixed(2)}MB`,
         )
       }
 
@@ -465,7 +465,7 @@ export const financialService = {
       const { publicUrl } = await supabaseStorageService.uploadPrizeImage(
         file,
         fileName,
-        fileType
+        fileType,
       )
 
       // Create attachment record
@@ -475,7 +475,7 @@ export const financialService = {
         publicUrl,
         fileSize,
         fileType,
-        performedBy
+        performedBy,
       )
 
       // Log audit
@@ -519,7 +519,7 @@ export const financialService = {
   async deleteAttachment(
     chargeId: string,
     attachmentId: string,
-    performedBy: string
+    performedBy: string,
   ): Promise<DeleteResponse> {
     try {
       // Validate attachment exists and belongs to charge

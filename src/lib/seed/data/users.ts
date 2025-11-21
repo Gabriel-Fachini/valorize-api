@@ -5,7 +5,7 @@
 import { ROLE } from '@/features/app/rbac/roles.constants'
 
 export interface UserData {
-  auth0Id: string
+  authUserId: string
   email: string
   name: string
   companyId: string
@@ -18,7 +18,7 @@ export interface UserData {
 export const DEMO_USERS: UserData[] = [
   // Valorize HQ users (backoffice team)
   {
-    auth0Id: 'auth0|valorize-hq-super-admin',
+    authUserId: '11111111-1111-1111-1111-111111111111',
     email: 'admin@valorize.com.br',
     name: 'Valorize Admin',
     avatarUrl: 'https://i.pravatar.cc/150?img=99&u=admin@valorize.com.br',
@@ -29,7 +29,7 @@ export const DEMO_USERS: UserData[] = [
   },
   // Valorize Corp users
   {
-    auth0Id: 'auth0|688aa3e7f3f1dbd119c3b600',
+    authUserId: '28a805cd-218f-49e0-a4ec-4acd5996f543',
     email: 'gabriel.fachini@usevalorize.com.br',
     name: 'Gabriel Fachini',
     avatarUrl: 'https://avatars.githubusercontent.com/u/72563021?v=4',
@@ -39,7 +39,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-super-admin',
+    authUserId: '22222222-2222-2222-2222-222222222222',
     email: 'superadmin@valorize.com',
     name: 'Super Admin',
     avatarUrl: 'https://i.pravatar.cc/150?img=1&u=superadmin@valorize.com',
@@ -49,7 +49,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-company-admin-valorize',
+    authUserId: '33333333-3333-3333-3333-333333333333',
     email: 'joao@valorize.com',
     name: 'João Silva',
     avatarUrl: 'https://i.pravatar.cc/150?img=2&u=joao@valorize.com',
@@ -59,7 +59,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Product',
   },
   {
-    auth0Id: 'auth0|demo-hr-manager-valorize',
+    authUserId: '44444444-4444-4444-4444-444444444444',
     email: 'hr@valorize.com',
     name: 'Maria Santos',
     avatarUrl: 'https://i.pravatar.cc/150?img=5&u=hr@valorize.com',
@@ -69,7 +69,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'People',
   },
   {
-    auth0Id: 'auth0|demo-team-lead-valorize',
+    authUserId: '55555555-5555-5555-5555-555555555555',
     email: 'lead@valorize.com',
     name: 'Carlos Oliveira',
     avatarUrl: 'https://i.pravatar.cc/150?img=3&u=lead@valorize.com',
@@ -79,7 +79,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-1',
+    authUserId: 'a0000001-0001-0001-0001-000000000001',
     email: 'ana@valorize.com',
     name: 'Ana Costa',
     avatarUrl: 'https://i.pravatar.cc/150?img=47&u=ana@valorize.com',
@@ -89,7 +89,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-2',
+    authUserId: 'a0000001-0001-0001-0001-000000000002',
     email: 'pedro@valorize.com',
     name: 'Pedro Lima',
     avatarUrl: 'https://i.pravatar.cc/150?img=4&u=pedro@valorize.com',
@@ -99,7 +99,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-3',
+    authUserId: 'a0000001-0001-0001-0001-000000000003',
     email: 'beatriz@valorize.com',
     name: 'Beatriz Almeida',
     avatarUrl: 'https://i.pravatar.cc/150?img=50&u=beatriz@valorize.com',
@@ -109,7 +109,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Design',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-4',
+    authUserId: 'a0000001-0001-0001-0001-000000000004',
     email: 'lucas@valorize.com',
     name: 'Lucas Ferreira',
     avatarUrl: 'https://i.pravatar.cc/150?img=51&u=lucas@valorize.com',
@@ -119,7 +119,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-5',
+    authUserId: 'a0000001-0001-0001-0001-000000000005',
     email: 'camila@valorize.com',
     name: 'Camila Rocha',
     avatarUrl: 'https://i.pravatar.cc/150?img=52&u=camila@valorize.com',
@@ -129,7 +129,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-6',
+    authUserId: 'a0000001-0001-0001-0001-000000000006',
     email: 'rafael@valorize.com',
     name: 'Rafael Santos',
     avatarUrl: 'https://i.pravatar.cc/150?img=53&u=rafael@valorize.com',
@@ -139,7 +139,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Infrastructure',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-7',
+    authUserId: 'a0000001-0001-0001-0001-000000000007',
     email: 'juliana@valorize.com',
     name: 'Juliana Souza',
     avatarUrl: 'https://i.pravatar.cc/150?img=54&u=juliana@valorize.com',
@@ -149,7 +149,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Quality Assurance',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-8',
+    authUserId: 'a0000001-0001-0001-0001-000000000008',
     email: 'felipe@valorize.com',
     name: 'Felipe Martins',
     avatarUrl: 'https://i.pravatar.cc/150?img=55&u=felipe@valorize.com',
@@ -159,7 +159,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Analytics',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-9',
+    authUserId: 'a0000001-0001-0001-0001-000000000009',
     email: 'larissa@valorize.com',
     name: 'Larissa Dias',
     avatarUrl: 'https://i.pravatar.cc/150?img=56&u=larissa@valorize.com',
@@ -169,7 +169,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Design',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-10',
+    authUserId: 'a0000001-0001-0001-0001-000000000010',
     email: 'rodrigo@valorize.com',
     name: 'Rodrigo Ribeiro',
     avatarUrl: 'https://i.pravatar.cc/150?img=57&u=rodrigo@valorize.com',
@@ -179,7 +179,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Engineering',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-11',
+    authUserId: 'a0000001-0001-0001-0001-000000000011',
     email: 'patricia@valorize.com',
     name: 'Patricia Mendes',
     avatarUrl: 'https://i.pravatar.cc/150?img=58&u=patricia@valorize.com',
@@ -189,7 +189,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Marketing',
   },
   {
-    auth0Id: 'auth0|demo-employee-valorize-12',
+    authUserId: 'a0000001-0001-0001-0001-000000000012',
     email: 'thiago@valorize.com',
     name: 'Thiago Carvalho',
     avatarUrl: 'https://i.pravatar.cc/150?img=59&u=thiago@valorize.com',
@@ -201,7 +201,7 @@ export const DEMO_USERS: UserData[] = [
 
   // TechStart Brasil users
   {
-    auth0Id: 'auth0|demo-company-admin-techstart',
+    authUserId: 'b0000002-0002-0002-0002-000000000001',
     email: 'admin@techstart.com.br',
     name: 'Fernanda Rodrigues',
     avatarUrl: 'https://i.pravatar.cc/150?img=9&u=admin@techstart.com.br',
@@ -211,7 +211,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Development',
   },
   {
-    auth0Id: 'auth0|demo-hr-manager-techstart',
+    authUserId: 'b0000002-0002-0002-0002-000000000002',
     email: 'rh@techstart.com.br',
     name: 'Roberto Alves',
     avatarUrl: 'https://i.pravatar.cc/150?img=12&u=rh@techstart.com.br',
@@ -221,7 +221,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Support',
   },
   {
-    auth0Id: 'auth0|demo-team-lead-techstart',
+    authUserId: 'b0000002-0002-0002-0002-000000000003',
     email: 'tech@techstart.com.br',
     name: 'Juliana Pereira',
     avatarUrl: 'https://i.pravatar.cc/150?img=48&u=tech@techstart.com.br',
@@ -231,7 +231,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Development',
   },
   {
-    auth0Id: 'auth0|demo-employee-techstart-1',
+    authUserId: 'b0000002-0002-0002-0002-000000000004',
     email: 'dev1@techstart.com.br',
     name: 'Lucas Martins',
     avatarUrl: 'https://i.pravatar.cc/150?img=6&u=dev1@techstart.com.br',
@@ -241,7 +241,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Development',
   },
   {
-    auth0Id: 'auth0|demo-employee-techstart-2',
+    authUserId: 'b0000002-0002-0002-0002-000000000005',
     email: 'dev2@techstart.com.br',
     name: 'Camila Souza',
     avatarUrl: 'https://i.pravatar.cc/150?img=49&u=dev2@techstart.com.br',
@@ -253,7 +253,7 @@ export const DEMO_USERS: UserData[] = [
 
   // Global Solutions Inc users
   {
-    auth0Id: 'auth0|demo-company-admin-global',
+    authUserId: 'c0000003-0003-0003-0003-000000000001',
     email: 'admin@globalsolutions.com',
     name: 'John Smith',
     avatarUrl: 'https://i.pravatar.cc/150?img=10&u=admin@globalsolutions.com',
@@ -263,7 +263,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'Consulting',
   },
   {
-    auth0Id: 'auth0|demo-hr-manager-global',
+    authUserId: 'c0000003-0003-0003-0003-000000000002',
     email: 'hr@globalsolutions.com',
     name: 'Sarah Johnson',
     avatarUrl: 'https://i.pravatar.cc/150?img=11&u=hr@globalsolutions.com',
@@ -273,7 +273,7 @@ export const DEMO_USERS: UserData[] = [
     departmentName: 'HR',
   },
   {
-    auth0Id: 'auth0|demo-employee-global-1',
+    authUserId: 'c0000003-0003-0003-0003-000000000003',
     email: 'mike@globalsolutions.com',
     name: 'Mike Wilson',
     avatarUrl: 'https://i.pravatar.cc/150?img=7&u=mike@globalsolutions.com',

@@ -45,7 +45,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Body: SendVoucherToUserRequest }>, reply) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -136,7 +136,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -277,7 +277,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -338,7 +338,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -391,7 +391,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -453,7 +453,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -517,7 +517,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -571,7 +571,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
       reply,
     ) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })
@@ -629,7 +629,7 @@ export default async function adminRedemptionRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply) => {
       const currentUser = getCurrentUser(request)
-      const adminUser = await User.findByAuth0Id(currentUser.sub)
+      const adminUser = await User.findByAuthUserId(currentUser.sub)
 
       if (!adminUser) {
         return reply.code(404).send({ message: 'Admin user not found' })

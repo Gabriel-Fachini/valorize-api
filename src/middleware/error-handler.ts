@@ -72,7 +72,7 @@ export class PlanRestrictionError extends Error implements ApiError {
   ) {
     super(
       message ??
-      `This feature requires ${requiredPlan} plan. Your current plan is ${currentPlan || 'undefined'}. Please upgrade to access this feature.`
+      `This feature requires ${requiredPlan} plan. Your current plan is ${currentPlan || 'undefined'}. Please upgrade to access this feature.`,
     )
     this.name = 'PlanRestrictionError'
   }

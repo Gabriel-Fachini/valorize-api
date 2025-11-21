@@ -111,7 +111,7 @@ export class BatchWalletUpdater {
       reason: string
       metadata?: Record<string, unknown>
       createdAt?: Date
-    }>
+    }>,
   ): Promise<void> {
     if (transactions.length === 0) return
 

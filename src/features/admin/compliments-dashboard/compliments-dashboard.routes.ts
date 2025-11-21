@@ -15,7 +15,7 @@ import { requirePermission } from '@/middleware/rbac'
 import { requireFeature } from '@/middleware/plan-guard'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { PLAN_FEATURE } from '@/features/app/plans/plan-features.constants'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { DashboardFilters } from './compliments-dashboard.types'
@@ -23,9 +23,9 @@ import { DashboardFilters } from './compliments-dashboard.types'
 /**
  * Get company ID from authenticated user
  */
-async function getCompanyIdFromUser(auth0Id: string): Promise<string> {
+async function getCompanyIdFromUser(authUserId: string): Promise<string> {
   const user = await prisma.user.findUnique({
-    where: { auth0Id },
+    where: { authUserId },
     select: { companyId: true },
   })
 
@@ -87,8 +87,8 @@ export default async function complimentsDashboardRoutes(fastify: FastifyInstanc
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         // Get authenticated user's company
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         // Parse query parameters
         const query = request.query as any
@@ -148,7 +148,7 @@ export default async function complimentsDashboardRoutes(fastify: FastifyInstanc
           companyId,
           startDate,
           endDate,
-          filters
+          filters,
         )
 
         // Log successful generation
@@ -210,8 +210,8 @@ export default async function complimentsDashboardRoutes(fastify: FastifyInstanc
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         // Get authenticated user's company
-        const auth0Id = getAuth0Id(request)
-        const companyId = await getCompanyIdFromUser(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const companyId = await getCompanyIdFromUser(authUserId)
 
         // Parse query parameters
         const query = request.query as any
@@ -273,6 +273,6 @@ export default async function complimentsDashboardRoutes(fastify: FastifyInstanc
           message: 'Failed to generate network graph',
         })
       }
-    }
+    },
   )
 }

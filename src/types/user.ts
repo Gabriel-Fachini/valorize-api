@@ -1,5 +1,5 @@
 export interface UserCreateInput {
-  auth0Id: string
+  authUserId: string
   email: string
   name: string
   isActive?: boolean
@@ -15,7 +15,7 @@ export interface UserUpdateInput {
 
 export interface UserResponse {
   id: string
-  auth0Id: string
+  authUserId: string
   email: string
   name: string
   isActive: boolean

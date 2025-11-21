@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { authService } from './auth.service'
 import { UnauthorizedError } from '@/middleware/error-handler'
 import { loginSchema, adminLoginSchema, refreshTokenSchema, verifySessionSchema, signupSchema } from './auth.schemas'
@@ -276,8 +276,8 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       }
 
       // Full mode - get complete session info
-      const auth0Id = getAuth0Id(request)
-      const sessionInfo = await authService.getSessionInfo(auth0Id, token)
+      const authUserId = getAuthUserId(request)
+      const sessionInfo = await authService.getSessionInfo(authUserId, token)
       logger.debug('sessionInfo', sessionInfo)
       
       return reply.code(200).send({

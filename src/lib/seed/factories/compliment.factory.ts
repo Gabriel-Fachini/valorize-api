@@ -9,8 +9,8 @@
 import { faker } from '@faker-js/faker/locale/pt_BR'
 
 export interface GeneratedCompliment {
-  senderAuth0Id: string
-  receiverAuth0Id: string
+  senderAuthUserId: string
+  receiverAuthUserId: string
   message: string
   coins: number
   valueIndex: number
@@ -187,10 +187,10 @@ export class ComplimentFactory {
    * Generate bulk compliments with Pareto distribution
    */
   static generateBulkCompliments(
-    users: Array<{ auth0Id: string; id: string }>,
+    users: Array<{ authUserId: string; id: string }>,
     valueIds: string[],
     targetCount: number,
-    activityDistribution?: Map<string, number>
+    activityDistribution?: Map<string, number>,
   ): GeneratedCompliment[] {
     const compliments: GeneratedCompliment[] = []
 
@@ -201,9 +201,9 @@ export class ComplimentFactory {
     let totalQuota = 0
 
     for (const user of users) {
-      const multiplier = activityDistribution?.get(user.auth0Id) ?? 1
+      const multiplier = activityDistribution?.get(user.authUserId) ?? 1
       const quota = multiplier
-      quotasMap.set(user.auth0Id, quota)
+      quotasMap.set(user.authUserId, quota)
       totalQuota += quota
     }
 
@@ -215,25 +215,25 @@ export class ComplimentFactory {
 
     // Generate compliments respecting quotas
     for (const sender of users) {
-      const senderQuota = quotasMap.get(sender.auth0Id) || 0
+      const senderQuota = quotasMap.get(sender.authUserId) || 0
 
       for (let i = 0; i < senderQuota; i++) {
         // Pick random receiver (exclude self)
         let receiver = faker.helpers.arrayElement(users)
         let attempts = 0
-        while (receiver.auth0Id === sender.auth0Id && attempts < 5) {
+        while (receiver.authUserId === sender.authUserId && attempts < 5) {
           receiver = faker.helpers.arrayElement(users)
           attempts++
         }
 
-        if (receiver.auth0Id === sender.auth0Id) continue
+        if (receiver.authUserId === sender.authUserId) continue
 
         const daysAgo = this.generateCreationDate()
         const adjustedDaysAgo = this.applyDayOfWeekWeighting(daysAgo)
 
         compliments.push({
-          senderAuth0Id: sender.auth0Id,
-          receiverAuth0Id: receiver.auth0Id,
+          senderAuthUserId: sender.authUserId,
+          receiverAuthUserId: receiver.authUserId,
           message: this.generateComplimentMessage(),
           coins: this.generateCoinAmount(),
           valueIndex: Math.floor(Math.random() * valueIds.length),
@@ -251,10 +251,10 @@ export class ComplimentFactory {
    * Generate compliments between specific users (e.g., to Gabriel)
    */
   static generateComplimentsForTarget(
-    senders: Array<{ auth0Id: string }>,
-    targetAuth0Id: string,
+    senders: Array<{ authUserId: string }>,
+    targetAuthUserId: string,
     countPerSender: number,
-    valueIds: string[]
+    valueIds: string[],
   ): GeneratedCompliment[] {
     const compliments: GeneratedCompliment[] = []
 
@@ -264,8 +264,8 @@ export class ComplimentFactory {
         const adjustedDaysAgo = this.applyDayOfWeekWeighting(daysAgo)
 
         compliments.push({
-          senderAuth0Id: sender.auth0Id,
-          receiverAuth0Id: targetAuth0Id,
+          senderAuthUserId: sender.authUserId,
+          receiverAuthUserId: targetAuthUserId,
           message: this.generateComplimentMessage(),
           coins: this.generateCoinAmount(),
           valueIndex: Math.floor(Math.random() * valueIds.length),

@@ -33,7 +33,7 @@ export interface CreateCompanyResponse {
     id: string
     name: string
     email: string
-    auth0Id: string
+    authUserId: string
     roles: string[]
   }
   passwordResetUrl: string
@@ -92,7 +92,7 @@ export const companyService = {
 
   /**
    * Create first admin user for a company
-   * Creates user in Auth0, local database, assigns admin role, and generates password reset ticket
+   * Creates user in Supabase Auth, local database, assigns admin role, and generates password reset ticket
    */
   async createFirstAdmin(
     adminData: FirstAdminData,
@@ -111,15 +111,15 @@ export const companyService = {
         throw new Error(`Admin email must belong to company domain ${companyDomain}`)
       }
 
-      // Create user in Auth0
-      const { auth0Id, ticketUrl } = await authService.createAdminUser({
+      // Create user in Supabase Auth
+      const { authUserId, ticketUrl } = await authService.createAdminUser({
         email: adminData.email,
         name: adminData.name,
       })
 
       // Create user in local database
       const user = await User.create({
-        auth0Id: auth0Id,
+        authUserId: authUserId,
         email: adminData.email,
         name: adminData.name,
         companyId: companyId,
@@ -166,7 +166,7 @@ export const companyService = {
         id: savedUser.id,
         name: savedUser.name,
         email: savedUser.email,
-        auth0Id: savedUser.auth0Id,
+        authUserId: savedUser.authUserId,
         roles: [ROLE.COMPANY_ADMIN],
         passwordResetUrl: ticketUrl,
       }
@@ -241,7 +241,7 @@ export const companyService = {
         data.domain,
       )
       createdAuth0User = true
-      auth0UserId = firstAdmin.auth0Id
+      auth0UserId = firstAdmin.authUserId
       logger.info('First admin created', { companyId: company.id, userId: firstAdmin.id })
 
       // Reload company with all relations
@@ -261,7 +261,7 @@ export const companyService = {
           id: firstAdmin.id,
           name: firstAdmin.name,
           email: firstAdmin.email,
-          auth0Id: firstAdmin.auth0Id,
+          authUserId: firstAdmin.authUserId,
           roles: firstAdmin.roles,
         },
         passwordResetUrl: firstAdmin.passwordResetUrl,
@@ -285,7 +285,7 @@ export const companyService = {
         }
 
         // Note: We don't delete Auth0 users automatically to avoid orphaned accounts
-        // Manual cleanup may be required in Auth0 dashboard
+        // Manual cleanup may be required in Supabase Auth dashboard
         if (createdAuth0User && auth0UserId) {
           logger.warn('Auth0 user created but not automatically deleted - manual cleanup required', {
             auth0UserId,

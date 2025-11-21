@@ -1,12 +1,12 @@
 import { prisma } from '@/lib/database'
 
 /**
- * Get company ID from authenticated user's auth0Id
+ * Get company ID from authenticated user's authUserId
  * Centralizado para evitar duplicação em múltiplos arquivos
  */
-export async function getCompanyIdFromUser(auth0Id: string): Promise<string> {
+export async function getCompanyIdFromUser(authUserId: string): Promise<string> {
   const user = await prisma.user.findUnique({
-    where: { auth0Id },
+    where: { authUserId },
     select: { companyId: true },
   })
 

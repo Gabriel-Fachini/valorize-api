@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { backofficeAuthService } from './backoffice-auth.service'
 import { backofficeLoginSchema, backofficeVerifySchema } from './backoffice-auth.schemas'
 import { logger } from '@/lib/logger'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 
 /**
  * Backoffice Authentication Routes
@@ -140,11 +140,11 @@ export const backofficeAuthRoutes = async (
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
+        const authUserId = getAuthUserId(request)
 
-        logger.debug('Backoffice verify attempt', { auth0Id })
+        logger.debug('Backoffice verify attempt', { authUserId })
 
-        const sessionInfo = await backofficeAuthService.verify(auth0Id)
+        const sessionInfo = await backofficeAuthService.verify(authUserId)
 
         logger.info('Backoffice session verified', {
           userId: sessionInfo.user.id,

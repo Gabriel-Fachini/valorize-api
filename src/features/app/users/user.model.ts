@@ -3,7 +3,7 @@ import { prisma } from '@/lib/database'
 
 export interface UserProps {
   id?: string
-  auth0Id: string
+  authUserId: string
   email: string
   name: string
   companyId: string
@@ -23,7 +23,7 @@ export class User {
   private _department?: { name: string } | null
 
   private constructor(
-    private readonly _auth0Id: string,
+    private readonly _authUserId: string,
     private readonly _email: string,
     private _name: string,
     private _companyId: string,
@@ -44,10 +44,10 @@ export class User {
 
   // Factory method to create a new user
   public static create(props: UserProps): User {
-    const { auth0Id, email, name, companyId, avatar, isActive = true, id, createdAt, updatedAt } = props
+    const { authUserId, email, name, companyId, avatar, isActive = true, id, createdAt, updatedAt } = props
 
-    if (!auth0Id?.trim()) {
-      throw new Error('Auth0 ID is required')
+    if (!authUserId?.trim()) {
+      throw new Error('Auth User ID is required')
     }
 
     if (!email?.trim()) {
@@ -71,7 +71,7 @@ export class User {
     }
 
     return new User(
-      auth0Id.trim(),
+      authUserId.trim(),
       email.trim().toLowerCase(),
       name.trim(),
       companyId.trim(),
@@ -88,8 +88,16 @@ export class User {
     return this._id
   }
 
+  public get authUserId(): string {
+    return this._authUserId
+  }
+
+  /**
+   * Deprecated: Use authUserId instead
+   * Kept for backward compatibility during migration
+   */
   public get auth0Id(): string {
-    return this._auth0Id
+    return this._authUserId
   }
 
   public get email(): string {
@@ -209,13 +217,13 @@ export class User {
   }
 
   public equals(other: User): boolean {
-    return this.id === other.id && this._auth0Id === other._auth0Id
+    return this.id === other.id && this._authUserId === other._authUserId
   }
 
   public toJSON(): Record<string, any> {
     return {
       id: this.id,
-      auth0Id: this._auth0Id,
+      authUserId: this._authUserId,
       email: this._email,
       name: this._name,
       avatar: this._avatar,
@@ -235,7 +243,7 @@ export class User {
         where: { id },
         select: {
           id: true,
-          auth0Id: true,
+          authUserId: true,
           email: true,
           name: true,
           companyId: true,
@@ -247,20 +255,20 @@ export class User {
           department: { select: { name: true } },
         },
       })
-      
+
       return user ? this.toDomainEntity(user) : null
     } catch (error) {
       throw new Error(`Failed to find user by id: ${error}`)
     }
   }
 
-  public static async findByAuth0Id(auth0Id: string): Promise<User | null> {
+  public static async findByAuthUserId(authUserId: string): Promise<User | null> {
     try {
       const user = await prisma.user.findUnique({
-        where: { auth0Id },
+        where: { authUserId },
         select: {
           id: true,
-          auth0Id: true,
+          authUserId: true,
           email: true,
           name: true,
           companyId: true,
@@ -272,12 +280,13 @@ export class User {
           department: { select: { name: true } },
         },
       })
-      
+
       return user ? this.toDomainEntity(user) : null
     } catch (error) {
-      throw new Error(`Failed to find user by auth0Id: ${error}`)
+      throw new Error(`Failed to find user by authUserId: ${error}`)
     }
   }
+
 
   public static async findByEmail(email: string): Promise<User | null> {
     try {
@@ -285,7 +294,7 @@ export class User {
         where: { email: email.toLowerCase() },
         select: {
           id: true,
-          auth0Id: true,
+          authUserId: true,
           email: true,
           name: true,
           companyId: true,
@@ -297,7 +306,7 @@ export class User {
           department: { select: { name: true } },
         },
       })
-      
+
       return user ? this.toDomainEntity(user) : null
     } catch (error) {
       throw new Error(`Failed to find user by email: ${error}`)
@@ -312,7 +321,7 @@ export class User {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
-          auth0Id: true,
+          authUserId: true,
           email: true,
           name: true,
           companyId: true,
@@ -342,22 +351,30 @@ export class User {
     }
   }
 
-  public static async existsByAuth0Id(auth0Id: string): Promise<boolean> {
+  public static async existsByAuthUserId(authUserId: string): Promise<boolean> {
     try {
       const count = await prisma.user.count({
-        where: { auth0Id },
+        where: { authUserId },
       })
       return count > 0
     } catch (error) {
-      throw new Error(`Failed to check if user exists by auth0Id: ${error}`)
+      throw new Error(`Failed to check if user exists by authUserId: ${error}`)
     }
+  }
+
+  /**
+   * Deprecated: Use existsByAuthUserId instead
+   * Kept for backward compatibility during migration
+   */
+  public static async existsByAuth0Id(authUserId: string): Promise<boolean> {
+    return this.existsByAuthUserId(authUserId)
   }
 
   // Instance method to save current user
   public async save(): Promise<User> {
     try {
       const userData = {
-        auth0Id: this._auth0Id,
+        authUserId: this._authUserId,
         email: this._email,
         name: this._name,
         companyId: this._companyId,
@@ -396,7 +413,7 @@ export class User {
   private static toDomainEntity(prismaUser: any): User {
     return User.create({
       id: prismaUser.id,
-      auth0Id: prismaUser.auth0Id,
+      authUserId: prismaUser.authUserId,
       email: prismaUser.email,
       name: prismaUser.name,
       companyId: prismaUser.companyId,

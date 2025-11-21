@@ -1,4 +1,3 @@
-import axios from 'axios'
 import jwt from 'jsonwebtoken'
 import { logger } from '@/lib/logger'
 import { AuthenticatedUser } from '@/middleware/auth'
@@ -7,6 +6,7 @@ import { prisma } from '@/lib/database'
 import { rbacService } from '../rbac/rbac.service'
 import { demoDataService } from '@/lib/seed/demo-data.service'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
+import { getSupabaseAuth, getSupabaseAdmin } from '@/lib/supabase'
 
 export interface LoginRequest {
   email: string
@@ -68,24 +68,24 @@ export const authService = {
    */
   async adminLogin(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      // First, authenticate with Auth0
+      // First, authenticate with Supabase Auth
       const loginResult = await this.login(credentials)
-      
+
       logger.info('Admin login attempt', {
         email: credentials.email,
-        auth0Id: loginResult.user_info.sub,
+        authUserId: loginResult.user_info.sub,
       })
 
       // Get user from database to check permissions
-      const user = await this.getUserByAuth0Id(loginResult.user_info.sub)
-      
+      const user = await this.getUserByAuthUserId(loginResult.user_info.sub)
+
       if (!user) {
         throw new Error('User not found in database')
       }
 
       // Get user permissions and roles
       const userPermissions = await rbacService.getUserPermissions(loginResult.user_info.sub)
-      
+
       // Define admin permissions
       const adminPermissions = [
         PERMISSION.ADMIN_ACCESS_PANEL,
@@ -105,7 +105,7 @@ export const authService = {
       if (!hasAdminPermissions) {
         logger.warn('Admin login denied - insufficient permissions', {
           email: credentials.email,
-          auth0Id: loginResult.user_info.sub,
+          authUserId: loginResult.user_info.sub,
           userPermissions: userPermissions.permissions,
         })
 
@@ -119,7 +119,7 @@ export const authService = {
 
       logger.info('Admin login successful', {
         email: credentials.email,
-        auth0Id: loginResult.user_info.sub,
+        authUserId: loginResult.user_info.sub,
         adminPermissions: userAdminPermissions,
         roles: userPermissions.roles.map(role => role.name),
       })
@@ -141,58 +141,38 @@ export const authService = {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      const auth0Domain = process.env.AUTH0_DOMAIN!
-      const clientId = process.env.AUTH0_CLIENT_ID!
-      const clientSecret = process.env.AUTH0_CLIENT_SECRET!
-      const audience = process.env.AUTH0_AUDIENCE!
-      const scope = process.env.AUTH0_SCOPE ?? 'openid profile email offline_access'
-
-      // Validate required environment variables
-      if (!auth0Domain || !clientId || !clientSecret || !audience) {
-        throw new Error('Missing required Auth0 environment variables')
-      }
-
-      logger.info('Attempting Auth0 login', {
+      logger.info('Attempting Supabase Auth login', {
         email: credentials.email,
-        domain: auth0Domain,
-        clientId,
       })
 
-      // Prepare the request body for Auth0's oauth/token endpoint
-      const tokenRequestBody: Record<string, string> = {
-        grant_type: 'password',
-        username: credentials.email,
+      const supabase = getSupabaseAuth()
+
+      // Sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
         password: credentials.password,
-        client_id: clientId,
-        client_secret: clientSecret,
-        scope,
-        audience,
-      }
-
-      // Make the token request to Auth0
-      const tokenResponse = await axios.post(
-        `https://${auth0Domain}/oauth/token`,
-        tokenRequestBody,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-
-      const tokenData = tokenResponse.data
-
-      if (!tokenData.access_token) {
-        throw new Error('No access token received from Auth0')
-      }
-
-      logger.info('Auth0 login successful', {
-        email: credentials.email,
-        tokenType: tokenData.token_type,
-        expiresIn: tokenData.expires_in,
-        hasRefreshToken: !!tokenData.refresh_token,
       })
 
+      if (error) {
+        logger.error('Supabase Auth login failed', {
+          email: credentials.email,
+          error: error.message,
+        })
+        throw new Error(`Authentication failed: ${error.message}`)
+      }
+
+      if (!data.session || !data.user) {
+        throw new Error('No session data received from Supabase Auth')
+      }
+
+      logger.info('Supabase Auth login successful', {
+        email: credentials.email,
+        userId: data.user.id,
+        expiresIn: data.session.expires_in,
+        hasRefreshToken: !!data.session.refresh_token,
+      })
+
+      // Get user information from database
       const userInfo = await this.getUser(credentials.email)
 
       if (!userInfo) {
@@ -200,69 +180,34 @@ export const authService = {
       }
 
       return {
-        access_token: tokenData.access_token,
-        token_type: tokenData.token_type ?? 'Bearer',
-        expires_in: tokenData.expires_in,
-        refresh_token: tokenData.refresh_token,
-        scope: tokenData.scope ?? scope,
+        access_token: data.session.access_token,
+        token_type: 'Bearer',
+        expires_in: data.session.expires_in || 3600,
+        refresh_token: data.session.refresh_token,
+        scope: 'openid profile email',
         user_info: userInfo,
       }
     } catch (error) {
-      logger.error('Auth0 login failed', {
+      logger.error('Supabase Auth login failed', {
         email: credentials.email,
         error: error instanceof Error ? error.message : String(error),
       })
 
-      if (axios.isAxiosError(error)) {
-        const authError = error.response?.data as AuthError
-        
-        if (authError?.error) {
-          // Auth0 specific error
-          throw new Error(`Authentication failed: ${authError.error_description ?? authError.error}`)
+      // Re-throw error with user-friendly message
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password')
         }
-        
-        // HTTP error
-        throw new Error(`Authentication failed: HTTP ${error.response?.status}`)
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please verify your email before logging in')
+        }
+        throw error
       }
 
       throw new Error('Authentication service unavailable')
     }
   },
 
-  /**
-   * Get user information from Auth0 using access token
-   */
-  async getUserFromAuth0(accessToken: string): Promise<LoginResponse['user_info']> {
-    try {
-      const auth0Domain = process.env.AUTH0_DOMAIN!
-      
-      const userInfoResponse = await axios.get(
-        `https://${auth0Domain}/userinfo`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      )
-
-      const userInfo = userInfoResponse.data
-
-      return {
-        sub: userInfo.sub,
-        email: userInfo.email,
-        email_verified: userInfo.email_verified ?? false,
-        name: userInfo.name,
-        avatar: userInfo.avatar,
-        ...userInfo, // Include any additional claims
-      }
-    } catch (error) {
-      logger.warn('Failed to get user info from Auth0', {
-        error: error instanceof Error ? error.message : String(error),
-      })
-
-      throw new Error('Failed to retrieve user information from Auth0')
-    }
-  },
 
 
   /**
@@ -270,60 +215,47 @@ export const authService = {
    */
   async refreshToken(refreshToken: string): Promise<Omit<LoginResponse, 'user_info'>> {
     try {
-      const auth0Domain = process.env.AUTH0_DOMAIN!
-      const clientId = process.env.AUTH0_CLIENT_ID!
-      const clientSecret = process.env.AUTH0_CLIENT_SECRET!
-      const audience = process.env.AUTH0_AUDIENCE!
-      const scope = process.env.AUTH0_SCOPE ?? 'openid profile email offline_access'
+      logger.info('Attempting to refresh Supabase Auth token')
 
-      logger.info('Attempting to refresh Auth0 token')
+      const supabase = getSupabaseAuth()
 
-      // Prepare the refresh token request body
-      const refreshRequestBody: Record<string, string> = {
-        grant_type: 'refresh_token',
-        client_id: clientId,
-        client_secret: clientSecret,
+      // Refresh session with Supabase Auth
+      const { data, error } = await supabase.auth.refreshSession({
         refresh_token: refreshToken,
-        audience,
+      })
+
+      if (error) {
+        logger.error('Supabase Auth token refresh failed', {
+          error: error.message,
+        })
+        throw new Error(`Token refresh failed: ${error.message}`)
       }
 
-      const refreshResponse = await axios.post(
-        `https://${auth0Domain}/oauth/token`,
-        refreshRequestBody,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
+      if (!data.session) {
+        throw new Error('No session data received from Supabase Auth')
+      }
 
-      const tokenData = refreshResponse.data
-
-      logger.info('Auth0 token refresh successful', {
-        tokenType: tokenData.token_type,
-        expiresIn: tokenData.expires_in,
+      logger.info('Supabase Auth token refresh successful', {
+        expiresIn: data.session.expires_in,
       })
 
       return {
-        access_token: tokenData.access_token,
-        token_type: tokenData.token_type ?? 'Bearer',
-        expires_in: tokenData.expires_in,
-        refresh_token: tokenData.refresh_token ?? refreshToken, // Keep old refresh token if new one not provided
-        scope: tokenData.scope ?? scope,
+        access_token: data.session.access_token,
+        token_type: 'Bearer',
+        expires_in: data.session.expires_in || 3600,
+        refresh_token: data.session.refresh_token ?? refreshToken,
+        scope: 'openid profile email',
       }
     } catch (error) {
-      logger.error('Auth0 token refresh failed', {
+      logger.error('Supabase Auth token refresh failed', {
         error: error instanceof Error ? error.message : String(error),
       })
 
-      if (axios.isAxiosError(error)) {
-        const authError = error.response?.data as AuthError
-        
-        if (authError?.error) {
-          throw new Error(`Token refresh failed: ${authError.error_description ?? authError.error}`)
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid Refresh Token') || error.message.includes('refresh_token_not_found')) {
+          throw new Error('Refresh token is invalid or has expired')
         }
-        
-        throw new Error(`Token refresh failed: HTTP ${error.response?.status}`)
+        throw error
       }
 
       throw new Error('Token refresh service unavailable')
@@ -331,21 +263,21 @@ export const authService = {
   },
 
   /**
-   * Get user information from database by Auth0 ID
+   * Get user information from database by Auth User ID (Supabase Auth ID)
    */
-  async getUserByAuth0Id(auth0Id: string): Promise<User | null> {
+  async getUserByAuthUserId(authUserId: string): Promise<User | null> {
     try {
-      const user = await User.findByAuth0Id(auth0Id)
-      
+      const user = await User.findByAuthUserId(authUserId)
+
       if (!user) {
-        logger.warn('User not found in database', { auth0Id })
+        logger.warn('User not found in database', { authUserId })
         return null
       }
 
       return user
     } catch (error) {
       logger.error('Failed to get user from database', {
-        auth0Id,
+        authUserId,
         error: error instanceof Error ? error.message : String(error),
       })
       return null
@@ -353,13 +285,21 @@ export const authService = {
   },
 
   /**
+   * Deprecated: Use getUserByAuthUserId instead
+   * Kept for backward compatibility during migration
+   */
+  async getUserByAuth0Id(authUserId: string): Promise<User | null> {
+    return this.getUserByAuthUserId(authUserId)
+  },
+
+  /**
    * Get detailed session information
    */
-  async getSessionInfo(auth0Id: string, token: string): Promise<SessionInfo> {
+  async getSessionInfo(authUserId: string, token: string): Promise<SessionInfo> {
     try {
       // Decode the token to get expiration time
       const decoded = jwt.decode(token) as Record<string, unknown>
-      
+
       if (!decoded?.exp) {
         throw new Error('Invalid token format')
       }
@@ -371,14 +311,14 @@ export const authService = {
       const needsRefresh = timeRemaining <= this.REFRESH_THRESHOLD
 
       // Get user data from database
-      const user = await this.getUserByAuth0Id(auth0Id)
+      const user = await this.getUserByAuthUserId(authUserId)
 
       if (!user) {
         throw new Error('User not found in database')
       }
 
       logger.info('Session info retrieved', {
-        userId: auth0Id,
+        authUserId,
         email: user.email,
         expiresAt: expiresAt.toISOString(),
         timeRemaining,
@@ -395,10 +335,10 @@ export const authService = {
       }
     } catch (error) {
       logger.error('Error getting session info', {
-        userId: auth0Id,
+        authUserId,
         error: error instanceof Error ? error.message : String(error),
       })
-      
+
       throw new Error('Failed to retrieve session information')
     }
   },
@@ -510,27 +450,6 @@ export const authService = {
     }
   },
 
-  /**
-   * Generate refresh token instructions for Auth0
-   */
-  getRefreshInstructions(): {
-    endpoint: string
-    instructions: string
-    requiredFields: string[]
-  } {
-    const auth0Domain = process.env.AUTH0_DOMAIN
-    
-    return {
-      endpoint: `https://${auth0Domain}/oauth/token`,
-      instructions: 'Para renovar o token, faça uma requisição POST para o endpoint fornecido com o refresh_token',
-      requiredFields: [
-        'grant_type: "refresh_token"',
-        'client_id: "seu_client_id"',
-        'client_secret: "seu_client_secret" (se aplicável)',
-        'refresh_token: "seu_refresh_token"',
-      ],
-    }
-  },
 
   /**
    * Get user information from database by email
@@ -543,7 +462,7 @@ export const authService = {
           isActive: true,
         },
         select: {
-          auth0Id: true,
+          authUserId: true,
           email: true,
           name: true,
           avatar: true,
@@ -551,13 +470,13 @@ export const authService = {
           department: { select: { name: true } },
         },
       })
-      
+
       if (!user) {
         return null
       }
 
       return {
-        sub: user.auth0Id,
+        sub: user.authUserId,
         email: user.email,
         email_verified: true,
         name: user.name,
@@ -574,20 +493,14 @@ export const authService = {
   },
 
   /**
-   * Create a new user account in Auth0 and local database
+   * Create a new user account in Supabase Auth and local database
    */
   async signup(signupData: SignupRequest): Promise<{ user: User; message: string }> {
     try {
-      const auth0Domain = process.env.AUTH0_DOMAIN!
-      const clientId = process.env.AUTH0_M2M_CLIENT_ID!
-      const clientSecret = process.env.AUTH0_M2M_CLIENT_SECRET!
-      const audience = process.env.AUTH0_AUDIENCE!
-
-      // Validate required environment variables
-      if (!auth0Domain || !clientId || !clientSecret || !audience) {
-        throw new Error('Missing required Auth0 environment variables')
-      }
-
+      logger.info('Starting signup process with Supabase Auth', {
+        email: signupData.email,
+        name: signupData.name,
+      })
 
       // Check if user already exists in our database
       const existingUser = await prisma.user.findUnique({
@@ -598,42 +511,35 @@ export const authService = {
         throw new Error('User with this email already exists')
       }
 
-      // Create user in Auth0
-      const auth0UserData = {
+      const supabaseAdmin = getSupabaseAdmin()
+      const defaultPassword = 'V@alorize'
+
+      // Create user in Supabase Auth using Admin API
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: signupData.email.toLowerCase(),
-        name: signupData.name,
-        password: 'V@alorize', // Default password as specified
-        email_verified: true,
-        connection: 'Username-Password-Authentication', // Default Auth0 connection
-      }
-
-      const managementToken = await this.getManagementToken()
-
-      const auth0Response = await axios.post(
-        `https://${auth0Domain}/api/v2/users`,
-        auth0UserData,
-        {
-          headers: {
-            'Authorization': `Bearer ${managementToken}`,
-            'Content-Type': 'application/json',
-          },
+        password: defaultPassword,
+        email_confirm: true, // Auto-confirm email
+        user_metadata: {
+          name: signupData.name,
         },
-      )
+      })
 
-      const auth0User = auth0Response.data
-
-      if (!auth0User.user_id) {
-        throw new Error('Failed to create user in Auth0')
+      if (authError || !authData.user) {
+        logger.error('Failed to create user in Supabase Auth', {
+          email: signupData.email,
+          error: authError?.message,
+        })
+        throw new Error(`Failed to create user: ${authError?.message ?? 'Unknown error'}`)
       }
 
-      logger.info('User created in Auth0', {
-        auth0Id: auth0User.user_id,
+      logger.info('User created in Supabase Auth', {
+        authUserId: authData.user.id,
         email: signupData.email,
       })
 
       // Create user in local database
       const newUser = User.create({
-        auth0Id: auth0User.user_id,
+        authUserId: authData.user.id,
         email: signupData.email.toLowerCase(),
         name: signupData.name,
         companyId: 'demo-company-001', // Default company as specified
@@ -660,7 +566,7 @@ export const authService = {
 
       logger.info('User created successfully', {
         userId: savedUser.id,
-        auth0Id: auth0User.user_id,
+        authUserId: authData.user.id,
         email: savedUser.email,
         companyId: savedUser.companyId,
       })
@@ -677,24 +583,16 @@ export const authService = {
         error: error instanceof Error ? error.message : String(error),
       })
 
-      // Handle specific Auth0 errors
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          throw new Error('Auth0 Management API authentication failed. Check your client credentials and scopes.')
+      // Handle specific Supabase Auth errors
+      if (error instanceof Error) {
+        if (error.message.includes('User already registered')) {
+          throw new Error('User with this email already exists')
         }
-        if (error.response?.status === 403) {
-          throw new Error('Auth0 Management API access denied. Ensure your application has the required scopes: create:users, read:users')
+        if (error.message.includes('Invalid email')) {
+          throw new Error('Invalid email format')
         }
-        if (error.response?.status === 409) {
-          throw new Error('User with this email already exists in Auth0')
-        }
-        if (error.response?.status === 400) {
-          const errorMessage = error.response.data?.message ?? 'Invalid user data'
-          throw new Error(`Auth0 validation error: ${errorMessage}`)
-        }
-        if (error.response?.status === 422) {
-          const errorMessage = error.response.data?.message ?? 'Invalid user data format'
-          throw new Error(`Auth0 data validation error: ${errorMessage}`)
+        if (error.message.includes('Password')) {
+          throw new Error('Password does not meet requirements')
         }
       }
 
@@ -702,42 +600,6 @@ export const authService = {
     }
   },
 
-  /**
-   * Get Auth0 Management API token
-   */
-  async getManagementToken(): Promise<string> {
-    const auth0Domain = process.env.AUTH0_DOMAIN!
-    const clientId = process.env.AUTH0_M2M_CLIENT_ID!
-    const clientSecret = process.env.AUTH0_M2M_CLIENT_SECRET!
-
-    try {
-      const tokenResponse = await axios.post(
-        `https://${auth0Domain}/oauth/token`,
-        {
-          client_id: clientId,
-          client_secret: clientSecret,
-          audience: `https://${auth0Domain}/api/v2/`,
-          grant_type: 'client_credentials',
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-
-      return tokenResponse.data.access_token
-    } catch (error) {
-      logger.error('Failed to get Auth0 Management API token', {
-        error: axios.isAxiosError(error) ? {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-        } : error instanceof Error ? error.message : String(error),
-      })
-      throw new Error('Failed to obtain Auth0 Management API token. Check your Auth0 configuration.')
-    }
-  },
 
   /**
    * Assign default role to new user
@@ -807,10 +669,10 @@ export const authService = {
    * Get company ID for the authenticated user
    * This is more efficient than fetching the entire user object
    */
-  async getCompanyId(auth0Id: string): Promise<string> {
+  async getCompanyId(authUserId: string): Promise<string> {
     try {
       const user = await prisma.user.findUnique({
-        where: { auth0Id },
+        where: { authUserId },
         select: { companyId: true },
       })
 
@@ -821,7 +683,7 @@ export const authService = {
       return user.companyId
     } catch (error) {
       logger.error('Failed to get company ID', {
-        auth0Id,
+        authUserId,
         error: error instanceof Error ? error.message : String(error),
       })
       throw new Error('Failed to retrieve company information')
@@ -829,64 +691,36 @@ export const authService = {
   },
 
   /**
-   * Generate a temporary password for a user and trigger change password ticket
-   * Returns the change password ticket URL that can be sent to the user
+   * Request password reset email using Supabase Auth
+   * Sends a password reset email to the user with a magic link
    */
-  async generateTemporaryPassword(auth0Id: string): Promise<{ ticket_url: string }> {
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
     try {
-      const auth0Domain = process.env.AUTH0_DOMAIN!
-      
-      const managementToken = await this.getManagementToken()
+      logger.info('Requesting password reset', { email })
 
-      // Request a change password ticket from Auth0
-      const response = await axios.post(
-        `https://${auth0Domain}/api/v2/tickets/password-change`,
-        {
-          user_id: auth0Id,
-          result_url: process.env.AUTH0_PASSWORD_RESET_REDIRECT_URI ?? `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`,
-          ttl_sec: 86400, // 24 hours
-          includeEmailInRedirect: false,
-          mark_email_as_verified: false,
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${managementToken}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      )
+      const supabase = getSupabaseAuth()
+      const redirectUrl = process.env.FRONTEND_PASSWORD_RESET_URL ?? `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`
 
-      const ticketUrl = response.data.ticket
-
-      logger.info('Temporary password ticket generated', {
-        auth0Id,
-        ticketUrl: ticketUrl.substring(0, 50) + '...', // Log only first 50 chars for security
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
       })
 
-      return { ticket_url: ticketUrl }
-    } catch (error) {
-      logger.error('Failed to generate temporary password', {
-        auth0Id,
-        error: axios.isAxiosError(error) ? {
-          status: error.response?.status,
-          data: error.response?.data,
-        } : error instanceof Error ? error.message : String(error),
-      })
-      throw new Error('Failed to generate temporary password')
-    }
-  },
+      if (error) {
+        logger.error('Failed to send password reset email', {
+          email,
+          error: error.message,
+        })
+        throw new Error(`Password reset failed: ${error.message}`)
+      }
 
-  /**
-   * Reset password for a user by creating a new ticket
-   * This generates a change password URL that should be sent to the user
-   */
-  async resetUserPassword(auth0Id: string): Promise<{ ticket_url: string }> {
-    try {
-      logger.info('Resetting password for user', { auth0Id })
-      return await this.generateTemporaryPassword(auth0Id)
+      logger.info('Password reset email sent', { email })
+
+      return {
+        message: 'Password reset instructions sent to your email',
+      }
     } catch (error) {
-      logger.error('Failed to reset password', {
-        auth0Id,
+      logger.error('Failed to request password reset', {
+        email,
         error: error instanceof Error ? error.message : String(error),
       })
       throw error
@@ -894,90 +728,218 @@ export const authService = {
   },
 
   /**
-   * Create a new user in Auth0 from Admin Panel
-   * Generates a password reset ticket automatically for first login
+   * Update user password using Supabase Admin API
+   * Used for admin-initiated password resets (e.g., bulk user imports)
    */
-  async createAdminUser(userData: {
-    email: string
-    name: string
-  }): Promise<{ auth0Id: string; ticketUrl: string }> {
+  async updateUserPassword(authUserId: string, newPassword: string): Promise<{ message: string }> {
     try {
-      const auth0Domain = process.env.AUTH0_DOMAIN!
-      const clientId = process.env.AUTH0_M2M_CLIENT_ID!
-      const clientSecret = process.env.AUTH0_M2M_CLIENT_SECRET!
+      logger.info('Updating user password', { authUserId })
 
-      // Validate required environment variables
-      if (!auth0Domain || !clientId || !clientSecret) {
-        throw new Error('Missing required Auth0 environment variables')
-      }
+      const supabaseAdmin = getSupabaseAdmin()
 
-      // Create user in Auth0
-      const auth0UserData = {
-        email: userData.email.toLowerCase(),
-        name: userData.name,
-        password: 'T3mp0r@ryP@ss', // Temporary password (will be reset)
-        email_verified: true,
-        connection: 'Username-Password-Authentication',
-      }
-
-      const managementToken = await this.getManagementToken()
-
-      const auth0Response = await axios.post(
-        `https://${auth0Domain}/api/v2/users`,
-        auth0UserData,
-        {
-          headers: {
-            'Authorization': `Bearer ${managementToken}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-
-      const auth0User = auth0Response.data
-
-      if (!auth0User.user_id) {
-        throw new Error('Failed to create user in Auth0')
-      }
-
-      logger.info('User created in Auth0 via Admin Panel', {
-        auth0Id: auth0User.user_id,
-        email: userData.email,
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(authUserId, {
+        password: newPassword,
       })
 
-      // Generate password reset ticket
-      const passwordTicket = await this.generateTemporaryPassword(auth0User.user_id)
+      if (error) {
+        logger.error('Failed to update user password', {
+          authUserId,
+          error: error.message,
+        })
+        throw new Error(`Password update failed: ${error.message}`)
+      }
+
+      logger.info('User password updated successfully', { authUserId })
 
       return {
-        auth0Id: auth0User.user_id,
-        ticketUrl: passwordTicket.ticket_url,
+        message: 'Password updated successfully',
       }
     } catch (error) {
-      logger.error('Error creating user in Auth0 via Admin Panel', {
-        email: userData.email,
-        error: axios.isAxiosError(error) ? {
-          status: error.response?.status,
-          data: error.response?.data,
-        } : error instanceof Error ? error.message : String(error),
+      logger.error('Failed to update user password', {
+        authUserId,
+        error: error instanceof Error ? error.message : String(error),
       })
-
-      // Handle specific Auth0 errors
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          throw new Error('Auth0 Management API authentication failed')
-        }
-        if (error.response?.status === 403) {
-          throw new Error('Auth0 Management API access denied')
-        }
-        if (error.response?.status === 409) {
-          throw new Error('User with this email already exists in Auth0')
-        }
-        if (error.response?.status === 400) {
-          const errorMessage = error.response.data?.message ?? 'Invalid user data'
-          throw new Error(`Auth0 validation error: ${errorMessage}`)
-        }
-      }
-
       throw error
     }
   },
+
+  /**
+   * Create admin user in Supabase Auth (for CSV imports and company creation)
+   * Creates user with auto-confirmed email and sends password reset email
+   */
+  async createAdminUser(userData: { email: string; name: string }): Promise<{ authUserId: string; ticketUrl: string }> {
+    try {
+      logger.info('Creating admin user in Supabase Auth', { email: userData.email })
+
+      const supabaseAdmin = getSupabaseAdmin()
+      const defaultPassword = 'V@alorize2024!'
+
+      // Create user in Supabase Auth using Admin API
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: userData.email.toLowerCase(),
+        password: defaultPassword,
+        email_confirm: true, // Auto-confirm email
+        user_metadata: {
+          name: userData.name,
+        },
+      })
+
+      if (authError || !authData.user) {
+        logger.error('Failed to create admin user in Supabase Auth', {
+          email: userData.email,
+          error: authError?.message,
+        })
+        throw new Error(`Failed to create user: ${authError?.message ?? 'Unknown error'}`)
+      }
+
+      logger.info('Admin user created in Supabase Auth', {
+        authUserId: authData.user.id,
+        email: userData.email,
+      })
+
+      // Send password reset email directly (user not yet in local database)
+      const supabase = getSupabaseAuth()
+      const redirectUrl = process.env.FRONTEND_PASSWORD_RESET_URL ?? `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`
+
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email.toLowerCase(), {
+        redirectTo: redirectUrl,
+      })
+
+      if (resetError) {
+        logger.error('Failed to send password reset email for new admin', {
+          authUserId: authData.user.id,
+          email: userData.email,
+          error: resetError.message,
+        })
+        // Don't throw - user is created, just warn about email
+        logger.warn('Admin user created but password reset email failed', {
+          authUserId: authData.user.id,
+          email: userData.email,
+        })
+      } else {
+        logger.info('Password reset email sent to new admin', {
+          authUserId: authData.user.id,
+          email: userData.email,
+        })
+      }
+
+      return {
+        authUserId: authData.user.id,
+        ticketUrl: redirectUrl,
+      }
+    } catch (error) {
+      logger.error('Failed to create admin user', {
+        email: userData.email,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  },
+
+  /**
+   * Generate temporary password reset ticket for a user
+   * Returns a URL that allows the user to set their password
+   */
+  async generateTemporaryPassword(authUserId: string): Promise<{ ticket_url: string }> {
+    try {
+      logger.info('Generating temporary password ticket', { authUserId })
+
+      // Get user email from database
+      const user = await prisma.user.findUnique({
+        where: { authUserId },
+        select: { email: true },
+      })
+
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      const supabase = getSupabaseAuth()
+      const redirectUrl = process.env.FRONTEND_PASSWORD_RESET_URL ?? `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`
+
+      // Request password reset which generates a magic link
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: redirectUrl,
+      })
+
+      if (error) {
+        logger.error('Failed to generate password reset ticket', {
+          authUserId,
+          email: user.email,
+          error: error.message,
+        })
+        throw new Error(`Failed to generate password ticket: ${error.message}`)
+      }
+
+      logger.info('Password reset ticket generated', { authUserId, email: user.email })
+
+      // Return the redirect URL as the ticket URL
+      // In Supabase, the actual magic link is sent via email
+      return {
+        ticket_url: redirectUrl,
+      }
+    } catch (error) {
+      logger.error('Failed to generate temporary password', {
+        authUserId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  },
+
+  /**
+   * Reset user password (sends password reset email and returns ticket URL)
+   * Similar to generateTemporaryPassword but for existing users
+   */
+  async resetUserPassword(authUserId: string): Promise<{ message: string; ticket_url: string }> {
+    try {
+      logger.info('Resetting user password', { authUserId })
+
+      // Get user email from database
+      const user = await prisma.user.findUnique({
+        where: { authUserId },
+        select: { email: true },
+      })
+
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      // Generate password reset ticket
+      const ticket = await this.generateTemporaryPassword(authUserId)
+
+      return {
+        message: 'Password reset instructions sent to your email',
+        ticket_url: ticket.ticket_url,
+      }
+    } catch (error) {
+      logger.error('Failed to reset user password', {
+        authUserId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
+  },
+
+  /**
+   * Get instructions on how to refresh an access token
+   */
+  getRefreshInstructions(): {
+    message: string
+    endpoint: string
+    method: string
+    body: Record<string, string>
+    example: string
+  } {
+    return {
+      message: 'To refresh your access token, send a POST request to the /auth/refresh endpoint with your refresh token',
+      endpoint: '/auth/refresh',
+      method: 'POST',
+      body: {
+        refresh_token: 'your_refresh_token_here',
+      },
+      example: 'curl -X POST http://localhost:3000/auth/refresh -H "Content-Type: application/json" -d \'{"refresh_token": "your_refresh_token"}\'',
+    }
+  },
+
 }

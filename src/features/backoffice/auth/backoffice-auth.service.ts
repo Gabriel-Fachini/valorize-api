@@ -21,21 +21,21 @@ export const backofficeAuthService = {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      // Step 1: Authenticate with Auth0 (same as regular login)
+      // Step 1: Authenticate with Supabase Auth (same as regular login)
       const loginResult = await authService.login(credentials)
 
       logger.info('Backoffice login attempt', {
         email: credentials.email,
-        auth0Id: loginResult.user_info.sub,
+        authUserId: loginResult.user_info.sub,
       })
 
       // Step 2: Get user from database with company and roles
-      const user = await User.findByAuth0Id(loginResult.user_info.sub)
+      const user = await User.findByAuthUserId(loginResult.user_info.sub)
 
       if (!user) {
         logger.warn('Backoffice login denied - user not found in database', {
           email: credentials.email,
-          auth0Id: loginResult.user_info.sub,
+          authUserId: loginResult.user_info.sub,
         })
         throw new Error('User not found in database')
       }
@@ -85,7 +85,7 @@ export const backofficeAuthService = {
       logger.info('Backoffice login successful', {
         email: credentials.email,
         userId: user.id,
-        auth0Id: loginResult.user_info.sub,
+        authUserId: loginResult.user_info.sub,
         company: company?.name,
         roles: userPermissions.roles.map((role) => role.name),
         permissionsCount: userPermissions.permissions.length,
@@ -113,18 +113,18 @@ export const backofficeAuthService = {
   /**
    * Verify backoffice session and get user info
    *
-   * @param auth0Id - User's Auth0 ID (already validated by middleware)
+   * @param authUserId - User's Supabase Auth ID (already validated by middleware)
    * @returns User info with backoffice-specific data
    * @throws Error if user is not a Super Admin from Valorize HQ
    */
-  async verify(auth0Id: string) {
+  async verify(authUserId: string) {
     try {
       // Get user from database with company and roles
-      const user = await User.findByAuth0Id(auth0Id)
+      const user = await User.findByAuthUserId(authUserId)
 
       if (!user) {
         logger.warn('Backoffice verify failed - user not found in database', {
-          auth0Id,
+          authUserId,
         })
         throw new Error('User not found in database')
       }
@@ -167,11 +167,11 @@ export const backofficeAuthService = {
       const company = await Company.findById(user.companyId)
 
       // Get user permissions
-      const userPermissions = await rbacService.getUserPermissions(auth0Id)
+      const userPermissions = await rbacService.getUserPermissions(authUserId)
 
       logger.info('Backoffice session verified', {
         userId: user.id,
-        auth0Id,
+        authUserId,
         email: user.email,
         company: company?.name,
         roles: userPermissions.roles.map((role) => role.name),
@@ -198,7 +198,7 @@ export const backofficeAuthService = {
       }
     } catch (error) {
       logger.error('Backoffice verify failed', {
-        auth0Id,
+        authUserId,
         error: error instanceof Error ? error.message : String(error),
       })
 

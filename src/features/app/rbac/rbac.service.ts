@@ -44,9 +44,9 @@ function validatePermissions(permissions: string[]): void {
 }
 
 export const rbacService = {
-  async checkPermission(auth0Id: string, permission: string): Promise<boolean> {
+  async checkPermission(authUserId: string, permission: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
-      where: { auth0Id },
+      where: { authUserId },
       select: { id: true, companyId: true },
     })
     if (!user) return false
@@ -113,9 +113,9 @@ export const rbacService = {
     })
   },
 
-  async getUserPermissions(auth0Id: string) {
+  async getUserPermissions(authUserId: string) {
     const user = await prisma.user.findUnique({
-      where: { auth0Id },
+      where: { authUserId },
       select: { 
         id: true, 
         companyId: true,
@@ -172,9 +172,9 @@ export const rbacService = {
     return result
   },
 
-  async checkPermissionWithDetails(auth0Id: string, permission: string) {
+  async checkPermissionWithDetails(authUserId: string, permission: string) {
     const user = await prisma.user.findUnique({
-      where: { auth0Id },
+      where: { authUserId },
       select: { 
         id: true, 
         companyId: true,

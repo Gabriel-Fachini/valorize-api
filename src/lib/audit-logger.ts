@@ -149,7 +149,7 @@ export const auditLogger = {
   buildChanges(
     oldData: Record<string, any>,
     newData: Record<string, any>,
-    fields?: string[]
+    fields?: string[],
   ): Record<string, { before: any; after: any }> {
     const changes: Record<string, { before: any; after: any }> = {}
     const fieldsToCheck = fields || Object.keys(newData)
@@ -190,7 +190,7 @@ export const auditLogger = {
   async getEntityLogs(
     entityType: AuditEntityType,
     entityId: string,
-    options: { limit?: number; offset?: number } = {}
+    options: { limit?: number; offset?: number } = {},
   ) {
     const { limit = 50, offset = 0 } = options
 
@@ -230,7 +230,7 @@ export const auditLogger = {
    */
   async getUserLogs(
     userId: string,
-    options: { limit?: number; offset?: number } = {}
+    options: { limit?: number; offset?: number } = {},
   ) {
     const { limit = 50, offset = 0 } = options
 

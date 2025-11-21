@@ -1,5 +1,6 @@
 import { BackofficeCompany } from './companies.model'
 import { auditLogger, AuditAction, AuditEntityType } from '@/lib/audit-logger'
+import { logger } from '@/lib/logger'
 import prisma from '@/lib/database'
 import type {
   CompanyFilters,
@@ -33,12 +34,12 @@ export const backofficeCompanyService = {
   async listCompanies(
     filters: CompanyFilters,
     pagination: PaginationParams,
-    sorting: SortingParams
+    sorting: SortingParams,
   ): Promise<PaginatedResult<CompanyListItem>> {
     const { companies, total } = await BackofficeCompany.findWithFilters(
       filters,
       pagination,
-      sorting
+      sorting,
     )
 
     // Get aggregations (company counts by status)
@@ -66,7 +67,7 @@ export const backofficeCompanyService = {
    * Get full company details
    */
   async getCompanyDetails(
-    companyId: string
+    companyId: string,
   ): Promise<CompanyDetails | null> {
     const company = await BackofficeCompany.findByIdWithDetails(companyId)
 
@@ -99,9 +100,9 @@ export const backofficeCompanyService = {
       isActive: company.isActive,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
-      companyBrazil: company.companyBrazil || undefined,
+      companyBrazil: company.companyBrazil ?? undefined,
       contacts: company.contacts,
-      settings: company.settings || undefined,
+      settings: company.settings ?? undefined,
       allowedDomains: company.allowedDomains,
       wallet,
       plan: activePlan,
@@ -113,183 +114,281 @@ export const backofficeCompanyService = {
   /**
    * Create new company (full wizard)
    * Creates company, default roles, first admin user, and all related entities
+   * ALL OR NOTHING: If any step fails, everything is rolled back
    */
   async createCompany(
     input: CreateCompanyInput,
-    createdBy: string
+    createdBy: string,
   ): Promise<{
     company: Company
     firstAdmin: {
       id: string
       name: string
       email: string
-      auth0Id: string
+      authUserId: string
       roles: string[]
     }
     passwordResetUrl: string
   }> {
-    // Validate domain uniqueness
-    const domainTaken = await BackofficeCompany.isDomainTaken(input.domain)
-    if (domainTaken) {
-      throw new Error('Domain already in use')
-    }
+    let companyId: string | null = null
+    let createdRoles = false
+    let authUserId: string | null = null
+    let createdLocalUser = false
 
-    // Validate CNPJ uniqueness (Brazil only)
-    if (input.country === 'BR' && input.companyBrazil) {
-      const cnpjTaken = await BackofficeCompany.isCNPJTaken(
-        input.companyBrazil.cnpj
-      )
-      if (cnpjTaken) {
-        throw new Error('CNPJ already in use')
+    try {
+      // Validate domain uniqueness
+      const domainTaken = await BackofficeCompany.isDomainTaken(input.domain)
+      if (domainTaken) {
+        throw new Error('Domain already in use')
       }
-    }
 
-    // Validate minimum 2 initial values
-    if (!input.initialValues || input.initialValues.length < 2) {
-      throw new Error('At least 2 initial company values are required')
-    }
-
-    // Validate that first admin email belongs to company domain
-    const adminEmailDomain = input.firstAdmin.email.split('@')[1]
-    if (adminEmailDomain !== input.domain) {
-      throw new Error(`Admin email must belong to company domain ${input.domain}`)
-    }
-
-    // Get default plan pricing
-    const defaultPricing = {
-      ESSENTIAL: 14.0, // R$14/user/month
-      PROFESSIONAL: 18.0, // R$18/user/month
-    }
-
-    const pricePerUser =
-      input.plan.pricePerUser || defaultPricing[input.plan.planType]
-
-    // Create company with all related entities in a transaction
-    const company = await prisma.$transaction(async (tx) => {
-      // 1. Create company
-      const newCompany = await tx.company.create({
-        data: {
-          name: input.name,
-          domain: input.domain,
-          country: input.country,
-          timezone: input.timezone,
-          logoUrl: input.logoUrl,
-          billingEmail: input.billingEmail,
-          isActive: true,
-        },
-      })
-
-      // 2. Create Brazil-specific data (if applicable)
+      // Validate CNPJ uniqueness (Brazil only)
       if (input.country === 'BR' && input.companyBrazil) {
-        await tx.companyBrazil.create({
+        const cnpjTaken = await BackofficeCompany.isCNPJTaken(
+          input.companyBrazil.cnpj,
+        )
+        if (cnpjTaken) {
+          throw new Error('CNPJ already in use')
+        }
+      }
+
+      // Validate minimum 2 initial values
+      if (!input.initialValues || input.initialValues.length < 2) {
+        throw new Error('At least 2 initial company values are required')
+      }
+
+      // Validate that first admin email belongs to company domain
+      const adminEmailDomain = input.firstAdmin.email.split('@')[1]
+      if (adminEmailDomain !== input.domain) {
+        throw new Error(`Admin email must belong to company domain ${input.domain}`)
+      }
+
+      // Get default plan pricing
+      const defaultPricing = {
+        ESSENTIAL: 14.0, // R$14/user/month
+        PROFESSIONAL: 18.0, // R$18/user/month
+      }
+
+      const pricePerUser =
+        input.plan.pricePerUser ?? defaultPricing[input.plan.planType]
+
+      // Create company with all related entities in a transaction
+      const company = await prisma.$transaction(async (tx) => {
+        // 1. Create company
+        const newCompany = await tx.company.create({
+          data: {
+            name: input.name,
+            domain: input.domain,
+            country: input.country,
+            timezone: input.timezone,
+            logoUrl: input.logoUrl,
+            billingEmail: input.billingEmail,
+            isActive: true,
+          },
+        })
+
+        // 2. Create Brazil-specific data (if applicable)
+        if (input.country === 'BR' && input.companyBrazil) {
+          await tx.companyBrazil.create({
+            data: {
+              companyId: newCompany.id,
+              ...input.companyBrazil,
+            },
+          })
+        }
+
+        // 3. Create contacts (skipped in creation - contacts are managed separately via dedicated endpoints)
+        // Contacts must be existing users and are added after company creation
+
+        // 4. Create plan
+        await tx.companyPlan.create({
           data: {
             companyId: newCompany.id,
-            ...input.companyBrazil,
+            planType: input.plan.planType,
+            pricePerUser,
+            startDate: new Date(input.plan.startDate),
+            isActive: true,
           },
         })
-      }
 
-      // 3. Create contacts (skipped in creation - contacts are managed separately via dedicated endpoints)
-      // Contacts must be existing users and are added after company creation
+        // 5. Create company values (minimum 2)
+        await tx.companyValue.createMany({
+          data: input.initialValues.map((value, index) => ({
+            companyId: newCompany.id,
+            ...value,
+            order: index,
+            isActive: true,
+          })),
+        })
 
-      // 4. Create plan
-      await tx.companyPlan.create({
-        data: {
-          companyId: newCompany.id,
-          planType: input.plan.planType,
-          pricePerUser,
-          startDate: new Date(input.plan.startDate),
-          isActive: true,
-        },
-      })
-
-      // 5. Create company values (minimum 2)
-      await tx.companyValue.createMany({
-        data: input.initialValues.map((value, index) => ({
-          companyId: newCompany.id,
-          ...value,
-          order: index,
-          isActive: true,
-        })),
-      })
-
-      // 6. Create wallet
-      const wallet = await tx.companyWallet.create({
-        data: {
-          companyId: newCompany.id,
-          balance: input.initialWalletBudget || 0,
-          totalDeposited: input.initialWalletBudget || 0,
-          totalSpent: 0,
-          isFrozen: false,
-        },
-      })
-
-      // 7. Create initial deposit record (if budget provided)
-      if (input.initialWalletBudget && input.initialWalletBudget > 0) {
-        await tx.walletDeposit.create({
+        // 6. Create wallet
+        const wallet = await tx.companyWallet.create({
           data: {
-            companyWalletId: wallet.id,
-            amount: input.initialWalletBudget,
-            notes: 'Initial company setup',
-            createdBy: createdBy,
+            companyId: newCompany.id,
+            balance: input.initialWalletBudget || 0,
+            totalDeposited: input.initialWalletBudget || 0,
+            totalSpent: 0,
+            isFrozen: false,
           },
         })
+
+        // 7. Create initial deposit record (if budget provided)
+        if (input.initialWalletBudget && input.initialWalletBudget > 0) {
+          await tx.walletDeposit.create({
+            data: {
+              companyWalletId: wallet.id,
+              amount: input.initialWalletBudget,
+              notes: 'Initial company setup',
+              createdBy: createdBy,
+            },
+          })
+        }
+
+        // 8. Create company settings
+        await tx.companySettings.create({
+          data: {
+            companyId: newCompany.id,
+            weeklyRenewalAmount: 100, // Default
+            renewalDay: 1, // Monday
+          },
+        })
+
+        return newCompany
+      })
+
+      companyId = company.id
+      logger.info('Company created successfully', { companyId })
+
+      // 9. Create default roles (outside transaction for modularity)
+      await companyService.createDefaultRoles(company.id)
+      createdRoles = true
+      logger.info('Default roles created', { companyId })
+
+      // 10. Create first admin user with Supabase Auth
+      const firstAdmin = await companyService.createFirstAdmin(
+        input.firstAdmin,
+        company.id,
+        input.domain,
+      )
+      authUserId = firstAdmin.authUserId
+      createdLocalUser = true
+      logger.info('First admin created successfully', {
+        companyId,
+        adminEmail: firstAdmin.email,
+      })
+
+      // 11. Reload company with all relations
+      const updatedCompany = await Company.findById(company.id)
+      if (!updatedCompany) {
+        throw new Error('Failed to reload company after creation')
       }
 
-      // 8. Create company settings
-      await tx.companySettings.create({
-        data: {
-          companyId: newCompany.id,
-          weeklyRenewalAmount: 100, // Default
-          renewalDay: 1, // Monday
+      // Audit log
+      await auditLogger.log({
+        userId: createdBy,
+        action: AuditAction.CREATE,
+        entityType: AuditEntityType.COMPANY,
+        entityId: company.id,
+        metadata: {
+          companyName: input.name,
+          domain: input.domain,
+          country: input.country,
+          planType: input.plan.planType,
+          initialBudget: input.initialWalletBudget || 0,
+          firstAdminEmail: firstAdmin.email,
         },
       })
 
-      return newCompany
-    })
+      return {
+        company: updatedCompany,
+        firstAdmin: {
+          id: firstAdmin.id,
+          name: firstAdmin.name,
+          email: firstAdmin.email,
+          authUserId: firstAdmin.authUserId,
+          roles: firstAdmin.roles,
+        },
+        passwordResetUrl: firstAdmin.passwordResetUrl,
+      }
+    } catch (error) {
+      logger.error('Company creation failed, initiating rollback', {
+        error: error instanceof Error ? error.message : String(error),
+        companyId,
+        createdRoles,
+        authUserId,
+        createdLocalUser,
+      })
 
-    // 9. Create default roles (outside transaction for modularity)
-    await companyService.createDefaultRoles(company.id)
+      // ROLLBACK: Clean up everything in reverse order
+      try {
+        if (companyId) {
+          logger.info('Starting rollback - deleting all related entities', { companyId })
 
-    // 10. Create first admin user with Auth0
-    const firstAdmin = await companyService.createFirstAdmin(
-      input.firstAdmin,
-      company.id,
-      input.domain
-    )
+          // Delete in correct order to respect foreign key constraints
 
-    // 11. Reload company with all relations
-    const updatedCompany = await Company.findById(company.id)
-    if (!updatedCompany) {
-      throw new Error('Failed to reload company after creation')
-    }
+          // 1. Delete user_roles first (if users exist)
+          if (createdLocalUser) {
+            logger.info('Deleting user roles', { companyId })
+            await prisma.userRole.deleteMany({
+              where: {
+                user: { companyId },
+              },
+            })
+          }
 
-    // Audit log
-    await auditLogger.log({
-      userId: createdBy,
-      action: AuditAction.CREATE,
-      entityType: AuditEntityType.COMPANY,
-      entityId: company.id,
-      metadata: {
-        companyName: input.name,
-        domain: input.domain,
-        country: input.country,
-        planType: input.plan.planType,
-        initialBudget: input.initialWalletBudget || 0,
-        firstAdminEmail: firstAdmin.email,
-      },
-    })
+          // 2. Delete users (if any were created)
+          if (createdLocalUser) {
+            logger.info('Deleting users', { companyId })
+            await prisma.user.deleteMany({
+              where: { companyId },
+            })
+          }
 
-    return {
-      company: updatedCompany,
-      firstAdmin: {
-        id: firstAdmin.id,
-        name: firstAdmin.name,
-        email: firstAdmin.email,
-        auth0Id: firstAdmin.auth0Id,
-        roles: firstAdmin.roles,
-      },
-      passwordResetUrl: firstAdmin.passwordResetUrl,
+          // 3. Delete role_permissions (if roles were created)
+          if (createdRoles) {
+            logger.info('Deleting role permissions', { companyId })
+            await prisma.rolePermission.deleteMany({
+              where: {
+                role: { companyId },
+              },
+            })
+          }
+
+          // 4. Delete roles (if any were created)
+          if (createdRoles) {
+            logger.info('Deleting roles', { companyId })
+            await prisma.role.deleteMany({
+              where: { companyId },
+            })
+          }
+
+          // 5. Delete company (cascade handles: wallet, plan, values, settings, brazil data, allowed domains, contacts)
+          logger.info('Deleting company and remaining entities', { companyId })
+          await prisma.company.delete({
+            where: { id: companyId },
+          })
+
+          logger.info('Rollback completed successfully', { companyId })
+        }
+
+        // Note: We don't automatically delete Supabase Auth users to avoid orphaned accounts
+        if (authUserId) {
+          logger.warn('Supabase Auth user was created but not automatically deleted - manual cleanup may be required', {
+            authUserId,
+            email: input.firstAdmin.email,
+          })
+        }
+      } catch (rollbackError) {
+        logger.error('Failed to complete rollback - manual cleanup required', {
+          rollbackError: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+          originalError: error instanceof Error ? error.message : String(error),
+          companyId,
+          authUserId,
+        })
+      }
+
+      // Re-throw original error
+      throw error
     }
   },
 
@@ -299,7 +398,7 @@ export const backofficeCompanyService = {
   async updateCompany(
     companyId: string,
     input: UpdateCompanyInput,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<void> {
     // Get current company data
     const company = await prisma.company.findUnique({
@@ -315,7 +414,7 @@ export const backofficeCompanyService = {
     if (input.domain && input.domain !== company.domain) {
       const domainTaken = await BackofficeCompany.isDomainTaken(
         input.domain,
-        companyId
+        companyId,
       )
       if (domainTaken) {
         throw new Error('Domain already in use')
@@ -328,7 +427,7 @@ export const backofficeCompanyService = {
       if (input.companyBrazil.cnpj !== currentCNPJ) {
         const cnpjTaken = await BackofficeCompany.isCNPJTaken(
           input.companyBrazil.cnpj,
-          companyId
+          companyId,
         )
         if (cnpjTaken) {
           throw new Error('CNPJ already in use')
@@ -359,12 +458,12 @@ export const backofficeCompanyService = {
             data: {
               companyId,
               ...input.companyBrazil,
-              cnpj: input.companyBrazil.cnpj || '',
-              razaoSocial: input.companyBrazil.razaoSocial || '',
-              cnaePrincipal: input.companyBrazil.cnaePrincipal || '',
-              naturezaJuridica: input.companyBrazil.naturezaJuridica || '',
-              porteEmpresa: input.companyBrazil.porteEmpresa || '',
-              situacaoCadastral: input.companyBrazil.situacaoCadastral || '',
+              cnpj: input.companyBrazil.cnpj ?? '',
+              razaoSocial: input.companyBrazil.razaoSocial ?? '',
+              cnaePrincipal: input.companyBrazil.cnaePrincipal ?? '',
+              naturezaJuridica: input.companyBrazil.naturezaJuridica ?? '',
+              porteEmpresa: input.companyBrazil.porteEmpresa ?? '',
+              situacaoCadastral: input.companyBrazil.situacaoCadastral ?? '',
             },
           })
         }
@@ -397,7 +496,7 @@ export const backofficeCompanyService = {
           'naturezaJuridica',
           'porteEmpresa',
           'situacaoCadastral',
-        ]
+        ],
       )
       Object.assign(changes, brazilChanges)
     }
@@ -450,7 +549,7 @@ export const backofficeCompanyService = {
    */
   async deactivateCompany(
     companyId: string,
-    deactivatedBy: string
+    deactivatedBy: string,
   ): Promise<void> {
     const company = await prisma.company.findUnique({
       where: { id: companyId },
@@ -507,7 +606,7 @@ export const backofficeCompanyService = {
   async addWalletCredits(
     companyId: string,
     input: AddWalletCreditsInput,
-    addedBy: string
+    addedBy: string,
   ): Promise<void> {
     if (input.amount <= 0) {
       throw new Error('Amount must be greater than 0')
@@ -567,7 +666,7 @@ export const backofficeCompanyService = {
   async removeWalletCredits(
     companyId: string,
     input: RemoveWalletCreditsInput,
-    removedBy: string
+    removedBy: string,
   ): Promise<void> {
     if (input.amount <= 0) {
       throw new Error('Amount must be greater than 0')
@@ -681,7 +780,7 @@ export const backofficeCompanyService = {
   async updatePlan(
     companyId: string,
     input: UpdateCompanyPlanInput,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<void> {
     // Get default pricing if not provided
     const defaultPricing: Record<PlanType, number> = {
@@ -748,7 +847,7 @@ export const backofficeCompanyService = {
   async addContact(
     companyId: string,
     input: AddCompanyContactInput,
-    addedBy: string
+    addedBy: string,
   ): Promise<{ id: string }> {
     // Verify user exists
     const user = await prisma.user.findUnique({
@@ -804,7 +903,7 @@ export const backofficeCompanyService = {
   async updateContact(
     contactId: string,
     input: UpdateCompanyContactInput,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<void> {
     const contact = await prisma.companyContact.findUnique({
       where: { id: contactId },
@@ -897,7 +996,7 @@ export const backofficeCompanyService = {
   async addAllowedDomain(
     companyId: string,
     input: AddAllowedDomainInput,
-    addedBy: string
+    addedBy: string,
   ): Promise<{ id: string }> {
     // Check if domain already exists
     const existing = await prisma.allowedDomain.findFirst({
@@ -938,7 +1037,7 @@ export const backofficeCompanyService = {
    */
   async deleteAllowedDomain(
     domainId: string,
-    deletedBy: string
+    deletedBy: string,
   ): Promise<void> {
     const allowedDomain = await prisma.allowedDomain.findUnique({
       where: { id: domainId },
@@ -972,7 +1071,7 @@ export const backofficeCompanyService = {
     return BackofficeCompany.getMetrics(
       companyId,
       params.startDate,
-      params.endDate
+      params.endDate,
     )
   },
 

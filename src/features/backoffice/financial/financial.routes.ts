@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { financialService } from './financial.service'
 import { requireSuperAdmin } from '@/middleware/backoffice'
-import { getAuth0Id } from '@/middleware/auth'
+import { getAuthUserId } from '@/middleware/auth'
 import { User } from '@/features/app/users/user.model'
 import { logger } from '@/lib/logger'
 import {
@@ -43,8 +43,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -68,7 +68,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -84,8 +84,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -118,7 +118,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -134,8 +134,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -176,7 +176,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -192,8 +192,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -235,7 +235,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -251,8 +251,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -293,7 +293,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -309,8 +309,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -351,7 +351,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -367,8 +367,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -413,7 +413,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -429,8 +429,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -465,7 +465,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           fileName,
           fileType,
           fileSize,
-          user.id
+          user.id,
         )
 
         return reply.code(201).send(result)
@@ -498,7 +498,7 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 
   /**
@@ -514,8 +514,8 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
     },
     async (request, reply) => {
       try {
-        const auth0Id = getAuth0Id(request)
-        const user = await User.findByAuth0Id(auth0Id)
+        const authUserId = getAuthUserId(request)
+        const user = await User.findByAuthUserId(authUserId)
 
         if (!user) {
           return reply.code(401).send({
@@ -551,6 +551,6 @@ export default async (fastify: FastifyInstance, _options: FastifyPluginOptions) 
           message: errorMessage,
         })
       }
-    }
+    },
   )
 }
