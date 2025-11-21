@@ -39,18 +39,21 @@ enum ChargeStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  authUserId   String   @unique @map("auth_user_id")
-  email        String   @unique
-  name         String
-  avatar       String?
-  companyId    String   @map("company_id")
-  jobTitleId   String?  @map("job_title_id")
-  departmentId String?  @map("department_id")
-  managerId    String?  @map("manager_id")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                      String    @id @default(cuid())
+  authUserId              String    @unique @map("auth_user_id")
+  email                   String    @unique
+  name                    String
+  avatar                  String?
+  companyId               String    @map("company_id")
+  jobTitleId              String?   @map("job_title_id")
+  departmentId            String?   @map("department_id")
+  managerId               String?   @map("manager_id")
+  isActive                Boolean   @default(true) @map("is_active")
+  welcomeEmailSentAt      DateTime? @map("welcome_email_sent_at")
+  welcomeEmailSendCount   Int       @default(0) @map("welcome_email_send_count")
+  lastWelcomeEmailSentAt  DateTime? @map("last_welcome_email_sent_at")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
 
   roles              UserRole[]
   company            Company             @relation(fields: [companyId], references: [id])
@@ -78,6 +81,7 @@ model User {
   @@index([jobTitleId])
   @@index([departmentId])
   @@index([managerId])
+  @@index([welcomeEmailSendCount])
   @@map("users")
 }
 
@@ -180,22 +184,21 @@ model Company {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relacionamentos
-  users          User[]
-  roles          Role[]
-  departments    Department[]
-  jobTitles      JobTitle[]
-  companyBrazil  CompanyBrazil?
-  contacts       CompanyContact[]
-  settings       CompanySettings?
-  values         CompanyValue[]
-  compliments    Compliment[]
-  prizes         Prize[]
-  redemptions    Redemption[]
-  allowedDomains AllowedDomain[] // Domínios permitidos para SSO
-  wallet         CompanyWallet?
-  plans          CompanyPlan[] // One-to-many: empresa pode ter múltiplos planos (histórico)
-  auditLogs      AuditLog[]
-  charges        Charge[]
+  users         User[]
+  roles         Role[]
+  departments   Department[]
+  jobTitles     JobTitle[]
+  companyBrazil CompanyBrazil?
+  contacts      CompanyContact[]
+  settings      CompanySettings?
+  values        CompanyValue[]
+  compliments   Compliment[]
+  prizes        Prize[]
+  redemptions   Redemption[]
+  wallet        CompanyWallet?
+  plans         CompanyPlan[] // One-to-many: empresa pode ter múltiplos planos (histórico)
+  auditLogs     AuditLog[]
+  charges       Charge[]
 
   @@index([domain])
   @@index([country])

@@ -2,7 +2,13 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 import { getAuthUserId } from '@/middleware/auth'
 import { authService } from './auth.service'
 import { UnauthorizedError } from '@/middleware/error-handler'
-import { loginSchema, adminLoginSchema, refreshTokenSchema, verifySessionSchema, signupSchema } from './auth.schemas'
+import {
+  loginSchema,
+  adminLoginSchema,
+  refreshTokenSchema,
+  verifySessionSchema,
+  signupSchema,
+} from './auth.schemas'
 import { logger } from '@/lib/logger'
 
 const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptions) => {

@@ -7,6 +7,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { usersService } from './users.service'
 import { csvImportService } from './csv-import.service'
+import { userOnboardingService } from './user-onboarding.service'
 import {
   listUsersSchema,
   getUserDetailSchema,
@@ -19,6 +20,10 @@ import {
   csvImportSchema,
   resetPasswordSchema,
 } from './users.schemas'
+import {
+  sendWelcomeEmailSchema,
+  sendWelcomeEmailsBulkSchema,
+} from './user-onboarding.schemas'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { getAuthUserId } from '@/middleware/auth'
@@ -350,10 +355,10 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         const companyId = await getCompanyIdFromUser(authUserId)
         const body = request.body as any
 
-        const { previewId, confirmedRows } = body
+        const { previewId, confirmedRows, sendEmails = false } = body
 
         // Import users and get detailed result
-        const result = await csvImportService.importUsers(companyId, previewId, confirmedRows)
+        const result = await csvImportService.importUsers(companyId, previewId, confirmedRows, sendEmails)
 
         // Log summary for monitoring
         logger.info('CSV import request completed', {
@@ -388,6 +393,60 @@ export default async function usersRoutes(fastify: FastifyInstance) {
 
         // Re-throw to let global error handler deal with it
         // This ensures consistent error format across the API
+        throw error
+      }
+    },
+  )
+
+  // ============================================================================
+  // USER ONBOARDING ENDPOINTS
+  // ============================================================================
+
+  // Send welcome email to a specific user
+  fastify.post(
+    '/:id/send-welcome-email',
+    {
+      schema: sendWelcomeEmailSchema,
+      preHandler: [requirePermission(PERMISSION.USERS_MANAGE)],
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      try {
+        const { id: userId } = request.params
+        const authUserId = getAuthUserId(request)
+
+        const result = await userOnboardingService.sendWelcomeEmail(userId, authUserId)
+
+        return reply.code(200).send(result)
+      } catch (error) {
+        logger.error('Send welcome email endpoint error', {
+          error: error instanceof Error ? error.message : String(error),
+          userId: request.params.id,
+        })
+        throw error
+      }
+    },
+  )
+
+  // Send welcome emails to multiple users (bulk)
+  fastify.post(
+    '/send-welcome-emails-bulk',
+    {
+      schema: sendWelcomeEmailsBulkSchema,
+      preHandler: [requirePermission(PERMISSION.USERS_MANAGE)],
+    },
+    async (request: FastifyRequest<{ Body: { userIds: string[] } }>, reply: FastifyReply) => {
+      try {
+        const { userIds } = request.body
+        const authUserId = getAuthUserId(request)
+
+        const result = await userOnboardingService.sendWelcomeEmailsBulk(userIds, authUserId)
+
+        return reply.code(200).send(result)
+      } catch (error) {
+        logger.error('Bulk send welcome emails endpoint error', {
+          error: error instanceof Error ? error.message : String(error),
+          userCount: request.body.userIds?.length,
+        })
         throw error
       }
     },

@@ -133,7 +133,7 @@ export const getUserDetailSchema = {
 
 export const createUserSchema = {
   tags: ['Admin - Users'],
-  description: 'Create a new user',
+  description: 'Create a new user with optional welcome email',
   body: {
     type: 'object',
     properties: {
@@ -141,6 +141,7 @@ export const createUserSchema = {
       email: { type: 'string', format: 'email', maxLength: 255 },
       departmentId: { type: ['string', 'null'] },
       jobTitleId: { type: ['string', 'null'] },
+      sendEmail: { type: 'boolean', default: false, description: 'Send welcome email immediately after user creation' },
     },
     required: ['name', 'email'],
     additionalProperties: false,
@@ -335,6 +336,11 @@ export const csvImportSchema = {
       confirmedRows: {
         type: 'array',
         items: { type: 'integer' },
+      },
+      sendEmails: {
+        type: 'boolean',
+        default: false,
+        description: 'Send welcome emails to imported users immediately'
       },
     },
     required: ['previewId'],

@@ -259,3 +259,4 @@ export const verifySessionSchema: FastifySchema = {
     401: commonErrorResponse,
   },
 }
+

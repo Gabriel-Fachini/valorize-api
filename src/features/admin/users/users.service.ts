@@ -234,7 +234,7 @@ export async function createUser(
   createdAt: Date
   temporaryPasswordUrl?: string
 }> {
-  const { name, email, departmentId, jobTitleId } = input
+  const { name, email, departmentId, jobTitleId, sendEmail = false } = input
 
   // Validate inputs
   if (!name || name.trim().length < 2) {
@@ -291,19 +291,23 @@ export async function createUser(
   // Create user in Supabase Auth if authUserId not provided
   let finalAuthUserId = authUserId
   let temporaryPasswordUrl: string | undefined
+  let emailSent = false
 
   if (!finalAuthUserId) {
     try {
       const auth0Result = await authService.createAdminUser({
         email: normalizedEmail,
         name: name.trim(),
+        sendEmail,
       })
       finalAuthUserId = auth0Result.authUserId
       temporaryPasswordUrl = auth0Result.ticketUrl
+      emailSent = auth0Result.emailSent
 
       logger.info('User created in Supabase Auth via Admin Panel', {
         authUserId: finalAuthUserId,
         email: normalizedEmail,
+        emailSent,
       })
     } catch (error) {
       logger.error('Failed to create user in Supabase Auth', {
@@ -327,7 +331,8 @@ export async function createUser(
     }
   }
 
-  // Create user in local database
+  // Create user in local database with welcome email tracking
+  const now = new Date()
   const user = await prisma.user.create({
     data: {
       authUserId: finalAuthUserId,
@@ -337,11 +342,16 @@ export async function createUser(
       departmentId: departmentId ?? null,
       jobTitleId: jobTitleId ?? null,
       isActive: true,
+      // Welcome email tracking fields
+      welcomeEmailSentAt: emailSent ? now : null,
+      lastWelcomeEmailSentAt: emailSent ? now : null,
+      welcomeEmailSendCount: emailSent ? 1 : 0,
     },
   })
 
   logger.info(`User created in admin panel: ${user.id} (${user.email})`, {
     authUserId: finalAuthUserId,
+    emailSent,
   })
 
   return {

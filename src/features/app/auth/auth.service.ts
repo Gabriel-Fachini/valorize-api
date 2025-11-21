@@ -767,18 +767,20 @@ export const authService = {
    * Create admin user in Supabase Auth (for CSV imports and company creation)
    * Creates user with auto-confirmed email and sends password reset email
    */
-  async createAdminUser(userData: { email: string; name: string }): Promise<{ authUserId: string; ticketUrl: string }> {
+  async createAdminUser(userData: { email: string; name: string; sendEmail?: boolean }): Promise<{ authUserId: string; ticketUrl: string; emailSent: boolean }> {
     try {
-      logger.info('Creating admin user in Supabase Auth', { email: userData.email })
+      const { sendEmail = true } = userData
+      logger.info('Creating admin user in Supabase Auth', { email: userData.email, sendEmail })
 
       const supabaseAdmin = getSupabaseAdmin()
       const defaultPassword = 'V@alorize2024!'
 
       // Create user in Supabase Auth using Admin API
+      // email_confirm is set to false to require email confirmation (Opção B do plano)
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: userData.email.toLowerCase(),
         password: defaultPassword,
-        email_confirm: true, // Auto-confirm email
+        email_confirm: false, // Require email confirmation
         user_metadata: {
           name: userData.name,
         },
@@ -795,29 +797,39 @@ export const authService = {
       logger.info('Admin user created in Supabase Auth', {
         authUserId: authData.user.id,
         email: userData.email,
+        emailConfirmRequired: true,
       })
 
-      // Send password reset email directly (user not yet in local database)
-      const supabase = getSupabaseAuth()
+      let emailSent = false
       const redirectUrl = process.env.FRONTEND_PASSWORD_RESET_URL ?? `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`
 
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email.toLowerCase(), {
-        redirectTo: redirectUrl,
-      })
+      // Send password reset email only if sendEmail is true
+      if (sendEmail) {
+        const supabase = getSupabaseAuth()
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email.toLowerCase(), {
+          redirectTo: redirectUrl,
+        })
 
-      if (resetError) {
-        logger.error('Failed to send password reset email for new admin', {
-          authUserId: authData.user.id,
-          email: userData.email,
-          error: resetError.message,
-        })
-        // Don't throw - user is created, just warn about email
-        logger.warn('Admin user created but password reset email failed', {
-          authUserId: authData.user.id,
-          email: userData.email,
-        })
+        if (resetError) {
+          logger.error('Failed to send password reset email for new admin', {
+            authUserId: authData.user.id,
+            email: userData.email,
+            error: resetError.message,
+          })
+          // Don't throw - user is created, just warn about email
+          logger.warn('Admin user created but password reset email failed', {
+            authUserId: authData.user.id,
+            email: userData.email,
+          })
+        } else {
+          logger.info('Password reset email sent to new admin', {
+            authUserId: authData.user.id,
+            email: userData.email,
+          })
+          emailSent = true
+        }
       } else {
-        logger.info('Password reset email sent to new admin', {
+        logger.info('Skipping email send for new admin (sendEmail = false)', {
           authUserId: authData.user.id,
           email: userData.email,
         })
@@ -826,6 +838,7 @@ export const authService = {
       return {
         authUserId: authData.user.id,
         ticketUrl: redirectUrl,
+        emailSent,
       }
     } catch (error) {
       logger.error('Failed to create admin user', {

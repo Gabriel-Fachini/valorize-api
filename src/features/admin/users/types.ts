@@ -110,6 +110,7 @@ export interface CreateUserInput {
   email: string
   departmentId?: string
   jobTitleId?: string
+  sendEmail?: boolean
 }
 
 export interface UpdateUserInput {
@@ -160,4 +161,31 @@ export interface CSVPreviewCache {
     errors: number
   }
   expiresAt: Date
+}
+
+// ============================================================================
+// USER ONBOARDING (SIMPLIFIED)
+// ============================================================================
+
+export interface SendWelcomeEmailResponse {
+  message: string
+  emailSendCount: number
+  lastSentAt: Date
+}
+
+export interface BulkEmailSendResult {
+  userId: string
+  success: boolean
+  emailSendCount?: number
+  error?: string
+}
+
+export interface SendWelcomeEmailsBulkResponse {
+  message: string
+  results: BulkEmailSendResult[]
+  summary: {
+    total: number
+    sent: number
+    failed: number
+  }
 }

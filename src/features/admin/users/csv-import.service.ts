@@ -352,6 +352,7 @@ export async function importUsers(
   companyId: string,
   previewId: string,
   confirmedRowNumbers?: number[],
+  sendEmails: boolean = false,
 ): Promise<ImportResult> {
   // Get preview from cache
   const previewData = previewCache.get(previewId)
@@ -377,26 +378,29 @@ export async function importUsers(
   // ETAPA 1: Create all users in Supabase Auth (parallel batches)
   // ============================================================================
 
-  logger.info('Creating users in Supabase Auth...', { count: rowsToImport.length })
+  logger.info('Creating users in Supabase Auth...', { count: rowsToImport.length, sendEmails })
 
-  let authUsers: Array<{ row: ValidatedCSVRow; authUserId: string }>
+  let authUsers: Array<{ row: ValidatedCSVRow; authUserId: string; emailSent: boolean }>
 
   try {
     authUsers = await processInBatches(rowsToImport, 10, async (row) => {
       const auth0Result = await authService.createAdminUser({
         email: row.email.toLowerCase().trim(),
         name: row.nome.trim(),
+        sendEmail: sendEmails,
       })
 
       logger.info('User created in Supabase Auth via CSV import', {
         authUserId: auth0Result.authUserId,
         email: row.email,
         rowNumber: row.rowNumber,
+        emailSent: auth0Result.emailSent,
       })
 
       return {
         row,
         authUserId: auth0Result.authUserId,
+        emailSent: auth0Result.emailSent,
       }
     })
 
@@ -594,16 +598,17 @@ async function upsertAllDepartmentsAndJobs(
  */
 async function createAllUsers(
   tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-  authUsers: Array<{ row: ValidatedCSVRow; authUserId: string }>,
+  authUsers: Array<{ row: ValidatedCSVRow; authUserId: string; emailSent: boolean }>,
   deptMap: Map<string, string>,
   jobMap: Map<string, string>,
   companyId: string,
 ): Promise<Map<string, string>> {
   const userMap = new Map<string, string>()
+  const now = new Date()
 
   // Create all users sequentially WITHIN transaction
   // (Prisma transaction already guarantees atomicity)
-  for (const { row, authUserId } of authUsers) {
+  for (const { row, authUserId, emailSent } of authUsers) {
     const departmentId = row.departamento ? deptMap.get(row.departamento.trim()) : undefined
 
     const jobTitleId = row.cargo ? jobMap.get(row.cargo.trim()) : undefined
@@ -618,9 +623,19 @@ async function createAllUsers(
         departmentId,
         jobTitleId,
         isActive: true,
+        // Simplified onboarding fields
+        welcomeEmailSentAt: emailSent ? now : null,
+        lastWelcomeEmailSentAt: emailSent ? now : null,
+        welcomeEmailSendCount: emailSent ? 1 : 0,
         // managerId: null by default
       },
       select: { id: true },
+    })
+
+    logger.info('Created user with welcome email tracking', {
+      userId: user.id,
+      email: row.email,
+      emailSent,
     })
 
     userMap.set(row.email.toLowerCase(), user.id)
