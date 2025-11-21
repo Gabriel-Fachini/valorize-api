@@ -19,8 +19,6 @@ import {
   addContactSchema,
   updateContactSchema,
   deleteContactSchema,
-  addAllowedDomainSchema,
-  deleteAllowedDomainSchema,
 } from './companies.schemas'
 import { User } from '@/features/app/users/user.model'
 
@@ -1021,130 +1019,6 @@ export const backofficeCompaniesRoutes = async (
           success: false,
           error: 'Internal Server Error',
           message: 'Failed to delete contact',
-        })
-      }
-    },
-  )
-
-  /**
-   * POST /backoffice/companies/:id/domains
-   *
-   * Add allowed domain for SSO
-   */
-  fastify.post(
-    '/:id/domains',
-    {
-      preHandler: [requireSuperAdmin()],
-      schema: addAllowedDomainSchema,
-    },
-    async (request, reply) => {
-      try {
-        const { id } = request.params as { id: string }
-        const body = request.body as any
-        const authUserId = getAuthUserId(request)
-
-        const user = await User.findByAuthUserId(authUserId)
-        if (!user) {
-          return reply.code(401).send({
-            success: false,
-            error: 'Unauthorized',
-            message: 'User not found',
-          })
-        }
-
-        const result = await backofficeCompanyService.addAllowedDomain(
-          id,
-          body,
-          user.id,
-        )
-
-        logger.info('Allowed domain added', {
-          companyId: id,
-          domainId: result.id,
-          addedBy: user.id,
-        })
-
-        return reply.code(201).send({
-          success: true,
-          data: result,
-        })
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Failed to add domain'
-
-        logger.error('Failed to add allowed domain', { error })
-
-        if (errorMessage.includes('already added')) {
-          return reply.code(409).send({
-            success: false,
-            error: 'Conflict',
-            message: errorMessage,
-          })
-        }
-
-        return reply.code(500).send({
-          success: false,
-          error: 'Internal Server Error',
-          message: 'Failed to add domain',
-        })
-      }
-    },
-  )
-
-  /**
-   * DELETE /backoffice/companies/:id/domains/:domainId
-   *
-   * Delete allowed domain
-   */
-  fastify.delete(
-    '/:id/domains/:domainId',
-    {
-      preHandler: [requireSuperAdmin()],
-      schema: deleteAllowedDomainSchema,
-    },
-    async (request, reply) => {
-      try {
-        const { domainId } = request.params as { domainId: string }
-        const authUserId = getAuthUserId(request)
-
-        const user = await User.findByAuthUserId(authUserId)
-        if (!user) {
-          return reply.code(401).send({
-            success: false,
-            error: 'Unauthorized',
-            message: 'User not found',
-          })
-        }
-
-        await backofficeCompanyService.deleteAllowedDomain(domainId, user.id)
-
-        logger.info('Allowed domain deleted', {
-          domainId,
-          deletedBy: user.id,
-        })
-
-        return reply.code(200).send({
-          success: true,
-          message: 'Domain deleted successfully',
-        })
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Failed to delete domain'
-
-        logger.error('Failed to delete allowed domain', { error })
-
-        if (errorMessage.includes('not found')) {
-          return reply.code(404).send({
-            success: false,
-            error: 'Not Found',
-            message: errorMessage,
-          })
-        }
-
-        return reply.code(500).send({
-          success: false,
-          error: 'Internal Server Error',
-          message: 'Failed to delete domain',
         })
       }
     },

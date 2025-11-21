@@ -61,6 +61,8 @@ export const listUsersSchema = {
               isActive: { type: 'boolean' },
               createdAt: { type: 'string', format: 'date-time' },
               lastLogin: { type: ['string', 'null'], format: 'date-time' },
+              welcomeEmailSendCount: { type: 'integer' },
+              lastWelcomeEmailSentAt: { type: ['string', 'null'], format: 'date-time' },
             },
           },
         },
@@ -113,6 +115,8 @@ export const getUserDetailSchema = {
         createdAt: { type: 'string', format: 'date-time' },
         updatedAt: { type: 'string', format: 'date-time' },
         lastLogin: { type: ['string', 'null'], format: 'date-time' },
+        welcomeEmailSendCount: { type: 'integer' },
+        lastWelcomeEmailSentAt: { type: ['string', 'null'], format: 'date-time' },
         statistics: {
           type: 'object',
           properties: {

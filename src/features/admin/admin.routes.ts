@@ -10,7 +10,6 @@
  * - /admin/roles/*             - Role and permission management (CRUD)
  * - /admin/users/*             - User management and CSV import
  * - /admin/company/info        - Company basic information
- * - /admin/company/domains     - Allowed domains for SSO
  * - /admin/company/coin-economy - Coin economy settings
  * - /admin/company/values      - Company values management
  * - /admin/voucher-products/*  - Voucher products catalog viewing (read-only)
@@ -81,17 +80,6 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       await fastify.register(companyInfoRoutes)
     },
     { prefix: '/company/info' },
-  )
-
-  // Company Domains routes - /admin/company/domains
-  await fastify.register(
-    async function (fastify) {
-      const { default: companyDomainsRoutes } = await import(
-        '@/features/admin/company-domains/company-domains.routes'
-      )
-      await fastify.register(companyDomainsRoutes)
-    },
-    { prefix: '/company/domains' },
   )
 
   // Company Coin Economy routes - /admin/company/coin-economy

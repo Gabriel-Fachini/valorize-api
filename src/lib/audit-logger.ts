@@ -26,10 +26,6 @@ export enum AuditAction {
   CONTACT_UPDATE = 'CONTACT_UPDATE',
   CONTACT_DELETE = 'CONTACT_DELETE',
 
-  // Domain management
-  DOMAIN_ADD = 'DOMAIN_ADD',
-  DOMAIN_DELETE = 'DOMAIN_DELETE',
-
   // Plan management
   PLAN_CHANGE = 'PLAN_CHANGE',
 
@@ -57,7 +53,6 @@ export enum AuditEntityType {
   COMPANY_WALLET = 'CompanyWallet',
   COMPANY_CONTACT = 'CompanyContact',
   COMPANY_PLAN = 'CompanyPlan',
-  ALLOWED_DOMAIN = 'AllowedDomain',
   CHARGE = 'Charge',
   CHARGE_ATTACHMENT = 'ChargeAttachment',
   CHARGE_PAYMENT = 'ChargePayment',

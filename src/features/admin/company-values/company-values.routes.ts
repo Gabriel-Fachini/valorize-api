@@ -18,24 +18,8 @@ import {
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { getAuthUserId } from '@/middleware/auth'
-import { prisma } from '@/lib/database'
+import { getCompanyIdFromUser } from '@/lib/utils/auth'
 import { logger } from '@/lib/logger'
-
-/**
- * Get company ID from authenticated user
- */
-async function getCompanyIdFromUser(authUserId: string): Promise<string> {
-  const user = await prisma.user.findUnique({
-    where: { authUserId },
-    select: { companyId: true },
-  })
-
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  return user.companyId
-}
 
 export default async function companyValuesRoutes(fastify: FastifyInstance) {
   /**

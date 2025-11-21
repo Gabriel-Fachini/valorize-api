@@ -216,7 +216,6 @@ export class BackofficeCompany {
         plans: {
           where: { isActive: true },
         },
-        allowedDomains: true,
         values: {
           where: { isActive: true },
         },

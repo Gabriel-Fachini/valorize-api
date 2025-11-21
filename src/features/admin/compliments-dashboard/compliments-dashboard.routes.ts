@@ -16,25 +16,10 @@ import { requireFeature } from '@/middleware/plan-guard'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { PLAN_FEATURE } from '@/features/app/plans/plan-features.constants'
 import { getAuthUserId } from '@/middleware/auth'
+import { getCompanyIdFromUser } from '@/lib/utils/auth'
 import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { DashboardFilters } from './compliments-dashboard.types'
-
-/**
- * Get company ID from authenticated user
- */
-async function getCompanyIdFromUser(authUserId: string): Promise<string> {
-  const user = await prisma.user.findUnique({
-    where: { authUserId },
-    select: { companyId: true },
-  })
-
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  return user.companyId
-}
 
 /**
  * Parse and validate date parameters

@@ -7,7 +7,7 @@ import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { NotFoundError, ConflictError, ValidationError } from '@/middleware/error-handler'
 import { authService } from '@/features/app/auth/auth.service'
-import { companyDomainsService } from '@/features/admin/company-domains/company-domains.service'
+import { validateEmailDomain } from '@/lib/utils/domain-validation'
 import type {
   UserListItem,
   UserDetailResponse,
@@ -81,6 +81,8 @@ export async function listUsers(
         isActive: true,
         createdAt: true,
         updatedAt: true,
+        welcomeEmailSendCount: true,
+        lastWelcomeEmailSentAt: true,
         department: {
           select: {
             id: true,
@@ -115,6 +117,8 @@ export async function listUsers(
     isActive: user.isActive,
     createdAt: user.createdAt,
     lastLogin: undefined, // TODO: add lastLogin field to User model if needed
+    welcomeEmailSendCount: user.welcomeEmailSendCount,
+    lastWelcomeEmailSentAt: user.lastWelcomeEmailSentAt ?? undefined,
   }))
 
   return {
@@ -168,6 +172,8 @@ export async function getUserById(companyId: string, userId: string): Promise<Us
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     lastLogin: undefined, // TODO: add lastLogin field to User model if needed
+    welcomeEmailSendCount: user.welcomeEmailSendCount,
+    lastWelcomeEmailSentAt: user.lastWelcomeEmailSentAt ?? undefined,
     statistics,
   }
 }
@@ -234,7 +240,7 @@ export async function createUser(
   createdAt: Date
   temporaryPasswordUrl?: string
 }> {
-  const { name, email, departmentId, jobTitleId, sendEmail = false } = input
+  const { name, email, departmentId, jobTitleId } = input
 
   // Validate inputs
   if (!name || name.trim().length < 2) {
@@ -248,7 +254,7 @@ export async function createUser(
   const normalizedEmail = email.toLowerCase().trim()
 
   // Validate email domain
-  await companyDomainsService.validateEmailDomain(companyId, normalizedEmail)
+  await validateEmailDomain(companyId, normalizedEmail)
 
   // Check if email already exists in company
   const existingUser = await prisma.user.findFirst({
@@ -288,51 +294,17 @@ export async function createUser(
     }
   }
 
-  // Create user in Supabase Auth if authUserId not provided
-  let finalAuthUserId = authUserId
-  let temporaryPasswordUrl: string | undefined
-  let emailSent = false
+  // Do NOT create user in Supabase Auth during user creation
+  // User will be created in Supabase when welcome email is sent
+  // This allows users to be created without immediately inviting them
+  const finalAuthUserId = authUserId ?? null
 
-  if (!finalAuthUserId) {
-    try {
-      const auth0Result = await authService.createAdminUser({
-        email: normalizedEmail,
-        name: name.trim(),
-        sendEmail,
-      })
-      finalAuthUserId = auth0Result.authUserId
-      temporaryPasswordUrl = auth0Result.ticketUrl
-      emailSent = auth0Result.emailSent
-
-      logger.info('User created in Supabase Auth via Admin Panel', {
-        authUserId: finalAuthUserId,
-        email: normalizedEmail,
-        emailSent,
-      })
-    } catch (error) {
-      logger.error('Failed to create user in Supabase Auth', {
-        email: normalizedEmail,
-        error: error instanceof Error ? error.message : String(error),
-      })
-      throw new Error(`Failed to create user in Supabase Auth: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  } else {
-    // If authUserId is provided, just generate a password reset ticket
-    try {
-      const passwordTicket = await authService.generateTemporaryPassword(finalAuthUserId)
-      temporaryPasswordUrl = passwordTicket.ticket_url
-    } catch (error) {
-      logger.warn('Failed to generate temporary password for provided authUserId', {
-        authUserId: finalAuthUserId,
-        email: normalizedEmail,
-        error: error instanceof Error ? error.message : String(error),
-      })
-      // Don't fail user creation if password generation fails
-    }
-  }
+  logger.info('Creating user in database only (Supabase Auth will be created on email send)', {
+    email: normalizedEmail,
+    hasAuthUserId: !!authUserId,
+  })
 
   // Create user in local database with welcome email tracking
-  const now = new Date()
   const user = await prisma.user.create({
     data: {
       authUserId: finalAuthUserId,
@@ -342,16 +314,16 @@ export async function createUser(
       departmentId: departmentId ?? null,
       jobTitleId: jobTitleId ?? null,
       isActive: true,
-      // Welcome email tracking fields
-      welcomeEmailSentAt: emailSent ? now : null,
-      lastWelcomeEmailSentAt: emailSent ? now : null,
-      welcomeEmailSendCount: emailSent ? 1 : 0,
+      // Welcome email tracking fields - email will be sent later
+      welcomeEmailSentAt: null,
+      lastWelcomeEmailSentAt: null,
+      welcomeEmailSendCount: 0,
     },
   })
 
   logger.info(`User created in admin panel: ${user.id} (${user.email})`, {
     authUserId: finalAuthUserId,
-    emailSent,
+    note: 'User created in DB only, email will be sent separately',
   })
 
   return {
@@ -360,7 +332,6 @@ export async function createUser(
     email: user.email,
     isActive: user.isActive,
     createdAt: user.createdAt,
-    temporaryPasswordUrl,
   }
 }
 
@@ -656,6 +627,8 @@ export async function getUsersForExport(companyId: string, userIds: string[]): P
       avatar: true,
       isActive: true,
       createdAt: true,
+      welcomeEmailSendCount: true,
+      lastWelcomeEmailSentAt: true,
       department: {
         select: {
           id: true,
@@ -680,6 +653,9 @@ export async function getUsersForExport(companyId: string, userIds: string[]): P
     avatar: user.avatar ?? undefined,
     isActive: user.isActive,
     createdAt: user.createdAt,
+    lastLogin: undefined,
+    welcomeEmailSendCount: user.welcomeEmailSendCount,
+    lastWelcomeEmailSentAt: user.lastWelcomeEmailSentAt ?? undefined,
   }))
 }
 

@@ -27,24 +27,8 @@ import {
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { getAuthUserId } from '@/middleware/auth'
-import { prisma } from '@/lib/database'
+import { getCompanyIdFromUser } from '@/lib/utils/auth'
 import { logger } from '@/lib/logger'
-
-/**
- * Get company ID from authenticated user
- */
-async function getCompanyIdFromUser(authUserId: string): Promise<string> {
-  const user = await prisma.user.findUnique({
-    where: { authUserId },
-    select: { companyId: true },
-  })
-
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  return user.companyId
-}
 
 export default async function usersRoutes(fastify: FastifyInstance) {
   // ============================================================================
@@ -66,11 +50,11 @@ export default async function usersRoutes(fastify: FastifyInstance) {
         const result = await usersService.listUsers(companyId, {
           page: query.page ? parseInt(query.page, 10) : 1,
           limit: query.limit ? parseInt(query.limit, 10) : 20,
-          search: query.search || '',
+          search: query.search ?? '',
           status: query.status,
           departmentId: query.departmentId,
-          sortBy: query.sortBy || 'createdAt',
-          sortOrder: query.sortOrder || 'desc',
+          sortBy: query.sortBy ?? 'createdAt',
+          sortOrder: query.sortOrder ?? 'desc',
         })
 
         return reply.code(200).send(result)
@@ -126,6 +110,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
           email: body.email,
           departmentId: body.departmentId,
           jobTitleId: body.jobTitleId,
+          sendEmail: body.sendEmail,
         })
 
         return reply.code(201).send(user)
@@ -225,8 +210,8 @@ export default async function usersRoutes(fastify: FastifyInstance) {
             u.id,
             u.name,
             u.email,
-            u.department?.name || '',
-            u.position?.name || '',
+            u.department?.name ?? '',
+            u.position?.name ?? '',
             u.isActive ? 'true' : 'false',
             u.createdAt.toISOString(),
           ])
@@ -404,14 +389,14 @@ export default async function usersRoutes(fastify: FastifyInstance) {
 
   // Send welcome email to a specific user
   fastify.post(
-    '/:id/send-welcome-email',
+    '/:userId/send-welcome-email',
     {
       schema: sendWelcomeEmailSchema,
-      preHandler: [requirePermission(PERMISSION.USERS_MANAGE)],
+      preHandler: [requirePermission(PERMISSION.USERS_UPDATE)],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const { id: userId } = request.params
+        const { userId } = request.params as { userId: string }
         const authUserId = getAuthUserId(request)
 
         const result = await userOnboardingService.sendWelcomeEmail(userId, authUserId)
@@ -420,7 +405,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       } catch (error) {
         logger.error('Send welcome email endpoint error', {
           error: error instanceof Error ? error.message : String(error),
-          userId: request.params.id,
+          userId: (request.params as { userId: string }).userId,
         })
         throw error
       }
@@ -432,7 +417,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     '/send-welcome-emails-bulk',
     {
       schema: sendWelcomeEmailsBulkSchema,
-      preHandler: [requirePermission(PERMISSION.USERS_MANAGE)],
+      preHandler: [requirePermission(PERMISSION.USERS_BULK_ACTIONS)],
     },
     async (request: FastifyRequest<{ Body: { userIds: string[] } }>, reply: FastifyReply) => {
       try {

@@ -18,6 +18,8 @@ export interface UserListItem {
   isActive: boolean
   createdAt: Date
   lastLogin?: Date
+  welcomeEmailSendCount: number
+  lastWelcomeEmailSentAt?: Date
 }
 
 export interface UserStatistics {

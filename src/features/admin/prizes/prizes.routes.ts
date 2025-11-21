@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { requirePermission } from '@/middleware/rbac'
 import { PERMISSION } from '@/features/app/rbac/permissions.constants'
 import { getAuthUserId } from '@/middleware/auth'
-import { prisma } from '@/lib/database'
+import { getCompanyIdFromUser } from '@/lib/utils/auth'
 import { logger } from '@/lib/logger'
 import { prizesService } from './prizes.service'
 import { supabaseStorageService } from '@/lib/storage/supabase-storage.service'
@@ -31,22 +31,6 @@ export default async function prizesRoutes(fastify: FastifyInstance) {
       files: 4, // Max 4 files at once
     },
   })
-
-  /**
-   * Helper function to get company ID from Supabase Auth user ID
-   */
-  async function getCompanyIdFromUser(authUserId: string): Promise<string> {
-    const user = await prisma.user.findUnique({
-      where: { authUserId },
-      select: { companyId: true },
-    })
-
-    if (!user?.companyId) {
-      throw new Error('User or company not found')
-    }
-
-    return user.companyId
-  }
 
   /**
    * POST /admin/prizes

@@ -7,6 +7,7 @@ import { prisma } from '@/lib/database'
 import { logger } from '@/lib/logger'
 import { ValidationError } from '@/middleware/error-handler'
 import { authService } from '@/features/app/auth/auth.service'
+import { validateEmailDomain } from '@/lib/utils/domain-validation'
 import type {
   CSVRow,
   CSVRowError,
@@ -224,6 +225,17 @@ export async function validateCSVData(
     } else {
       const normalizedEmail = row.email.toLowerCase().trim()
 
+      // Validate email domain matches company domain
+      try {
+        await validateEmailDomain(companyId, normalizedEmail)
+      } catch (error) {
+        errors.push({
+          rowNumber,
+          field: 'email',
+          message: error instanceof Error ? error.message : 'Invalid email domain',
+        })
+      }
+
       // Check for duplicates within CSV
       if (emails.has(normalizedEmail)) {
         errors.push({
@@ -375,68 +387,30 @@ export async function importUsers(
   }
 
   // ============================================================================
-  // ETAPA 1: Create all users in Supabase Auth (parallel batches)
+  // ETAPA 1: Create all users in DB only (no Supabase Auth yet)
+  // Users will be created in Supabase when welcome emails are sent
   // ============================================================================
 
-  logger.info('Creating users in Supabase Auth...', { count: rowsToImport.length, sendEmails })
+  logger.info('Creating users in database (Supabase Auth will be created on email send)...', {
+    count: rowsToImport.length,
+    willSendEmails: sendEmails
+  })
 
-  let authUsers: Array<{ row: ValidatedCSVRow; authUserId: string; emailSent: boolean }>
-
-  try {
-    authUsers = await processInBatches(rowsToImport, 10, async (row) => {
-      const auth0Result = await authService.createAdminUser({
-        email: row.email.toLowerCase().trim(),
-        name: row.nome.trim(),
-        sendEmail: sendEmails,
-      })
-
-      logger.info('User created in Supabase Auth via CSV import', {
-        authUserId: auth0Result.authUserId,
-        email: row.email,
-        rowNumber: row.rowNumber,
-        emailSent: auth0Result.emailSent,
-      })
-
-      return {
-        row,
-        authUserId: auth0Result.authUserId,
-        emailSent: auth0Result.emailSent,
-      }
-    })
-
-    logger.info('All Auth0 users created successfully', { count: authUsers.length })
-  } catch (auth0Error: any) {
-    // Enhanced Auth0 error handling
-    let errorMessage = 'Failed to create users in Supabase Auth'
-
-    if (auth0Error instanceof Error) {
-      const errorMsg = auth0Error.message.toLowerCase()
-
-      if (errorMsg.includes('already exists') || errorMsg.includes('duplicate')) {
-        errorMessage = 'Email already exists in Supabase Auth. Please ensure all emails in the CSV are new users.'
-      } else if (errorMsg.includes('invalid email')) {
-        errorMessage = 'Invalid email format detected in CSV'
-      } else if (errorMsg.includes('rate limit')) {
-        errorMessage = 'Auth0 rate limit exceeded. Please try again later.'
-      } else {
-        errorMessage = `Auth0 error: ${auth0Error.message}`
-      }
-    }
-
-    logger.error('Failed to create users in Supabase Auth', {
-      error: auth0Error instanceof Error ? auth0Error.message : String(auth0Error),
-      stack: auth0Error instanceof Error ? auth0Error.stack : undefined,
-    })
-
-    throw new ValidationError(errorMessage)
-  }
+  // Prepare rows without authUserId (will be created when email is sent)
+  const userRows = rowsToImport.map(row => ({
+    row,
+    authUserId: null as string | null,
+    emailSent: false,
+  }))
 
   // ============================================================================
   // ETAPA 2: Create all users in DB (single transaction - all-or-nothing)
   // ============================================================================
 
+  let createdUserIds: string[] = []
+
   try {
-    await prisma.$transaction(
+    const userMap = await prisma.$transaction(
       async (tx) => {
         // SUB-ETAPA 1: Upsert all departments/jobs
         logger.info('Upserting departments and job titles...')
@@ -446,15 +420,17 @@ export async function importUsers(
           jobTitles: jobMap.size,
         })
 
-        // SUB-ETAPA 2: Create all users (without managers)
+        // SUB-ETAPA 2: Create all users (without managers, without authUserId)
         logger.info('Creating users in database...')
-        const userMap = await createAllUsers(tx, authUsers, deptMap, jobMap, companyId)
+        const userMap = await createAllUsers(tx, userRows, deptMap, jobMap, companyId)
         logger.info('All users created in database', { count: userMap.size })
 
         // SUB-ETAPA 3: Assign managers (second pass)
         logger.info('Assigning managers...')
         await assignAllManagers(tx, rowsToImport, userMap)
         logger.info('Managers assigned successfully')
+
+        return userMap
       },
       {
         timeout: 60000, // 60 seconds for large imports
@@ -462,19 +438,82 @@ export async function importUsers(
       },
     )
 
-    logger.info('DB transaction completed successfully')
+    // Extract created user IDs
+    createdUserIds = Array.from(userMap.values())
+
+    logger.info('DB transaction completed successfully', { usersCreated: createdUserIds.length })
   } catch (dbError) {
-    // ROLLBACK: Try to delete Auth0 users
-    logger.error('DB transaction failed, rolling back Auth0 users', { error: dbError })
-
-    await rollbackAuthUsers(authUsers.map((u) => u.authUserId))
-
     const errorMessage =
       dbError instanceof Error
         ? dbError.message
         : 'Database transaction failed during import. All changes rolled back.'
 
+    logger.error('DB transaction failed', { error: errorMessage })
     throw new ValidationError(errorMessage)
+  }
+
+  // ============================================================================
+  // ETAPA 3: Send welcome emails if requested (non-blocking, best-effort)
+  // ============================================================================
+
+  let emailsSent = 0
+  let emailsFailed = 0
+
+  if (sendEmails && createdUserIds.length > 0) {
+    logger.info('Sending welcome emails to imported users in parallel batches...', {
+      count: createdUserIds.length,
+      batchSize: 25 // Process 25 emails concurrently
+    })
+
+    // Import userOnboardingService
+    const { userOnboardingService } = await import('./user-onboarding.service')
+
+    // Send emails in parallel batches with controlled concurrency
+    // Batch size 25 is optimized for Supabase Free Tier (60 DB connections limit)
+    // Each email uses 2 DB connections (1 read + 1 update) = 50 connections used
+    // Leaves 10 connections for other operations
+    // Toro case (650 users): ~2-3 minutes total (26 batches)
+    // With rate limit of 700 emails: Can process all 650 users safely
+    const BATCH_SIZE = 25
+
+    try {
+      const results = await processInBatches(
+        createdUserIds,
+        BATCH_SIZE,
+        async (userId) => {
+          try {
+            await userOnboardingService.sendWelcomeEmail(userId, 'csv-import')
+            logger.info('Welcome email sent to imported user', { userId })
+            return { userId, success: true }
+          } catch (emailError) {
+            logger.warn('Failed to send welcome email to imported user', {
+              userId,
+              error: emailError instanceof Error ? emailError.message : String(emailError)
+            })
+            return {
+              userId,
+              success: false,
+              error: emailError instanceof Error ? emailError.message : String(emailError)
+            }
+          }
+        }
+      )
+
+      // Count successes and failures
+      emailsSent = results.filter(r => r.success).length
+      emailsFailed = results.filter(r => !r.success).length
+
+      logger.info('Welcome email sending completed', {
+        total: createdUserIds.length,
+        sent: emailsSent,
+        failed: emailsFailed
+      })
+    } catch (batchError) {
+      logger.error('Batch email sending failed', {
+        error: batchError instanceof Error ? batchError.message : String(batchError)
+      })
+      // Don't fail the import - emails are best-effort
+    }
   }
 
   // Clear cache after successful processing
@@ -483,6 +522,8 @@ export async function importUsers(
   logger.info('CSV import completed successfully', {
     created: rowsToImport.length,
     totalRows: validatedRows.length,
+    emailsSent,
+    emailsFailed
   })
 
   return {
@@ -598,44 +639,42 @@ async function upsertAllDepartmentsAndJobs(
  */
 async function createAllUsers(
   tx: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-  authUsers: Array<{ row: ValidatedCSVRow; authUserId: string; emailSent: boolean }>,
+  authUsers: Array<{ row: ValidatedCSVRow; authUserId: string | null; emailSent: boolean }>,
   deptMap: Map<string, string>,
   jobMap: Map<string, string>,
   companyId: string,
 ): Promise<Map<string, string>> {
   const userMap = new Map<string, string>()
-  const now = new Date()
 
   // Create all users sequentially WITHIN transaction
   // (Prisma transaction already guarantees atomicity)
-  for (const { row, authUserId, emailSent } of authUsers) {
+  for (const { row, authUserId } of authUsers) {
     const departmentId = row.departamento ? deptMap.get(row.departamento.trim()) : undefined
 
     const jobTitleId = row.cargo ? jobMap.get(row.cargo.trim()) : undefined
 
-    // Create user (WITHOUT managerId yet)
+    // Create user (WITHOUT managerId yet, WITHOUT authUserId - will be created on email send)
     const user = await tx.user.create({
       data: {
-        authUserId,
+        authUserId: authUserId ?? undefined, // null converted to undefined for Prisma
         companyId,
         email: row.email.toLowerCase().trim(),
         name: row.nome.trim(),
         departmentId,
         jobTitleId,
         isActive: true,
-        // Simplified onboarding fields
-        welcomeEmailSentAt: emailSent ? now : null,
-        lastWelcomeEmailSentAt: emailSent ? now : null,
-        welcomeEmailSendCount: emailSent ? 1 : 0,
+        // Welcome email tracking - emails will be sent after DB transaction
+        welcomeEmailSentAt: null,
+        lastWelcomeEmailSentAt: null,
+        welcomeEmailSendCount: 0,
         // managerId: null by default
       },
       select: { id: true },
     })
 
-    logger.info('Created user with welcome email tracking', {
+    logger.info('Created user in database (email will be sent later)', {
       userId: user.id,
       email: row.email,
-      emailSent,
     })
 
     userMap.set(row.email.toLowerCase(), user.id)

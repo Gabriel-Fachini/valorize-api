@@ -16,7 +16,6 @@ import type {
   UpdateCompanyPlanInput,
   AddCompanyContactInput,
   UpdateCompanyContactInput,
-  AddAllowedDomainInput,
   MetricsQueryParams,
 } from './companies.types'
 import type { PlanType } from '@prisma/client'
@@ -103,7 +102,6 @@ export const backofficeCompanyService = {
       companyBrazil: company.companyBrazil ?? undefined,
       contacts: company.contacts,
       settings: company.settings ?? undefined,
-      allowedDomains: company.allowedDomains,
       wallet,
       plan: activePlan,
       metrics,
@@ -986,80 +984,6 @@ export const backofficeCompanyService = {
         role: contact.role,
         userName: contact.user.name,
         userEmail: contact.user.email,
-      },
-    })
-  },
-
-  /**
-   * Add allowed domain for SSO
-   */
-  async addAllowedDomain(
-    companyId: string,
-    input: AddAllowedDomainInput,
-    addedBy: string,
-  ): Promise<{ id: string }> {
-    // Check if domain already exists
-    const existing = await prisma.allowedDomain.findFirst({
-      where: {
-        companyId,
-        domain: input.domain,
-      },
-    })
-
-    if (existing) {
-      throw new Error('Domain already added to this company')
-    }
-
-    const allowedDomain = await prisma.allowedDomain.create({
-      data: {
-        companyId,
-        domain: input.domain,
-      },
-    })
-
-    // Audit log
-    await auditLogger.log({
-      userId: addedBy,
-      action: AuditAction.DOMAIN_ADD,
-      entityType: AuditEntityType.ALLOWED_DOMAIN,
-      entityId: allowedDomain.id,
-      metadata: {
-        companyId,
-        domain: input.domain,
-      },
-    })
-
-    return { id: allowedDomain.id }
-  },
-
-  /**
-   * Delete allowed domain
-   */
-  async deleteAllowedDomain(
-    domainId: string,
-    deletedBy: string,
-  ): Promise<void> {
-    const allowedDomain = await prisma.allowedDomain.findUnique({
-      where: { id: domainId },
-    })
-
-    if (!allowedDomain) {
-      throw new Error('Domain not found')
-    }
-
-    await prisma.allowedDomain.delete({
-      where: { id: domainId },
-    })
-
-    // Audit log
-    await auditLogger.log({
-      userId: deletedBy,
-      action: AuditAction.DOMAIN_DELETE,
-      entityType: AuditEntityType.ALLOWED_DOMAIN,
-      entityId: domainId,
-      metadata: {
-        companyId: allowedDomain.companyId,
-        domain: allowedDomain.domain,
       },
     })
   },

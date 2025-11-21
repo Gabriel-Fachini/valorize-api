@@ -15,6 +15,9 @@ export const buildApp = async (): Promise<FastifyInstance> => {
     logger: {
       level: process.env.LOG_LEVEL ?? 'info',
     },
+    // Request timeout: 5 minutes (for CSV imports and long operations)
+    connectionTimeout: 5 * 60 * 1000, // 5 minutes
+    requestTimeout: 5 * 60 * 1000, // 5 minutes
   })
 
   // Register CORS

@@ -135,7 +135,6 @@ enum AuditEntityType {
   COMPANY_WALLET = 'CompanyWallet',
   COMPANY_CONTACT = 'CompanyContact',
   COMPANY_PLAN = 'CompanyPlan',
-  ALLOWED_DOMAIN = 'AllowedDomain',
 }
 ```
 

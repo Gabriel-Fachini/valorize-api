@@ -69,7 +69,6 @@ export interface CompanyDetails extends Company {
   settings?: any
   wallet: CompanyWalletStatus | null
   plan: CompanyPlan | null
-  allowedDomains: any[]
   metrics: CompanyMetrics
   billing: BillingInfo
 }
@@ -261,13 +260,6 @@ export interface AddCompanyContactInput {
 export interface UpdateCompanyContactInput {
   role?: string
   isPrimary?: boolean
-}
-
-/**
- * Add allowed domain input
- */
-export interface AddAllowedDomainInput {
-  domain: string
 }
 
 /**

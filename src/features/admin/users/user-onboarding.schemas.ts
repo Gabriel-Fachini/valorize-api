@@ -11,9 +11,9 @@ export const sendWelcomeEmailSchema = {
   description: 'Send welcome email to a specific user (max 3 times)',
   params: {
     type: 'object',
-    required: ['id'],
+    required: ['userId'],
     properties: {
-      id: { type: 'string', description: 'User ID' },
+      userId: { type: 'string', description: 'User ID' },
     },
   },
   response: {

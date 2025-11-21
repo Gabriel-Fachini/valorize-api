@@ -40,7 +40,7 @@ enum ChargeStatus {
 
 model User {
   id                      String    @id @default(cuid())
-  authUserId              String    @unique @map("auth_user_id")
+  authUserId              String?   @unique @map("auth_user_id")
   email                   String    @unique
   name                    String
   avatar                  String?
@@ -260,19 +260,6 @@ model CompanySettings {
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@map("company_settings")
-}
-
-model AllowedDomain {
-  id        String   @id @default(cuid())
-  companyId String   @map("company_id")
-  domain    String // Domínio permitido para SSO (ex: "empresax.com.br")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@unique([companyId, domain])
-  @@index([companyId])
-  @@map("allowed_domains")
 }
 
 model CompanyValue {

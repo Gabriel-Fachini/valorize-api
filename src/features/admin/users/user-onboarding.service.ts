@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/database'
-import { getSupabaseAuth } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import type {
   SendWelcomeEmailResponse,
   BulkEmailSendResult,
@@ -19,12 +19,14 @@ export const userOnboardingService = {
     try {
       logger.info('Sending welcome email', { userId, requestedBy })
 
-      // Get user
+      // Get user with authUserId and name
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           id: true,
+          name: true,
           email: true,
+          authUserId: true,
           welcomeEmailSendCount: true,
           welcomeEmailSentAt: true,
         },
@@ -41,33 +43,64 @@ export const userOnboardingService = {
         )
       }
 
-      // Send email via Supabase
-      const supabase = getSupabaseAuth()
+      const supabaseAdmin = getSupabaseAdmin()
       const redirectUrl =
+        process.env.FRONTEND_ONBOARDING_URL ??
         process.env.FRONTEND_PASSWORD_RESET_URL ??
-        `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/reset-password`
+        `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/onboarding`
 
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      // Send welcome email via Supabase Admin API
+      // inviteUserByEmail creates the user in Supabase Auth AND sends the email
+      // If user already exists, it just resends the invitation
+      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         user.email.toLowerCase(),
         {
           redirectTo: redirectUrl,
+          data: {
+            name: user.name, // Include user metadata
+          },
         },
       )
 
-      if (resetError) {
+      if (inviteError) {
         logger.error('Failed to send welcome email', {
           userId,
           email: user.email,
-          error: resetError.message,
+          error: inviteError.message,
         })
-        throw new Error(`Failed to send email: ${resetError.message}`)
+
+        // Check for rate limit error from Supabase
+        if (inviteError.message.includes('rate limit')) {
+          throw new Error(
+            'Email rate limit exceeded. Supabase Free tier allows 30 emails/hour. Please wait a few minutes and try again, or upgrade to Pro tier for higher limits.'
+          )
+        }
+
+        throw new Error(`Failed to send email: ${inviteError.message}`)
       }
 
-      // Update user record
+      // Get authUserId from invite response
+      // For new users: inviteData.user contains the created user
+      // For existing users: we need to use the user's existing authUserId
+      const finalAuthUserId = inviteData?.user?.id ?? user.authUserId
+
+      if (!finalAuthUserId) {
+        throw new Error('Failed to get auth user ID from Supabase')
+      }
+
+      logger.info('Welcome email sent successfully', {
+        userId,
+        email: user.email,
+        authUserId: finalAuthUserId,
+        wasNewUser: !user.authUserId,
+      })
+
+      // Update user record with authUserId and email tracking
       const now = new Date()
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
+          authUserId: finalAuthUserId, // Save authUserId from invite response
           welcomeEmailSentAt: user.welcomeEmailSentAt ?? now, // Set only on first send
           lastWelcomeEmailSentAt: now,
           welcomeEmailSendCount: user.welcomeEmailSendCount + 1,
