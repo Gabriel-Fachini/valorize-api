@@ -1,23 +1,23 @@
-# 🔐 Guia: Obtenção de Permissões do Usuário Logado
+# 🔐 Guide: Getting Logged-in User Permissions
 
 **Endpoint**: `GET /me/permissions`  
-**Autenticação**: Bearer Token (obrigatório)  
-**Status Code**: `200 OK` ou `500 Internal Server Error`
+**Authentication**: Bearer Token (required)  
+**Status Code**: `200 OK` or `500 Internal Server Error`
 
 ---
 
-## 📋 Visão Geral
+## 📋 Overview
 
-Este endpoint permite que qualquer usuário autenticado obtenha suas próprias permissões do sistema. É perfeito para:
+This endpoint allows any authenticated user to get their own system permissions. It's perfect for:
 
-- ✅ Renderização condicional de elementos na UI
-- ✅ Verificação de acesso antes de navegar
-- ✅ Exibição/ocultação de botões e painéis
-- ✅ Validação no lado do cliente
+- ✅ Conditional rendering of UI elements
+- ✅ Access verification before navigating
+- ✅ Showing/hiding buttons and panels
+- ✅ Client-side validation
 
 ---
 
-## 📡 Requisição
+## 📡 Request
 
 ```bash
 curl -X GET http://localhost:3000/me/permissions \
@@ -27,9 +27,9 @@ curl -X GET http://localhost:3000/me/permissions \
 
 ---
 
-## 📦 Resposta
+## 📦 Response
 
-### Sucesso (200)
+### Success (200)
 
 ```json
 {
@@ -46,7 +46,7 @@ curl -X GET http://localhost:3000/me/permissions \
 }
 ```
 
-### Erro (500)
+### Error (500)
 
 ```json
 {
@@ -58,9 +58,9 @@ curl -X GET http://localhost:3000/me/permissions \
 
 ---
 
-## 🎯 Usar em React
+## 🎯 Using in React
 
-### Hook Customizado
+### Custom Hook
 
 ```typescript
 // hooks/useUserPermissions.ts
@@ -77,7 +77,7 @@ export const useUserPermissions = () => {
       try {
         const token = localStorage.getItem('token')
         if (!token) {
-          throw new Error('Token não encontrado')
+          throw new Error('Token not found')
         }
 
         const response = await fetch('http://localhost:3000/me/permissions', {
@@ -85,13 +85,13 @@ export const useUserPermissions = () => {
         })
 
         if (!response.ok) {
-          throw new Error('Erro ao carregar permissões')
+          throw new Error('Error loading permissions')
         }
 
         const data = await response.json()
         setPermissions(data.data || [])
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro desconhecido')
+        setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setLoading(false)
       }
@@ -100,10 +100,10 @@ export const useUserPermissions = () => {
     fetchPermissions()
   }, [])
 
-  // Função auxiliar para verificar permissão
+  // Helper function to check permission
   const can = (permission: string) => permissions.includes(permission)
 
-  // Função para verificar múltiplas permissões
+  // Function to check multiple permissions
   const canAll = (permissions: string[]) => 
     permissions.every(p => can(p))
 
@@ -121,22 +121,22 @@ export const useUserPermissions = () => {
 }
 ```
 
-### Usar no Componente
+### Using in Component
 
 ```typescript
 function MyComponent() {
   const { can, canAll, loading } = useUserPermissions()
 
-  if (loading) return <p>Carregando...</p>
+  if (loading) return <p>Loading...</p>
 
   return (
     <div>
       {can('roles:read') && (
-        <button>Visualizar Roles</button>
+        <button>View Roles</button>
       )}
 
       {canAll(['roles:create', 'roles:update']) && (
-        <button>Criar e Editar Roles</button>
+        <button>Create and Edit Roles</button>
       )}
 
       {canAny(['admin', 'manager']) && (
@@ -149,7 +149,7 @@ function MyComponent() {
 
 ---
 
-## 🛡️ Componente PermissionGuard
+## 🛡️ PermissionGuard Component
 
 ```typescript
 // components/PermissionGuard.tsx
@@ -169,7 +169,7 @@ export function PermissionGuard({
 }: PermissionGuardProps) {
   const { can, loading } = useUserPermissions()
 
-  if (loading) return <div>Carregando...</div>
+  if (loading) return <div>Loading...</div>
 
   const permissions = Array.isArray(permission) ? permission : [permission]
   const hasPermission = requireAll
@@ -179,11 +179,11 @@ export function PermissionGuard({
   return hasPermission ? <>{children}</> : <>{fallback}</>
 }
 
-// Uso
+// Usage
 <PermissionGuard 
   permission={['roles:read', 'roles:update']}
   requireAll={true}
-  fallback={<p>Sem permissão</p>}
+  fallback={<p>No permission</p>}
 >
   <AdminPanel />
 </PermissionGuard>
@@ -191,54 +191,54 @@ export function PermissionGuard({
 
 ---
 
-## 🔄 Atualizar Permissões
+## 🔄 Refresh Permissions
 
-Para refrescar as permissões (ex: após login ou mudança de role):
+To refresh permissions (e.g., after login or role change):
 
 ```typescript
 const { useUserPermissions } = await import('@/hooks/useUserPermissions')
 const { updatePermissions } = useUserPermissions()
 
-// Chamar após login
+// Call after login
 await updatePermissions()
 ```
 
 ---
 
-## 📊 Permissões Disponíveis
+## 📊 Available Permissions
 
-Veja a lista completa de permissões em:
+See the complete list of permissions at:
 
 - `GET /admin/roles/system/permissions`
 - `GET /admin/roles/system/categories`
 
 ---
 
-## ⚠️ Considerações
+## ⚠️ Considerations
 
-1. **Cache Local**: As permissões são obtidas uma vez ao montar o componente
-2. **Real-time Updates**: Se as permissões mudam (ex: role atribuído), é necessário recarregar
-3. **Segurança**: Nunca use apenas validação do lado do cliente; sempre valide no backend
-4. **Fallback UI**: Sempre forneça uma mensagem amigável quando sem permissão
+1. **Local Cache**: Permissions are fetched once when the component mounts
+2. **Real-time Updates**: If permissions change (e.g., role assigned), you need to reload
+3. **Security**: Never use only client-side validation; always validate on the backend
+4. **Fallback UI**: Always provide a friendly message when lacking permission
 
 ---
 
-## 🧪 Teste Rápido
+## 🧪 Quick Test
 
 ```bash
-# 1. Login para obter token
+# 1. Login to get token
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"password"}'
 
-# 2. Use o token retornado
-export TOKEN="seu_token_aqui"
+# 2. Use the returned token
+export TOKEN="your_token_here"
 
-# 3. Obtenha as permissões
+# 3. Get the permissions
 curl -X GET http://localhost:3000/me/permissions \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
 
-**Última atualização**: 3 de novembro de 2025
+**Last updated**: November 3, 2025

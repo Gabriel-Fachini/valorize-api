@@ -1,30 +1,30 @@
-# Sistema de Autenticação - Valorize API
+# Authentication System - Valorize API
 
-## Visão Geral
+## Overview
 
-O sistema de autenticação da Valorize API utiliza **Auth0** como provedor de identidade e **JWT (JSON Web Tokens)** para autenticação stateless. O fluxo é implementado através de middlewares Fastify que processam automaticamente todas as requisições.
+The Valorize API authentication system uses **Auth0** as the identity provider and **JWT (JSON Web Tokens)** for stateless authentication. The flow is implemented through Fastify middleware that automatically processes all requests.
 
-## Arquitetura
+## Architecture
 
-### Componentes Principais
+### Main Components
 
-1. **Auth0** - Provedor de identidade externo
-2. **@fastify/jwt** - Plugin Fastify para validação JWT
-3. **jwks-rsa** - Cliente para buscar chaves públicas Auth0
-4. **auth0Middleware** - Middleware global de autenticação
-5. **requirePermission** - Middleware RBAC para controle de acesso
+1. **Auth0** - External identity provider
+2. **@fastify/jwt** - Fastify plugin for JWT validation
+3. **jwks-rsa** - Client for fetching Auth0 public keys
+4. **auth0Middleware** - Global authentication middleware
+5. **requirePermission** - RBAC middleware for access control
 
-## Fluxo de Autenticação
+## Authentication Flow
 
 ```mermaid
 sequenceDiagram
-    participant Client as Cliente
+    participant Client as Client
     participant API as Valorize API
     participant Auth0 as Auth0
     participant JWKS as Auth0 JWKS
     participant DB as Database
 
-    Note over Client,DB: 1. Processo de Login
+    Note over Client,DB: 1. Login Process
     Client->>API: POST /auth/login<br/>{email, password}
     API->>Auth0: POST /oauth/token<br/>(Resource Owner Password Grant)
     Auth0->>API: {access_token, refresh_token, user_info}
@@ -32,49 +32,49 @@ sequenceDiagram
     Auth0->>API: User profile data
     API->>Client: {access_token, refresh_token, user_info}
 
-    Note over Client,DB: 2. Requisição Autenticada
+    Note over Client,DB: 2. Authenticated Request
     Client->>API: Request + Authorization: Bearer <jwt>
     
-    Note over API: 3. Middleware Global (preHandler)
-    API->>API: auth0Middleware executa
+    Note over API: 3. Global Middleware (preHandler)
+    API->>API: auth0Middleware executes
     
-    Note over API: 4. Validações Iniciais
-    API->>API: Verifica se é rota pública
-    API->>API: Extrai token do header
-    API->>API: Valida formato Bearer
+    Note over API: 4. Initial Validations
+    API->>API: Check if route is public
+    API->>API: Extract token from header
+    API->>API: Validate Bearer format
     
-    Note over API: 5. Verificação JWT
+    Note over API: 5. JWT Verification
     API->>API: request.jwtVerify()
-    API->>JWKS: Busca chave pública (kid)
-    JWKS->>API: Retorna chave pública
-    API->>API: Valida assinatura JWT
-    API->>API: Verifica issuer/audience
+    API->>JWKS: Fetch public key (kid)
+    JWKS->>API: Return public key
+    API->>API: Validate JWT signature
+    API->>API: Verify issuer/audience
     
-    Note over API: 6. Criação do Usuário
-    API->>API: Extrai dados do payload
-    API->>API: Cria AuthenticatedUser
+    Note over API: 6. User Object Creation
+    API->>API: Extract payload data
+    API->>API: Create AuthenticatedUser
     API->>API: request.authenticatedUser = user
     
-    Note over API: 7. Execução da Rota
-    API->>API: Route handler executa
-    API->>API: getCurrentUser() se necessário
+    Note over API: 7. Route Execution
+    API->>API: Route handler executes
+    API->>API: Call getCurrentUser() if needed
     
-    Note over API: 8. Verificação RBAC (se aplicável)
+    Note over API: 8. RBAC Verification (if applicable)
     API->>API: requirePermission() middleware
-    API->>DB: Consulta permissões do usuário
-    DB->>API: Retorna permissões
-    API->>API: Valida permissão requerida
+    API->>DB: Query user permissions
+    DB->>API: Return permissions
+    API->>API: Validate required permission
     
-    Note over API: 9. Resposta
+    Note over API: 9. Response
     API->>Client: Response (200/401/403)
 ```
 
-## Processo de Login Detalhado
+## Detailed Login Process
 
-### 1. Endpoint de Login (`POST /auth/login`)
+### 1. Login Endpoint (`POST /auth/login`)
 
 ```typescript
-// Cliente envia credenciais para a API
+// Client sends credentials to the API
 POST /auth/login
 {
   "email": "user@example.com",
@@ -82,10 +82,10 @@ POST /auth/login
 }
 ```
 
-### 2. API processa login via Auth0
+### 2. API processes login via Auth0
 
 ```typescript
-// authService.login() executa:
+// authService.login() executes:
 const tokenResponse = await axios.post(
   `https://${auth0Domain}/oauth/token`,
   {
@@ -100,7 +100,7 @@ const tokenResponse = await axios.post(
 )
 ```
 
-### 3. Auth0 retorna tokens
+### 3. Auth0 returns tokens
 
 ```json
 {
@@ -112,10 +112,10 @@ const tokenResponse = await axios.post(
 }
 ```
 
-### 4. API busca informações do usuário
+### 4. API fetches user information
 
 ```typescript
-// Busca dados completos do usuário
+// Fetch complete user data
 const userInfo = await axios.get(
   `https://${auth0Domain}/userinfo`,
   {
@@ -124,7 +124,7 @@ const userInfo = await axios.get(
 )
 ```
 
-### 5. Resposta final para o cliente
+### 5. Final response to client
 
 ```json
 {
@@ -146,22 +146,22 @@ const userInfo = await axios.get(
 }
 ```
 
-## Estrutura de Dados
+## Data Structures
 
 ### AuthenticatedUser Interface
 
 ```typescript
 export interface AuthenticatedUser {
-  sub: string              // Auth0 User ID (identificador único)
-  email?: string           // Email do usuário
-  email_verified?: boolean // Status de verificação do email
-  name?: string           // Nome completo
-  avatar?: string        // URL da foto de perfil
-  [key: string]: unknown  // Outros campos do JWT payload
+  sub: string              // Auth0 User ID (unique identifier)
+  email?: string           // User email
+  email_verified?: boolean // Email verification status
+  name?: string           // Full name
+  avatar?: string        // Profile picture URL
+  [key: string]: unknown  // Other JWT payload fields
 }
 ```
 
-### Extensão do FastifyRequest
+### FastifyRequest Extension
 
 ```typescript
 declare module 'fastify' {
@@ -171,36 +171,36 @@ declare module 'fastify' {
 }
 ```
 
-## Configuração
+## Configuration
 
-### 1. Plugin JWT (@fastify/jwt)
+### 1. JWT Plugin (@fastify/jwt)
 
 ```typescript
 await app.register(jwt, {
   secret: async function (request: any, token: any) {
     const client = jwksClient({
       jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-      cache: true,           // Cache de chaves públicas
-      cacheMaxEntries: 5,    // Máximo 5 chaves em cache
-      cacheMaxAge: 600000,   // Cache por 10 minutos
+      cache: true,           // Cache public keys
+      cacheMaxEntries: 5,    // Maximum 5 keys in cache
+      cacheMaxAge: 600000,   // Cache for 10 minutes
     })
     
-    // Extrai 'kid' do header JWT
-    // Busca chave pública correspondente
+    // Extract 'kid' from JWT header
+    // Fetch corresponding public key
     const key = await client.getSigningKey(kid)
     return key.getPublicKey()
   }
 })
 ```
 
-### 2. Registro do Middleware Global
+### 2. Global Middleware Registration
 
 ```typescript
-// Executa antes de todos os handlers de rota
+// Executes before all route handlers
 app.addHook('preHandler', auth0Middleware)
 ```
 
-### 3. Variáveis de Ambiente
+### 3. Environment Variables
 
 ```env
 AUTH0_DOMAIN=your-domain.auth0.com
@@ -210,19 +210,19 @@ AUTH0_AUDIENCE=your-api-identifier
 AUTH0_SCOPE=openid profile email offline_access
 ```
 
-## Middleware auth0Middleware
+## auth0Middleware
 
-### Responsabilidades
+### Responsibilities
 
-1. **Filtrar rotas públicas** - Skip para `/health`, `/docs`, `/auth/login`, etc.
-2. **Extrair token JWT** - Do header `Authorization: Bearer <token>`
-3. **Validar formato** - Verificar se é um Bearer token válido
-4. **Verificar assinatura** - Usando chaves públicas Auth0 (JWKS)
-5. **Validar claims** - Issuer, audience, expiração
-6. **Criar objeto user** - Extrair dados do payload JWT
-7. **Anexar ao request** - `request.authenticatedUser = user`
+1. **Filter public routes** - Skip for `/health`, `/docs`, `/auth/login`, etc.
+2. **Extract JWT token** - From `Authorization: Bearer <token>` header
+3. **Validate format** - Check if it's a valid Bearer token
+4. **Verify signature** - Using Auth0 public keys (JWKS)
+5. **Validate claims** - Issuer, audience, expiration
+6. **Create user object** - Extract data from JWT payload
+7. **Attach to request** - `request.authenticatedUser = user`
 
-### Rotas Públicas
+### Public Routes
 
 ```typescript
 const PUBLIC_ROUTES = [
@@ -231,13 +231,13 @@ const PUBLIC_ROUTES = [
   '/docs/static',
   '/docs/json',
   '/docs/yaml',
-  '/auth/login',           // Endpoint de login
-  '/auth/refresh',         // Renovação de token
-  '/auth/refresh-info',    // Informações sobre refresh
+  '/auth/login',           // Login endpoint
+  '/auth/refresh',         // Token renewal
+  '/auth/refresh-info',    // Refresh information
 ]
 ```
 
-## Funções Utilitárias
+## Utility Functions
 
 ### getCurrentUser()
 
@@ -250,10 +250,10 @@ export const getCurrentUser = (request: FastifyRequest): AuthenticatedUser => {
 }
 ```
 
-**Uso:**
-- Garante que o usuário está autenticado
-- Fornece type safety
-- Lança erro se não autenticado
+**Usage:**
+- Ensures user is authenticated
+- Provides type safety
+- Throws error if not authenticated
 
 ### isAuthenticated()
 
@@ -263,18 +263,18 @@ export const isAuthenticated = (request: FastifyRequest): boolean => {
 }
 ```
 
-**Uso:**
-- Verificação booleana simples
-- Não lança erros
+**Usage:**
+- Simple boolean check
+- Does not throw errors
 
-## Integração com RBAC
+## RBAC Integration
 
-### Middleware requirePermission
+### requirePermission Middleware
 
 ```typescript
 export const requirePermission = (permission: string) => {
   return async (request: FastifyRequest, _reply: FastifyReply) => {
-    const user = getCurrentUser(request)  // Usa dados já processados
+    const user = getCurrentUser(request)  // Uses already processed data
     
     const { allowed } = await rbacService.checkPermissionWithDetails(
       user.sub, 
@@ -288,21 +288,21 @@ export const requirePermission = (permission: string) => {
 }
 ```
 
-### Exemplo de Uso
+### Usage Example
 
 ```typescript
-// Rota protegida por autenticação + permissão
+// Route protected by authentication + permission
 fastify.get('/admin/users', {
   preHandler: requirePermission('admin:read_users')
 }, async (request, reply) => {
   const user = getCurrentUser(request)
-  // Lógica da rota...
+  // Route logic...
 })
 ```
 
-## Renovação de Tokens
+## Token Renewal
 
-### Endpoint de Refresh (`POST /auth/refresh`)
+### Refresh Endpoint (`POST /auth/refresh`)
 
 ```typescript
 POST /auth/refresh
@@ -311,15 +311,15 @@ POST /auth/refresh
 }
 ```
 
-### Processo de Renovação
+### Renewal Process
 
-1. **Cliente envia refresh_token** para `/auth/refresh`
-2. **API valida o refresh_token** com Auth0
-3. **Auth0 retorna novo access_token** (e possivelmente novo refresh_token)
-4. **API retorna tokens atualizados** para o cliente
+1. **Client sends refresh_token** to `/auth/refresh`
+2. **API validates refresh_token** with Auth0
+3. **Auth0 returns new access_token** (and possibly new refresh_token)
+4. **API returns updated tokens** to client
 
 ```typescript
-// authService.refreshToken() executa:
+// authService.refreshToken() executes:
 const refreshResponse = await axios.post(
   `https://${auth0Domain}/oauth/token`,
   {
@@ -332,38 +332,38 @@ const refreshResponse = await axios.post(
 )
 ```
 
-## Verificação de Sessão
+## Session Verification
 
-### Endpoint de Verificação (`GET /auth/verify`)
+### Verification Endpoint (`GET /auth/verify`)
 
 ```typescript
 GET /auth/verify?minimal=true
 Authorization: Bearer <jwt_token>
 ```
 
-### Modos de Verificação
+### Verification Modes
 
-#### 1. Modo Minimal (`?minimal=true`)
-- Validação básica do token (estrutura e expiração)
-- Não requer middleware de autenticação
-- Mais rápido e eficiente
+#### 1. Minimal Mode (`?minimal=true`)
+- Basic token validation (structure and expiration)
+- No authentication middleware required
+- Faster and more efficient
 
-#### 2. Modo Completo (padrão)
-- Validação completa via middleware
-- Informações detalhadas da sessão
-- Dados completos do usuário
+#### 2. Full Mode (default)
+- Complete validation via middleware
+- Detailed session information
+- Complete user data
 
-## Tratamento de Erros
+## Error Handling
 
-### Tipos de Erro
+### Error Types
 
-1. **UnauthorizedError** - Token ausente, inválido ou expirado
-2. **InsufficientPermissionError** - Usuário sem permissão necessária
+1. **UnauthorizedError** - Token missing, invalid, or expired
+2. **InsufficientPermissionError** - User lacks required permission
 
-### Códigos de Erro JWT
+### JWT Error Codes
 
 ```typescript
-// Mapeamento de erros do @fastify/jwt
+// Error mapping from @fastify/jwt
 if (errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED') {
   throw new UnauthorizedError('Token has expired')
 }
@@ -373,10 +373,10 @@ if (errorCode === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID') {
 }
 ```
 
-### Erros de Login
+### Login Errors
 
 ```typescript
-// Erros do Auth0 durante login
+// Auth0 errors during login
 if (authError?.error === 'invalid_grant') {
   throw new Error('Invalid email or password')
 }
@@ -386,47 +386,47 @@ if (authError?.error === 'access_denied') {
 }
 ```
 
-## Segurança
+## Security
 
-### Validações Implementadas
+### Implemented Validations
 
-1. **Formato do Token** - Deve ser `Bearer <jwt>`
-2. **Assinatura JWT** - Verificada com chaves públicas Auth0
-3. **Issuer** - Deve corresponder ao domínio Auth0 configurado
-4. **Audience** - Validado se configurado (opcional)
-5. **Expiração** - Verificada automaticamente pelo plugin JWT
+1. **Token Format** - Must be `Bearer <jwt>`
+2. **JWT Signature** - Verified with Auth0 public keys
+3. **Issuer** - Must match configured Auth0 domain
+4. **Audience** - Validated if configured (optional)
+5. **Expiration** - Automatically checked by JWT plugin
 
-### Cache de Chaves JWKS
+### JWKS Key Cache
 
-- **Cache habilitado** para chaves públicas Auth0
-- **TTL de 10 minutos** para reduzir latência
-- **Máximo 5 chaves** em cache simultâneo
+- **Cache enabled** for Auth0 public keys
+- **10-minute TTL** to reduce latency
+- **Maximum 5 keys** in simultaneous cache
 
 ### Resource Owner Password Grant
 
-- **Grant type seguro** para aplicações confiáveis
-- **Client secret** obrigatório para validação
-- **Scope limitado** conforme configuração
+- **Secure grant type** for trusted applications
+- **Client secret** required for validation
+- **Limited scope** as per configuration
 
 ## Performance
 
-### Otimizações Existentes
+### Existing Optimizations
 
-1. **Cache JWKS** - Evita buscar chaves públicas repetidamente
-2. **Skip rotas públicas** - Não processa autenticação desnecessariamente
-3. **Skip OPTIONS** - Ignora requests CORS preflight
-4. **Cache de user info** - Informações do usuário obtidas apenas no login
+1. **JWKS Cache** - Avoids repeatedly fetching public keys
+2. **Skip public routes** - Skips unnecessary authentication processing
+3. **Skip OPTIONS** - Ignores CORS preflight requests
+4. **Cache user info** - User data fetched only during login
 
-### Métricas Típicas
+### Typical Metrics
 
-- **Rota pública**: ~0.1ms (apenas verificação de rota)
-- **Login completo**: ~200-500ms (Auth0 + userinfo)
-- **Primeira validação JWT**: ~5-10ms (busca chave JWKS)
-- **Validações subsequentes**: ~2-3ms (chave em cache)
+- **Public route**: ~0.1ms (route check only)
+- **Complete login**: ~200-500ms (Auth0 + userinfo)
+- **First JWT validation**: ~5-10ms (JWKS key fetch)
+- **Subsequent validations**: ~2-3ms (cached key)
 
-## Exemplo Completo de Uso
+## Complete Usage Example
 
-### 1. Login do Cliente
+### 1. Client Login
 
 ```javascript
 // Frontend - Login
@@ -442,15 +442,15 @@ const response = await fetch('/auth/login', {
 const { data } = await response.json()
 const { access_token, refresh_token } = data
 
-// Armazenar tokens (localStorage, sessionStorage, etc.)
+// Store tokens (localStorage, sessionStorage, etc.)
 localStorage.setItem('access_token', access_token)
 localStorage.setItem('refresh_token', refresh_token)
 ```
 
-### 2. Requisições Autenticadas
+### 2. Authenticated Requests
 
 ```javascript
-// Frontend - Requisições subsequentes
+// Frontend - Subsequent requests
 const token = localStorage.getItem('access_token')
 
 const response = await fetch('/users/profile', {
@@ -460,13 +460,13 @@ const response = await fetch('/users/profile', {
 })
 ```
 
-### 3. Processamento na API
+### 3. Backend Processing
 
 ```typescript
 // Backend - Route handler
 app.get('/users/profile', async (request, reply) => {
-  // auth0Middleware já executou e populou request.authenticatedUser
-  const user = getCurrentUser(request)  // Dados já disponíveis
+  // auth0Middleware already executed and populated request.authenticatedUser
+  const user = getCurrentUser(request)  // Data already available
   
   return {
     profile: {
@@ -479,10 +479,10 @@ app.get('/users/profile', async (request, reply) => {
 })
 ```
 
-### 4. Renovação de Token
+### 4. Token Renewal
 
 ```javascript
-// Frontend - Renovar token quando necessário
+// Frontend - Renew token when needed
 const refreshToken = localStorage.getItem('refresh_token')
 
 const response = await fetch('/auth/refresh', {
@@ -499,19 +499,19 @@ localStorage.setItem('access_token', data.access_token)
 
 ## Troubleshooting
 
-### Problemas Comuns
+### Common Issues
 
-1. **Token expirado** - Cliente deve renovar via `/auth/refresh`
-2. **Issuer inválido** - Verificar `AUTH0_DOMAIN`
-3. **Chave JWKS não encontrada** - Verificar conectividade com Auth0
-4. **Audience inválido** - Verificar `AUTH0_AUDIENCE` (se configurado)
-5. **Credenciais inválidas** - Verificar email/senha no Auth0
-6. **Client secret incorreto** - Verificar `AUTH0_CLIENT_SECRET`
+1. **Token expired** - Client should renew via `/auth/refresh`
+2. **Invalid issuer** - Check `AUTH0_DOMAIN` configuration
+3. **JWKS key not found** - Verify connectivity with Auth0
+4. **Invalid audience** - Check `AUTH0_AUDIENCE` (if configured)
+5. **Invalid credentials** - Verify email/password in Auth0
+6. **Incorrect client secret** - Check `AUTH0_CLIENT_SECRET`
 
-### Logs Úteis
+### Useful Logs
 
 ```typescript
-// Debug de login
+// Debug login
 logger.info('Auth0 login successful', {
   email: credentials.email,
   tokenType: tokenData.token_type,
@@ -519,31 +519,31 @@ logger.info('Auth0 login successful', {
   hasRefreshToken: !!tokenData.refresh_token,
 })
 
-// Debug de autenticação
+// Debug authentication
 logger.debug('User authenticated successfully', {
   userId: user.sub,
   email: user.email,
   url: request.url
 })
 
-// Warnings de falha
+// Warnings on failure
 logger.warn('JWT verification failed', {
   error: error.message,
   url: request.url
 })
 ```
 
-### Monitoramento
+### Monitoring
 
 ```typescript
-// Métricas importantes para monitorar:
-// - Taxa de sucesso de login
-// - Tempo de resposta do Auth0
-// - Cache hit rate do JWKS
-// - Frequência de refresh de tokens
-// - Erros de validação JWT
+// Important metrics to monitor:
+// - Login success rate
+// - Auth0 response time
+// - JWKS cache hit rate
+// - Token refresh frequency
+// - JWT validation error frequency
 ```
 
 ---
 
-**Nota**: Este sistema implementa autenticação stateless, escalável e segura, utilizando o padrão Resource Owner Password Grant do OAuth 2.0 através do Auth0, com integração completa ao sistema RBAC para controle granular de permissões.
+**Note**: This system implements stateless, scalable, and secure authentication using the Resource Owner Password Grant flow from OAuth 2.0 via Auth0, with complete integration to the RBAC system for granular permission control.

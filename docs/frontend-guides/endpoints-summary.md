@@ -1,12 +1,12 @@
-# Resumo dos Endpoints - Sistema de Emails de Boas-Vindas
+# Welcome Email System - Endpoints Summary
 
 ## Admin Endpoints
 
-### 1. Enviar Email de Boas-Vindas (Individual)
+### 1. Send Welcome Email (Individual)
 ```
 POST /admin/users/:userId/send-welcome-email
 ```
-**Permissão**: `users:manage`
+**Permission**: `users:manage`
 
 **Body**:
 ```json
@@ -29,11 +29,11 @@ POST /admin/users/:userId/send-welcome-email
 
 ---
 
-### 2. Enviar Emails em Lote
+### 2. Send Welcome Emails in Bulk
 ```
 POST /admin/users/send-welcome-emails-bulk
 ```
-**Permissão**: `users:manage`
+**Permission**: `users:manage`
 
 **Body**:
 ```json
@@ -65,26 +65,26 @@ POST /admin/users/send-welcome-emails-bulk
 
 ---
 
-## Resumo por Caso de Uso
+## Use Cases Summary
 
-### Admin: Criar usuário e enviar email depois
-1. `POST /admin/users` com `sendEmail: false`
+### Admin: Create user and send email later
+1. `POST /admin/users` with `sendEmail: false`
 2. `POST /admin/users/:id/send-welcome-email`
 
-### Admin: Criar usuário e enviar email imediatamente
-1. `POST /admin/users` com `sendEmail: true`
+### Admin: Create user and send email immediately
+1. `POST /admin/users` with `sendEmail: true`
 
-### Admin: Importar CSV e enviar emails
-1. `POST /admin/users/csv-import` com `sendEmails: true`
+### Admin: Import CSV and send emails
+1. `POST /admin/users/csv-import` with `sendEmails: true`
 
-### Admin: Reenviar email manualmente
-1. `POST /admin/users/:id/send-welcome-email` (máximo 3 vezes)
+### Admin: Resend email manually
+1. `POST /admin/users/:id/send-welcome-email` (maximum 3 times)
 
 ---
 
-## Erros Comuns
+## Common Errors
 
-### 400 - Limite de Emails Atingido
+### 400 - Email Limit Reached
 ```json
 {
   "success": false,
@@ -94,7 +94,7 @@ POST /admin/users/send-welcome-emails-bulk
 }
 ```
 
-### 404 - Usuário Não Encontrado
+### 404 - User Not Found
 ```json
 {
   "success": false,
@@ -106,9 +106,9 @@ POST /admin/users/send-welcome-emails-bulk
 
 ---
 
-## Observações Importantes
+## Important Notes
 
-- **Limite de emails**: Máximo 3 por usuário
-- **Campos opcionais**: `sendEmail` em criação de usuário é opcional (default: `false`)
-- **Email via Supabase**: Emails são enviados via Supabase Auth `resetPasswordForEmail`
-- **Tracking simplificado**: Sistema rastreia apenas envio de emails (não cliques, definição de senha, etc.)
+- **Email limit**: Maximum 3 per user
+- **Optional fields**: `sendEmail` in user creation is optional (default: `false`)
+- **Email via Supabase**: Emails are sent via Supabase Auth `resetPasswordForEmail`
+- **Simplified tracking**: System tracks only email sending (not clicks, password setting, etc.)
