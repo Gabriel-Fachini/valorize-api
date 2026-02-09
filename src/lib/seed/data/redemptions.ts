@@ -106,6 +106,91 @@ function generateRedemptions() {
 }
 
 /**
+ * Generate January 2026 redemptions
+ * ~2-3 redemptions per day for 19 days (Jan 1-19, 2026)
+ * Total: ~38-57 redemptions, ~9,000-14,000 coins
+ */
+function generateJanuaryRedemptions() {
+  const redemptions = []
+  const statuses = [
+    PRODUCT_STATUS.PENDING,
+    PRODUCT_STATUS.PROCESSING,
+    PRODUCT_STATUS.SHIPPED,
+    PRODUCT_STATUS.DELIVERED,
+    PRODUCT_STATUS.DELIVERED,
+    PRODUCT_STATUS.DELIVERED,
+  ]
+
+  for (let day = 0; day < 19; day++) {
+    // 2-3 redemptions per day (more recent dates have fewer deliveries)
+    const redemptionsPerDay = day < 10 ? 3 : 2
+    
+    for (let redemptionIndex = 0; redemptionIndex < redemptionsPerDay; redemptionIndex++) {
+      const prizeType = PRIZE_TYPES[(day + redemptionIndex) % PRIZE_TYPES.length]
+      const variantValue = prizeType.values[(day + redemptionIndex) % prizeType.values.length]
+      const prizeName = `${prizeType.name} - ${variantValue}`
+      const coinsSpent = COIN_COSTS[prizeName as keyof typeof COIN_COSTS] || 300
+
+      // Newer redemptions are more likely to be pending or processing
+      let status: typeof PRODUCT_STATUS[keyof typeof PRODUCT_STATUS]
+      if (day <= 2) {
+        // Older January dates (Jan 1-3) - more likely delivered
+        status = [
+          PRODUCT_STATUS.DELIVERED,
+          PRODUCT_STATUS.DELIVERED,
+          PRODUCT_STATUS.SHIPPED,
+        ][redemptionIndex % 3]
+      } else if (day <= 10) {
+        // Mid-January (Jan 4-10) - mix of shipped and processing
+        status = [
+          PRODUCT_STATUS.PROCESSING,
+          PRODUCT_STATUS.SHIPPED,
+          PRODUCT_STATUS.DELIVERED,
+        ][redemptionIndex % 3]
+      } else {
+        // Recent January (Jan 11-19) - mostly pending or processing
+        status = [
+          PRODUCT_STATUS.PENDING,
+          PRODUCT_STATUS.PROCESSING,
+          PRODUCT_STATUS.SHIPPED,
+        ][redemptionIndex % 3]
+      }
+
+      // Generate tracking code based on status
+      const trackingCode = status === PRODUCT_STATUS.PENDING ? null : `JAN-${day.toString().padStart(2, '0')}-${redemptionIndex}`
+
+      // Build tracking history based on status
+      const tracking = []
+      tracking.push({ status: PRODUCT_STATUS.PENDING, notes: 'Solicitação recebida.', createdBy: 'system' })
+
+      if (status === PRODUCT_STATUS.PROCESSING || status === PRODUCT_STATUS.SHIPPED || status === PRODUCT_STATUS.DELIVERED) {
+        tracking.push({ status: PRODUCT_STATUS.PROCESSING, notes: 'Em processamento.', createdBy: 'system' })
+      }
+
+      if (status === PRODUCT_STATUS.SHIPPED || status === PRODUCT_STATUS.DELIVERED) {
+        tracking.push({ status: PRODUCT_STATUS.SHIPPED, notes: 'Enviado.', createdBy: 'system' })
+      }
+
+      if (status === PRODUCT_STATUS.DELIVERED) {
+        tracking.push({ status: PRODUCT_STATUS.DELIVERED, notes: 'Entregue ao usuário.', createdBy: 'system' })
+      }
+
+      redemptions.push({
+        prizeName,
+        variantValue,
+        coinsSpent,
+        status,
+        trackingCode,
+        daysAgo: 18 - day, // January data: 18 days ago to 0 days ago
+        tracking,
+      })
+    }
+  }
+
+  return redemptions
+}
+
+/**
  * Gabriel's specific redemptions (smaller set for narrative)
  */
 export const GABRIEL_REDEMPTIONS = [
@@ -172,8 +257,12 @@ export const GABRIEL_REDEMPTIONS = [
 
 /**
  * Expanded employee redemptions - dynamically generated
+ * Combines 90-day historical data with January 2026 data
  */
-export const EXPANDED_EMPLOYEE_REDEMPTIONS = generateRedemptions()
+export const EXPANDED_EMPLOYEE_REDEMPTIONS = [
+  ...generateRedemptions(),
+  ...generateJanuaryRedemptions(),
+]
 
 /**
  * Helper function to create dates in the past

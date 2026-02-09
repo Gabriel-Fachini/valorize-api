@@ -4,7 +4,20 @@ B2B SaaS platform for corporate culture and employee engagement through structur
 
 **Status**: Production-ready MVP
 
----
+## 📹 Project Demonstration
+
+See how the project works in practice and understand its features:
+
+<div align="center">
+  <a href="https://youtu.be/9MHFR3UuPvY" target="_blank">
+    <img src="https://img.youtube.com/vi/9MHFR3UuPvY/maxresdefault.jpg" alt="Valorize - Demonstração em Vídeo" style="width:100%;max-width:720px;border-radius:8px;">
+  </a>
+  <p>
+    <a href="https://youtu.be/9MHFR3UuPvY" target="_blank">
+      <strong>▶️ Watch full video on YouTube</strong>
+    </a>
+  </p>
+</div>
 
 ## 📋 Table of Contents
 
