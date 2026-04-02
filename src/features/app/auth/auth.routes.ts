@@ -53,18 +53,22 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
+      const normalizedErrorMessage = errorMessage.toLowerCase()
 
       // Check if it's an authentication error (wrong credentials)
-      if (errorMessage.toLowerCase().includes('authentication failed') || 
-          errorMessage.toLowerCase().includes('invalid credentials') ||
-          errorMessage.toLowerCase().includes('invalid access token') ||
-          errorMessage.toLowerCase().includes('wrong email or password') ||
-          errorMessage.toLowerCase().includes('token has expired') ||
-          errorMessage.toLowerCase().includes('access_denied')) {
+      if (normalizedErrorMessage.includes('authentication failed') || 
+          normalizedErrorMessage.includes('invalid credentials') ||
+          normalizedErrorMessage.includes('invalid access token') ||
+          normalizedErrorMessage.includes('invalid token issuer') ||
+          normalizedErrorMessage.includes('wrong email or password') ||
+          normalizedErrorMessage.includes('token has expired') ||
+          normalizedErrorMessage.includes('token is missing subject') ||
+          normalizedErrorMessage.includes('token verification failed') ||
+          normalizedErrorMessage.includes('access_denied')) {
         return reply.code(401).send({
           success: false,
           error: 'Unauthorized',
-          message: errorMessage.toLowerCase().includes('token')
+          message: normalizedErrorMessage.includes('token')
             ? errorMessage
             : 'Invalid email or password',
           statusCode: 401,
@@ -72,8 +76,7 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       }
 
       // Check if it's a validation error
-      if (errorMessage.toLowerCase().includes('invalid') || 
-          errorMessage.toLowerCase().includes('required')) {
+      if (normalizedErrorMessage.includes('required')) {
         return reply.code(400).send({
           success: false,
           error: 'Bad Request',
@@ -82,16 +85,17 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
         })
       }
 
-      if (errorMessage.toLowerCase().includes('user not found in database')) {
+      if (normalizedErrorMessage.includes('user not found in database') ||
+          normalizedErrorMessage.includes('authenticated account does not match the provisioned user')) {
         return reply.code(403).send({
           success: false,
           error: 'Forbidden',
-          message: 'Access denied. This Google account is not provisioned in Valorize',
+          message: 'Access denied. This account is not provisioned in Valorize',
           statusCode: 403,
         })
       }
 
-      if (errorMessage.toLowerCase().includes('deactivated')) {
+      if (normalizedErrorMessage.includes('deactivated')) {
         return reply.code(403).send({
           success: false,
           error: 'Forbidden',

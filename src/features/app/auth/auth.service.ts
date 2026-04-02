@@ -236,14 +236,11 @@ export const authService = {
         avatar: authenticatedUser.avatar,
       })
 
-      console.log(userInfo)
-
       if (!userInfo) {
         throw new Error('User not found in database')
       }
 
-      const decoded = jwt.decode(payload.access_token) as Record<string, unknown> | null
-      const expiresAt = typeof decoded?.exp === 'number' ? decoded.exp : null
+      const expiresAt = typeof authenticatedUser.exp === 'number' ? authenticatedUser.exp : null
       const expiresIn = expiresAt
         ? Math.max(0, Math.floor(expiresAt - Date.now() / 1000))
         : 3600
@@ -639,18 +636,29 @@ export const authService = {
         throw new Error('Auth user ID is required')
       }
 
-      const user = await prisma.user.findUnique({
-        where: { email: params.email },
-        select: {
-          authUserId: true,
-          email: true,
-          name: true,
-          avatar: true,
-          isActive: true,
-          jobTitle: { select: { name: true } },
-          department: { select: { name: true } },
-        },
+      const userSelect = {
+        authUserId: true,
+        email: true,
+        name: true,
+        avatar: true,
+        isActive: true,
+        jobTitle: { select: { name: true } },
+        department: { select: { name: true } },
+      } as const
+
+      let user = await prisma.user.findUnique({
+        where: { authUserId: params.authUserId },
+        select: userSelect,
       })
+
+      const normalizedEmail = params.email?.trim().toLowerCase()
+
+      if (!user && normalizedEmail) {
+        user = await prisma.user.findUnique({
+          where: { email: normalizedEmail },
+          select: userSelect,
+        })
+      }
 
       if (!user) {
         logger.warn('Authenticated user does not exist in local database', {
@@ -662,6 +670,15 @@ export const authService = {
 
       if (!user.authUserId) {
         throw new Error('User is missing auth linkage')
+      }
+
+      if (user.authUserId !== params.authUserId) {
+        logger.warn('Authenticated user does not match provisioned auth linkage', {
+          expectedAuthUserId: user.authUserId,
+          receivedAuthUserId: params.authUserId,
+          email: user.email,
+        })
+        throw new Error('Authenticated account does not match the provisioned user')
       }
 
       if (!user.isActive) {
