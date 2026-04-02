@@ -17,13 +17,30 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
     schema: loginSchema,
   }, async (request, reply) => {
     try {
-      const { email, password } = request.body as { email: string; password: string }
+      const { email, password, access_token, refresh_token } = request.body as {
+        email?: string
+        password?: string
+        access_token?: string
+        refresh_token?: string
+      }
+
+      if (access_token) {
+        const loginResult = await authService.loginWithAccessToken({
+          access_token,
+          refresh_token,
+        })
+
+        return reply.code(200).send({
+          success: true,
+          data: loginResult,
+        })
+      }
 
       if (!email || !password) {
         return reply.code(400).send({
           success: false,
           error: 'Bad Request',
-          message: 'Email and password are required',
+          message: 'Either email/password or access_token is required',
           statusCode: 400,
         })
       }
@@ -40,12 +57,16 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       // Check if it's an authentication error (wrong credentials)
       if (errorMessage.toLowerCase().includes('authentication failed') || 
           errorMessage.toLowerCase().includes('invalid credentials') ||
+          errorMessage.toLowerCase().includes('invalid access token') ||
           errorMessage.toLowerCase().includes('wrong email or password') ||
+          errorMessage.toLowerCase().includes('token has expired') ||
           errorMessage.toLowerCase().includes('access_denied')) {
         return reply.code(401).send({
           success: false,
           error: 'Unauthorized',
-          message: 'Invalid email or password',
+          message: errorMessage.toLowerCase().includes('token')
+            ? errorMessage
+            : 'Invalid email or password',
           statusCode: 401,
         })
       }
@@ -58,6 +79,24 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
           error: 'Bad Request',
           message: errorMessage,
           statusCode: 400,
+        })
+      }
+
+      if (errorMessage.toLowerCase().includes('user not found in database')) {
+        return reply.code(403).send({
+          success: false,
+          error: 'Forbidden',
+          message: 'Access denied. This Google account is not provisioned in Valorize',
+          statusCode: 403,
+        })
+      }
+
+      if (errorMessage.toLowerCase().includes('deactivated')) {
+        return reply.code(403).send({
+          success: false,
+          error: 'Forbidden',
+          message: errorMessage,
+          statusCode: 403,
         })
       }
 
@@ -387,4 +426,3 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
   })
 }
 export default authRoutes
-
