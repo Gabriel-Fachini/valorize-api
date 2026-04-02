@@ -17,13 +17,30 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
     schema: loginSchema,
   }, async (request, reply) => {
     try {
-      const { email, password } = request.body as { email: string; password: string }
+      const { email, password, access_token, refresh_token } = request.body as {
+        email?: string
+        password?: string
+        access_token?: string
+        refresh_token?: string
+      }
+
+      if (access_token) {
+        const loginResult = await authService.loginWithAccessToken({
+          access_token,
+          refresh_token,
+        })
+
+        return reply.code(200).send({
+          success: true,
+          data: loginResult,
+        })
+      }
 
       if (!email || !password) {
         return reply.code(400).send({
           success: false,
           error: 'Bad Request',
-          message: 'Email and password are required',
+          message: 'Either email/password or access_token is required',
           statusCode: 400,
         })
       }
@@ -36,28 +53,55 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
+      const normalizedErrorMessage = errorMessage.toLowerCase()
 
       // Check if it's an authentication error (wrong credentials)
-      if (errorMessage.toLowerCase().includes('authentication failed') || 
-          errorMessage.toLowerCase().includes('invalid credentials') ||
-          errorMessage.toLowerCase().includes('wrong email or password') ||
-          errorMessage.toLowerCase().includes('access_denied')) {
+      if (normalizedErrorMessage.includes('authentication failed') || 
+          normalizedErrorMessage.includes('invalid credentials') ||
+          normalizedErrorMessage.includes('invalid email or password') ||
+          normalizedErrorMessage.includes('invalid access token') ||
+          normalizedErrorMessage.includes('invalid token issuer') ||
+          normalizedErrorMessage.includes('wrong email or password') ||
+          normalizedErrorMessage.includes('token has expired') ||
+          normalizedErrorMessage.includes('token is missing subject') ||
+          normalizedErrorMessage.includes('token verification failed') ||
+          normalizedErrorMessage.includes('access_denied')) {
         return reply.code(401).send({
           success: false,
           error: 'Unauthorized',
-          message: 'Invalid email or password',
+          message: normalizedErrorMessage.includes('token')
+            ? errorMessage
+            : 'Invalid email or password',
           statusCode: 401,
         })
       }
 
       // Check if it's a validation error
-      if (errorMessage.toLowerCase().includes('invalid') || 
-          errorMessage.toLowerCase().includes('required')) {
+      if (normalizedErrorMessage.includes('required')) {
         return reply.code(400).send({
           success: false,
           error: 'Bad Request',
           message: errorMessage,
           statusCode: 400,
+        })
+      }
+
+      if (normalizedErrorMessage.includes('user not found in database') ||
+          normalizedErrorMessage.includes('authenticated account does not match the provisioned user')) {
+        return reply.code(403).send({
+          success: false,
+          error: 'Forbidden',
+          message: 'Access denied. This account is not provisioned in Valorize',
+          statusCode: 403,
+        })
+      }
+
+      if (normalizedErrorMessage.includes('deactivated')) {
+        return reply.code(403).send({
+          success: false,
+          error: 'Forbidden',
+          message: errorMessage,
+          statusCode: 403,
         })
       }
 
@@ -387,4 +431,3 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
   })
 }
 export default authRoutes
-

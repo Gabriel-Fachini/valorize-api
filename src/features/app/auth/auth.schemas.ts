@@ -33,22 +33,44 @@ const userInfoSchema = {
 // Login endpoint schema
 export const loginSchema: FastifySchema = {
   tags: ['Authentication'],
-  description: 'Login with email and password using Auth0 Resource Owner Password Grant',
+  description: 'Login with email/password or a Supabase OAuth access token',
   body: {
-    type: 'object',
-    required: ['email', 'password'],
-    properties: {
-      email: {
-        type: 'string',
-        format: 'email',
-        description: 'User email address',
+    oneOf: [
+      {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: {
+            type: 'string',
+            format: 'email',
+            description: 'User email address',
+          },
+          password: {
+            type: 'string',
+            minLength: 1,
+            description: 'User password',
+          },
+        },
+        additionalProperties: false,
       },
-      password: {
-        type: 'string',
-        minLength: 1,
-        description: 'User password',
+      {
+        type: 'object',
+        required: ['access_token'],
+        properties: {
+          access_token: {
+            type: 'string',
+            minLength: 1,
+            description: 'Supabase access token returned by OAuth login',
+          },
+          refresh_token: {
+            type: 'string',
+            minLength: 1,
+            description: 'Supabase refresh token returned by OAuth login',
+          },
+        },
+        additionalProperties: false,
       },
-    },
+    ],
   },
   response: {
     200: {
@@ -70,6 +92,7 @@ export const loginSchema: FastifySchema = {
     },
     400: commonErrorResponse,
     401: commonErrorResponse,
+    403: commonErrorResponse,
     500: commonErrorResponse,
   },
 }
@@ -259,4 +282,3 @@ export const verifySessionSchema: FastifySchema = {
     401: commonErrorResponse,
   },
 }
-

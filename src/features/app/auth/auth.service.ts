@@ -13,6 +13,11 @@ export interface LoginRequest {
   password: string
 }
 
+export interface OAuthLoginRequest {
+  access_token: string
+  refresh_token?: string
+}
+
 export interface SignupRequest {
   email: string
   name: string
@@ -173,7 +178,13 @@ export const authService = {
       })
 
       // Get user information from database
-      const userInfo = await this.getUser(credentials.email)
+      const userInfo = await this.getUserByAuthContext({
+        authUserId: data.user.id,
+        email: data.user.email ?? credentials.email,
+        emailVerified: !!(data.user.email_confirmed_at || data.user.user_metadata?.email_verified),
+        name: typeof data.user.user_metadata?.name === 'string' ? data.user.user_metadata.name : undefined,
+        avatar: typeof data.user.user_metadata?.avatar === 'string' ? data.user.user_metadata.avatar : undefined,
+      })
 
       if (!userInfo) {
         throw new Error('User not found in database')
@@ -201,6 +212,60 @@ export const authService = {
         if (error.message.includes('Email not confirmed')) {
           throw new Error('Please verify your email before logging in')
         }
+        throw error
+      }
+
+      throw new Error('Authentication service unavailable')
+    }
+  },
+
+  /**
+   * Authenticate user using a Supabase access token returned by OAuth providers
+   */
+  async loginWithAccessToken(payload: OAuthLoginRequest): Promise<LoginResponse> {
+    try {
+      logger.info('Attempting Supabase OAuth login with access token')
+
+      const authenticatedUser = this.verifySupabaseAccessToken(payload.access_token)
+
+      const userInfo = await this.getUserByAuthContext({
+        authUserId: authenticatedUser.sub,
+        email: authenticatedUser.email,
+        emailVerified: !!(authenticatedUser.email_verified ?? authenticatedUser.email_confirmed_at),
+        name: authenticatedUser.name,
+        avatar: authenticatedUser.avatar,
+      })
+
+      if (!userInfo) {
+        throw new Error('User not found in database')
+      }
+
+      const expiresAt = typeof authenticatedUser.exp === 'number' ? authenticatedUser.exp : null
+      const expiresIn = expiresAt
+        ? Math.max(0, Math.floor(expiresAt - Date.now() / 1000))
+        : 3600
+
+      logger.info('Supabase OAuth login successful', {
+        authUserId: authenticatedUser.sub,
+        email: authenticatedUser.email,
+        expiresIn,
+        hasRefreshToken: !!payload.refresh_token,
+      })
+
+      return {
+        access_token: payload.access_token,
+        token_type: 'Bearer',
+        expires_in: expiresIn,
+        refresh_token: payload.refresh_token,
+        scope: 'openid profile email',
+        user_info: userInfo,
+      }
+    } catch (error) {
+      logger.error('Supabase OAuth login failed', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+
+      if (error instanceof Error) {
         throw error
       }
 
@@ -402,6 +467,65 @@ export const authService = {
   },
 
   /**
+   * Verify a Supabase access token using the local JWT secret
+   */
+  verifySupabaseAccessToken(token: string): AuthenticatedUser {
+    const jwtSecret = process.env.SUPABASE_JWT_SECRET
+
+    if (!jwtSecret) {
+      throw new Error('SUPABASE_JWT_SECRET is not configured')
+    }
+
+    try {
+      const decoded = jwt.verify(token, jwtSecret, {
+        algorithms: ['HS256'],
+      }) as Record<string, unknown>
+
+      const supabaseUrl = process.env.SUPABASE_URL
+      if (supabaseUrl) {
+        const expectedIssuer = `${supabaseUrl}/auth/v1`
+        if (decoded.iss && decoded.iss !== expectedIssuer) {
+          throw new Error('Invalid token issuer')
+        }
+      }
+
+      const userMetadata = decoded.user_metadata as Record<string, unknown> | undefined
+
+      if (typeof decoded.sub !== 'string' || !decoded.sub) {
+        throw new Error('Token is missing subject')
+      }
+
+      return {
+        ...decoded,
+        sub: decoded.sub,
+        email: typeof decoded.email === 'string' ? decoded.email : undefined,
+        email_verified: decoded.email_verified as boolean | undefined,
+        email_confirmed_at: typeof decoded.email_confirmed_at === 'string' ? decoded.email_confirmed_at : undefined,
+        name: typeof userMetadata?.name === 'string'
+          ? userMetadata.name
+          : typeof decoded.name === 'string'
+            ? decoded.name
+            : undefined,
+        avatar: typeof userMetadata?.avatar === 'string'
+          ? userMetadata.avatar
+          : typeof decoded.picture === 'string'
+            ? decoded.picture
+            : undefined,
+      }
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new Error('Token has expired')
+      }
+
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new Error('Invalid access token')
+      }
+
+      throw error
+    }
+  },
+
+  /**
    * Validate token format and basic structure
    */
   validateTokenFormat(token: string): boolean {
@@ -471,7 +595,7 @@ export const authService = {
         },
       })
 
-      if (!user) {
+      if (!user?.authUserId) {
         return null
       }
 
@@ -488,7 +612,102 @@ export const authService = {
       logger.error('Error fetching user from database', {
         error: error instanceof Error ? error.message : String(error),
       })
-      return null
+
+      if (error instanceof Error) {
+        throw error
+      }
+
+      throw new Error('Failed to fetch user from database')
+    }
+  },
+
+  /**
+   * Resolve the local user for a successful authentication flow
+   */
+  async getUserByAuthContext(params: {
+    authUserId?: string
+    email?: string
+    emailVerified?: boolean
+    name?: string
+    avatar?: string
+  }): Promise<LoginResponse['user_info'] | null> {
+    try {
+      if (!params.authUserId) {
+        throw new Error('Auth user ID is required')
+      }
+
+      const userSelect = {
+        authUserId: true,
+        email: true,
+        name: true,
+        avatar: true,
+        isActive: true,
+        jobTitle: { select: { name: true } },
+        department: { select: { name: true } },
+      } as const
+
+      let user = await prisma.user.findUnique({
+        where: { authUserId: params.authUserId },
+        select: userSelect,
+      })
+
+      const normalizedEmail = params.email?.trim().toLowerCase()
+
+      if (!user && normalizedEmail) {
+        user = await prisma.user.findUnique({
+          where: { email: normalizedEmail },
+          select: userSelect,
+        })
+      }
+
+      if (!user) {
+        logger.warn('Authenticated user does not exist in local database', {
+          authUserId: params.authUserId,
+          email: params.email,
+        })
+        return null
+      }
+
+      if (!user.authUserId) {
+        logger.warn('Provisioned user is missing auth linkage', {
+          email: user.email,
+          receivedAuthUserId: params.authUserId,
+        })
+        return null
+      }
+
+      if (user.authUserId !== params.authUserId) {
+        logger.warn('Authenticated user does not match provisioned auth linkage', {
+          expectedAuthUserId: user.authUserId,
+          receivedAuthUserId: params.authUserId,
+          email: user.email,
+        })
+        throw new Error('Authenticated account does not match the provisioned user')
+      }
+
+      if (!user.isActive) {
+        throw new Error('User account is deactivated. Please contact support.')
+      }
+
+      return {
+        sub: user.authUserId,
+        email: user.email,
+        email_verified: params.emailVerified ?? true,
+        name: params.name ?? user.name,
+        avatar: params.avatar ?? user.avatar ?? undefined,
+        jobTitle: user.jobTitle?.name ?? null,
+        department: user.department?.name ?? null,
+      }
+    } catch (error) {
+      logger.error('Error fetching user from database', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+
+      if (error instanceof Error) {
+        throw error
+      }
+
+      throw new Error('Failed to fetch user from database')
     }
   },
 
