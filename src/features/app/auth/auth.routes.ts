@@ -58,6 +58,7 @@ const authRoutes = async (fastify: FastifyInstance, _options: FastifyPluginOptio
       // Check if it's an authentication error (wrong credentials)
       if (normalizedErrorMessage.includes('authentication failed') || 
           normalizedErrorMessage.includes('invalid credentials') ||
+          normalizedErrorMessage.includes('invalid email or password') ||
           normalizedErrorMessage.includes('invalid access token') ||
           normalizedErrorMessage.includes('invalid token issuer') ||
           normalizedErrorMessage.includes('wrong email or password') ||

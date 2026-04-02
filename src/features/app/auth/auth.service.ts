@@ -496,6 +496,7 @@ export const authService = {
       }
 
       return {
+        ...decoded,
         sub: decoded.sub,
         email: typeof decoded.email === 'string' ? decoded.email : undefined,
         email_verified: decoded.email_verified as boolean | undefined,
@@ -510,7 +511,6 @@ export const authService = {
           : typeof decoded.picture === 'string'
             ? decoded.picture
             : undefined,
-        ...decoded,
       }
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -669,7 +669,11 @@ export const authService = {
       }
 
       if (!user.authUserId) {
-        throw new Error('User is missing auth linkage')
+        logger.warn('Provisioned user is missing auth linkage', {
+          email: user.email,
+          receivedAuthUserId: params.authUserId,
+        })
+        return null
       }
 
       if (user.authUserId !== params.authUserId) {
