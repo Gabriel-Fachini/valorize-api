@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Global Test Setup
  * Runs once before all tests
@@ -5,13 +6,14 @@
  * Responsibilities:
  * - Load test environment variables (.env.test)
  * - Configure logger to silent mode during tests
- * - Setup mocks for external services (Auth0, Tremendous, etc)
- * - Initialize test database connection
+ * - Prepare safe defaults for Supabase-based auth tests
+ * - Avoid accidental live integration usage by default
  */
 
 import { config } from 'dotenv'
 import { resolve } from 'path'
 import { beforeAll, afterAll } from 'vitest'
+import { disconnectDB } from '@/lib/database'
 
 /**
  * Load .env.test configuration
@@ -26,11 +28,24 @@ if (result.error && !process.env.DATABASE_URL) {
   console.warn('Make sure the file exists or DATABASE_URL is set')
 }
 
+process.env.NODE_ENV = 'test'
+process.env.LOG_LEVEL = process.env.LOG_LEVEL ?? 'ERROR'
+process.env.SUPABASE_JWT_SECRET =
+  process.env.SUPABASE_JWT_SECRET ?? process.env.JWT_SECRET ?? 'test-supabase-jwt-secret'
+process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'http://localhost:8000'
+process.env.ENABLE_SUPABASE_INTEGRATION_TESTS =
+  process.env.ENABLE_SUPABASE_INTEGRATION_TESTS ?? 'false'
+
 /**
  * Verify test environment is configured correctly
  */
 function verifyTestEnvironment() {
-  const requiredVars = ['DATABASE_URL', 'NODE_ENV', 'AUTH0_DOMAIN']
+  const requiredVars = [
+    'DATABASE_URL',
+    'NODE_ENV',
+    'SUPABASE_URL',
+    'SUPABASE_JWT_SECRET',
+  ]
   const missing = requiredVars.filter(v => !process.env[v])
 
   if (missing.length > 0) {
@@ -44,6 +59,20 @@ function verifyTestEnvironment() {
   if (!process.env.DATABASE_URL?.includes('test')) {
     console.warn('⚠️  DATABASE_URL does not contain "test" - are you using the test database?')
   }
+
+  if (process.env.ENABLE_SUPABASE_INTEGRATION_TESTS === 'true') {
+    const requiredSupabaseVars = [
+      'SUPABASE_ANON_KEY',
+      'SUPABASE_SERVICE_ROLE_KEY',
+    ]
+    const missingSupabaseVars = requiredSupabaseVars.filter(v => !process.env[v])
+
+    if (missingSupabaseVars.length > 0) {
+      console.warn(
+        `⚠️  Supabase integration tests enabled but variables are missing: ${missingSupabaseVars.join(', ')}`,
+      )
+    }
+  }
 }
 
 /**
@@ -54,16 +83,14 @@ function configureTestLogger() {
   const oldWarn = console.warn
   const oldError = console.error
 
-  // Allow warnings and errors for debugging
-  // But suppress info and debug logs
   globalThis.console = {
-    ...console,
-    log: () => {}, // Suppress
-    info: () => {}, // Suppress
-    debug: () => {}, // Suppress
-    warn: oldWarn, // Keep warnings
-    error: oldError, // Keep errors
-  } as any
+    ...globalThis.console,
+    log: () => {},
+    info: () => {},
+    debug: () => {},
+    warn: oldWarn,
+    error: oldError,
+  } as typeof console
 }
 
 /**
@@ -76,10 +103,14 @@ beforeAll(() => {
   console.warn('🧪 Test environment initialized')
   console.warn(`📦 DATABASE_URL: ${process.env.DATABASE_URL}`)
   console.warn(`🔒 NODE_ENV: ${process.env.NODE_ENV}`)
+  console.warn(`🔐 SUPABASE_URL: ${process.env.SUPABASE_URL}`)
+  console.warn(
+    `🧷 SUPABASE integration tests: ${process.env.ENABLE_SUPABASE_INTEGRATION_TESTS}`,
+  )
 })
 
-afterAll(() => {
-  // Cleanup after all tests
+afterAll(async () => {
+  await disconnectDB().catch(() => undefined)
   console.warn('✅ Test suite completed')
 })
 
@@ -90,9 +121,3 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason)
   process.exit(1)
 })
-
-// TODO: Add global mocks for:
-// - Auth0 JWKS endpoint
-// - Tremendous API adapter
-// - Supabase Storage
-// As needed when writing tests that use these services

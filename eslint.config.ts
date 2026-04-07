@@ -1,10 +1,11 @@
 import js from '@eslint/js'
+import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default defineConfig(
   {
-    ignores: ['dist']
+    ignores: ['dist'],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -14,7 +15,7 @@ export default tseslint.config(
       globals: globals.browser,
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json',
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -33,9 +34,9 @@ export default tseslint.config(
 
       // === CODE QUALITY ===
       'no-unused-vars': 'off', // Disable JS rule (conflicts with TypeScript)
-      '@typescript-eslint/no-unused-vars': ['error', { 
+      '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_', // Ignore arguments starting with _
-        varsIgnorePattern: '^_' // Ignore variables starting with _
+        varsIgnorePattern: '^_', // Ignore variables starting with _
       }],
       'no-console': ['warn'], // Warn about console.log (should be removed in production)
       'no-debugger': 'error', // Prohibit debugger statements

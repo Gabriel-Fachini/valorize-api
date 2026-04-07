@@ -11,7 +11,6 @@ const PUBLIC_ROUTES = [
   '/docs/yaml',
   '/auth/login',           // Session login route (password grant)
   '/auth/refresh',         // Token refresh route
-  '/auth/refresh-info',
   '/auth/admin/login',
   '/auth/signup',
   '/backoffice/auth/login', // Backoffice login for Super Admins from Valorize HQ

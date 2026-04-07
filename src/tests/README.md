@@ -2,6 +2,9 @@
 
 Complete guide to running, writing, and maintaining tests in the Valorize API.
 
+This project now uses Supabase Auth. For unit and route tests, prefer mocked
+Supabase responses and locally signed JWTs instead of calling the live project.
+
 ---
 
 ## 🚀 Quick Start
@@ -52,8 +55,10 @@ After running `npm run test:coverage`, open `coverage/index.html` to see detaile
 src/tests/
 ├── setup.ts                         # Global test setup (runs before all tests)
 ├── helpers/                         # Reusable test utilities
-│   ├── database.helper.ts           # DB setup/cleanup, transactions
-│   └── auth.helper.ts               # JWT token generation, mock auth
+│   ├── app.helper.ts                # Build/close Fastify app for tests
+│   ├── database.helper.ts           # DB setup/cleanup and safe isolation
+│   ├── auth.helper.ts               # Supabase-compatible JWT helpers
+│   └── supabase.helper.ts           # Supabase auth/admin client mocks
 ├── factories/                       # Data factories (create test data easily)
 │   └── .gitkeep                     # Factory files added as needed
 ├── mocks/                           # Mock external APIs
@@ -98,28 +103,30 @@ describe('WalletService', () => {
 })
 ```
 
-### Database Isolation with Transactions
+### Database Isolation
 
-Use `withTransaction()` for automatic test isolation:
+Use `withDatabaseIsolation()` for deterministic cleanup before and after each
+database-backed test:
 
 ```typescript
-import { withTransaction } from '@tests/helpers/database.helper'
+import { withDatabaseIsolation } from '@tests/helpers/database.helper'
 
 it('should update wallet balance', async () => {
-  await withTransaction(async () => {
-    // All changes here are automatically rolled back after test
+  await withDatabaseIsolation(async () => {
+    // All changes here are cleaned after the test
     const wallet = await WalletFactory.create()
     await walletService.creditRedeemableBalance(wallet.id, 100)
     expect(wallet.balance).toBe(100)
-    // Automatic rollback - DB is clean for next test!
   })
 })
 ```
 
-**Benefits**:
-- ✅ Fast (no manual cleanup)
-- ✅ Isolated (each test starts fresh)
-- ✅ Safe (no test data pollution)
+`withTransaction()` still exists as a backward-compatible alias, but it uses the
+same cleanup strategy because the app currently relies on a shared Prisma singleton.
+
+Important: suites that use these helpers should run without file parallelism,
+because truncating shared tables can interfere with other DB-backed test files.
+Use `npm run test:serial`.
 
 ### Creating Test Data with Factories
 
@@ -193,7 +200,7 @@ it('should require authentication', async () => {
 ### Tier 2: Important (Lógica de Negócio)
 - Models (database operations)
 - RBAC (permissions)
-- Auth (JWT verification)
+- Auth (Supabase JWT verification)
 
 **Coverage Target**: 75-80%
 

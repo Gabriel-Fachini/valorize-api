@@ -233,7 +233,6 @@ const PUBLIC_ROUTES = [
   '/docs/yaml',
   '/auth/login',           // Login endpoint
   '/auth/refresh',         // Token renewal
-  '/auth/refresh-info',    // Refresh information
 ]
 ```
 
