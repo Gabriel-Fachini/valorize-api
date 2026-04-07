@@ -21,7 +21,7 @@ describe('Auth Test Helpers', () => {
     const decoded = verifyMockJWT(token)
 
     if (typeof decoded === 'string') {
-      throw new Error('Expected decoded payload to be an object')
+      throw new TypeError('Expected decoded payload to be an object')
     }
 
     expect(decoded.sub).toBe('test-user-123')
