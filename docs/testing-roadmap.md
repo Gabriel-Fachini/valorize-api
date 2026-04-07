@@ -295,7 +295,7 @@ Casos mínimos:
 - formato diferente de `Bearer` falha
 - token expirado retorna `401`
 - issuer inválido falha
-- `/auth/login`, `/auth/verify`, `/auth/refresh-instructions` retornam payload esperado
+- `/auth/login`, `/auth/verify` retornam payload esperado
 
 ### 2. RBAC e plan guard
 

@@ -168,7 +168,7 @@ describe('App Auth Routes', () => {
         id: 'local-user-1',
         email: 'session@valorize.dev',
         name: 'Session User',
-        avatar: null,
+        avatar: '',
         companyId: 'company-1',
         isActive: true,
         jobTitle: null,

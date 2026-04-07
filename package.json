@@ -10,6 +10,7 @@
     "build:prod": "tsc --noEmitOnError false --allowUnreachableCode --allowUnusedLabels --pretty && tsc-alias",
     "start": "node dist/app.js",
     "test": "vitest",
+    "test:serial": "vitest --no-file-parallelism",
     "test:coverage": "vitest --coverage",
     "ci:test": "vitest run --coverage",
     "ci": "npm run lint && npm run ci:test && npm run build:prod",

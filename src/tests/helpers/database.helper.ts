@@ -7,6 +7,11 @@
  * The application uses a shared Prisma singleton, so route/service tests
  * cannot rely on interactive transaction rollback for isolation.
  * The helpers below use deterministic cleanup instead.
+ *
+ * Because cleanup truncates public tables, tests using this helper are not
+ * safe to run in parallel across files against the same database. Use a
+ * serialized Vitest run for DB-backed suites until the project adopts
+ * per-worker schemas/databases.
  */
 
 import { connectDB, disconnectDB, prisma } from '@lib/database'
@@ -34,6 +39,7 @@ export async function disconnectTestDatabase(): Promise<void> {
  *
  * This is slower than a true transaction rollback, but it works correctly
  * with the current Prisma singleton architecture used by the app.
+ * Run suites that use this helper with `vitest --no-file-parallelism`.
  *
  * @example
  * it('should update wallet', async () => {

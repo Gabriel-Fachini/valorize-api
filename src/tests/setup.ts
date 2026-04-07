@@ -32,6 +32,7 @@ process.env.NODE_ENV = 'test'
 process.env.LOG_LEVEL = process.env.LOG_LEVEL ?? 'ERROR'
 process.env.SUPABASE_JWT_SECRET =
   process.env.SUPABASE_JWT_SECRET ?? process.env.JWT_SECRET ?? 'test-supabase-jwt-secret'
+process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'http://localhost:8000'
 process.env.ENABLE_SUPABASE_INTEGRATION_TESTS =
   process.env.ENABLE_SUPABASE_INTEGRATION_TESTS ?? 'false'
 

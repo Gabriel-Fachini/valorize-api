@@ -124,6 +124,10 @@ it('should update wallet balance', async () => {
 `withTransaction()` still exists as a backward-compatible alias, but it uses the
 same cleanup strategy because the app currently relies on a shared Prisma singleton.
 
+Important: suites that use these helpers should run without file parallelism,
+because truncating shared tables can interfere with other DB-backed test files.
+Use `npm run test:serial`.
+
 ### Creating Test Data with Factories
 
 ```typescript
