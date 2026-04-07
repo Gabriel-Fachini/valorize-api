@@ -1,88 +1,96 @@
 /**
  * Database Test Helpers
  *
- * Provides utilities for test database isolation and cleanup
- * Strategy: Transaction rollback for fast test isolation
+ * Provides utilities for test database isolation and cleanup.
+ *
+ * Important:
+ * The application uses a shared Prisma singleton, so route/service tests
+ * cannot rely on interactive transaction rollback for isolation.
+ * The helpers below use deterministic cleanup instead.
  */
 
-import { prisma } from '@lib/database'
+import { connectDB, disconnectDB, prisma } from '@lib/database'
+
+interface PublicTable {
+  tablename: string
+}
 
 /**
- * Execute a test function within a transaction that automatically rolls back
+ * Ensure Prisma is connected before using database-backed tests.
+ */
+export async function ensureDatabaseConnection(): Promise<void> {
+  await connectDB()
+}
+
+/**
+ * Disconnect Prisma after database-backed tests.
+ */
+export async function disconnectTestDatabase(): Promise<void> {
+  await disconnectDB()
+}
+
+/**
+ * Execute a test function with cleanup before and after the test body.
  *
- * This ensures complete isolation between tests without manual cleanup
- * The transaction is reverted automatically after the test finishes
+ * This is slower than a true transaction rollback, but it works correctly
+ * with the current Prisma singleton architecture used by the app.
  *
  * @example
  * it('should update wallet', async () => {
- *   await withTransaction(async () => {
+ *   await withDatabaseIsolation(async () => {
  *     const wallet = await WalletFactory.create()
  *     await walletService.credit(wallet.id, 100)
  *     expect(wallet.balance).toBe(100)
- *     // Automatically rolled back after test
+ *     // Database is cleaned after the test
  *   })
  * })
  */
-export async function withTransaction<T>(
+export async function withDatabaseIsolation<T>(
   testFn: () => Promise<T>,
 ): Promise<T> {
+  await ensureDatabaseConnection()
+  await cleanDatabase()
+
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Execute test with transaction context
-      // Any changes are accumulated in this transaction
-      return await testFn()
-    })
-    return result
-  } catch (error) {
-    // Prisma automatically rolls back transaction on error
-    throw error
+    return await testFn()
+  } finally {
+    await cleanDatabase()
   }
 }
 
 /**
- * Clean all tables in the test database
- *
- * WARNING: This is slow and only needed when transaction rollback isn't suitable
- * Prefer using withTransaction() for better performance
- *
- * @example
- * afterEach(async () => {
- *   await cleanDatabase()
- * })
+ * Backwards-compatible alias for the old helper name.
  */
-export async function cleanDatabase() {
-  const tables = [
-    'tremendous_webhook_logs',
-    'voucher_redemptions',
-    'wallet_transactions',
-    'redemptions',
-    'compliments',
-    'wallet_resets',
-    'wallets',
-    'company_wallets',
-    'voucher_prizes',
-    'prize_variants',
-    'prizes',
-    'addresses',
-    'company_values',
-    'allowed_domains',
-    'job_titles',
-    'departments',
-    'role_permissions',
-    'user_roles',
-    'roles',
-    'company_settings',
-    'users',
-    'companies',
-  ]
+export async function withTransaction<T>(
+  testFn: () => Promise<T>,
+): Promise<T> {
+  return withDatabaseIsolation(testFn)
+}
 
-  for (const table of tables) {
-    try {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE`)
-    } catch (error) {
-      // Table might not exist, continue
-    }
+/**
+ * Clean all application tables in the test database.
+ */
+export async function cleanDatabase(): Promise<void> {
+  await ensureDatabaseConnection()
+
+  const tables = await prisma.$queryRaw<PublicTable[]>`
+    SELECT tablename
+    FROM pg_tables
+    WHERE schemaname = 'public'
+      AND tablename != '_prisma_migrations'
+  `
+
+  if (tables.length === 0) {
+    return
   }
+
+  const tableList = tables
+    .map(({ tablename }) => `"public"."${tablename}"`)
+    .join(', ')
+
+  await prisma.$executeRawUnsafe(
+    `TRUNCATE TABLE ${tableList} RESTART IDENTITY CASCADE`,
+  )
 }
 
 /**
@@ -93,6 +101,7 @@ export async function cleanDatabase() {
  * await truncateTable('users')
  */
 export async function truncateTable(tableName: string) {
+  await ensureDatabaseConnection()
   await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${tableName}" CASCADE`)
 }
 
@@ -106,6 +115,7 @@ export async function truncateTable(tableName: string) {
  * expect(count).toBe(1)
  */
 export async function getTableCount(tableName: string): Promise<number> {
+  await ensureDatabaseConnection()
   const result = await prisma.$queryRawUnsafe<[{ count: bigint }]>(
     `SELECT COUNT(*) as count FROM "${tableName}"`,
   )
@@ -122,6 +132,7 @@ export async function recordExists(
   tableName: string,
   id: string,
 ): Promise<boolean> {
+  await ensureDatabaseConnection()
   const result = await prisma.$queryRawUnsafe<[{ exists: boolean }]>(
     `SELECT EXISTS(SELECT 1 FROM "${tableName}" WHERE id = $1) as exists`,
     id,
@@ -139,14 +150,9 @@ export async function recordExists(
  * // Use this instead of new Date() for consistency
  */
 export async function getDatabaseNow(): Promise<Date> {
+  await ensureDatabaseConnection()
   const result = await prisma.$queryRawUnsafe<[{ now: Date }]>(
     'SELECT NOW() as now',
   )
   return result[0].now
 }
-
-// TODO: Add these helpers as needed:
-// - seedTestData() - Pre-populate test database with common test data
-// - setupTestDatabase() - Run migrations and setup for test database
-// - disconnectTestDatabase() - Close connection after tests
-// - resetSequences() - Reset auto-increment sequences (if needed)

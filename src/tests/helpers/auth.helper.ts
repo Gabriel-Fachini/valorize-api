@@ -2,7 +2,7 @@
  * Authentication Test Helpers
  *
  * Provides utilities for creating authenticated test requests
- * and generating mock JWT tokens
+ * and generating mock Supabase-compatible JWT tokens
  */
 
 import jwt from 'jsonwebtoken'
@@ -12,9 +12,14 @@ import jwt from 'jsonwebtoken'
  */
 export interface MockJWTPayload {
   userId: string
-  companyId: string
   email: string
+  companyId?: string
   permissions?: string[]
+  role?: string
+  name?: string
+  avatar?: string
+  issuer?: string
+  expiresIn?: jwt.SignOptions['expiresIn']
 }
 
 /**
@@ -26,7 +31,6 @@ export interface MockJWTPayload {
  * @example
  * const token = generateMockJWT({
  *   userId: 'user-123',
- *   companyId: 'company-456',
  *   email: 'user@test.com',
  *   permissions: ['compliments:send', 'prizes:redeem']
  * })
@@ -40,21 +44,44 @@ export interface MockJWTPayload {
  * })
  */
 export function generateMockJWT(payload: MockJWTPayload): string {
-  const secret = process.env.JWT_SECRET ?? 'test-jwt-secret-for-mock-tokens'
+  const secret =
+    process.env.SUPABASE_JWT_SECRET ??
+    process.env.JWT_SECRET ??
+    'test-supabase-jwt-secret'
+  const issuer = payload.issuer ?? getSupabaseIssuer()
 
   return jwt.sign(
     {
-      sub: payload.userId, // Standard OIDC subject claim
-      'https://valorize.api/companyId': payload.companyId, // Custom claim matching app behavior
+      aud: 'authenticated',
+      sub: payload.userId,
+      iss: issuer,
       email: payload.email,
+      email_verified: true,
+      role: payload.role ?? 'authenticated',
       permissions: payload.permissions ?? [],
+      app_metadata: payload.companyId
+        ? {
+            companyId: payload.companyId,
+          }
+        : undefined,
+      user_metadata: {
+        name: payload.name ?? payload.email.split('@')[0],
+        avatar: payload.avatar,
+      },
     },
     secret,
     {
-      expiresIn: '1h',
+      expiresIn: payload.expiresIn ?? '1h',
       algorithm: 'HS256',
     },
   )
+}
+
+export function generateExpiredMockJWT(payload: MockJWTPayload): string {
+  return generateMockJWT({
+    ...payload,
+    expiresIn: -60,
+  })
 }
 
 /**
@@ -108,8 +135,11 @@ export function createAuthHeader(
  * const decoded = verifyMockJWT(token)
  * expect(decoded.email).toBe('user@test.com')
  */
-export function verifyMockJWT(token: string): any {
-  const secret = process.env.JWT_SECRET ?? 'test-jwt-secret-for-mock-tokens'
+export function verifyMockJWT(token: string): string | jwt.JwtPayload {
+  const secret =
+    process.env.SUPABASE_JWT_SECRET ??
+    process.env.JWT_SECRET ??
+    'test-supabase-jwt-secret'
 
   try {
     return jwt.verify(token, secret, {
@@ -165,6 +195,7 @@ export function createCommonTestTokens() {
       userId: 'admin-user-test',
       companyId: 'company-test-1',
       email: 'admin@test.com',
+      role: 'authenticated',
       permissions: ['admin:access_panel', 'users:manage', 'companies:manage'],
     }),
 
@@ -172,6 +203,7 @@ export function createCommonTestTokens() {
       userId: 'regular-user-test',
       companyId: 'company-test-1',
       email: 'user@test.com',
+      role: 'authenticated',
       permissions: ['compliments:send', 'prizes:redeem', 'wallets:view'],
     }),
 
@@ -184,8 +216,7 @@ export function createCommonTestTokens() {
   }
 }
 
-// TODO: Add these helpers as needed:
-// - mockAuth0JWKS() - Mock Auth0 JWKS endpoint for testing real JWT verification
-// - mockTokenExpiration() - Create expired tokens for testing
-// - createUserContextWithRole() - Create complete user context with database entry
-// - mockRBACCheck() - Mock RBAC permission validation
+function getSupabaseIssuer(): string {
+  const supabaseUrl = process.env.SUPABASE_URL ?? 'http://localhost:54321'
+  return `${supabaseUrl}/auth/v1`
+}

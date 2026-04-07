@@ -184,51 +184,6 @@ Base path: `/auth`
 
 ---
 
-### 4. Get Refresh Instructions
-
-**Path:** `GET /auth/refresh-instructions`
-
-**Description:** Get instructions for refreshing tokens
-
-**Authentication:** Not required
-
-**Input:** None
-
-**Output:**
-```json
-{
-  "success": true,
-  "data": {
-    "endpoint": "/auth/refresh",
-    "instructions": "Use your refresh_token to get a new access_token",
-    "requiredFields": ["refresh_token"]
-  }
-}
-```
-
----
-
-### 5. Auth Health Check
-
-**Path:** `GET /auth/health`
-
-**Description:** Check authentication module health
-
-**Authentication:** Not required
-
-**Input:** None
-
-**Output:**
-```json
-{
-  "status": "ok",
-  "module": "auth",
-  "timestamp": "2025-10-07T12:00:00.000Z"
-}
-```
-
----
-
 ## Users Routes
 
 Base path: `/users`
@@ -1718,4 +1673,3 @@ For API support or questions:
 ---
 
 *Last updated: October 7, 2025*
-

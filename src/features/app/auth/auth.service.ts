@@ -181,7 +181,9 @@ export const authService = {
       const userInfo = await this.getUserByAuthContext({
         authUserId: data.user.id,
         email: data.user.email ?? credentials.email,
-        emailVerified: !!(data.user.email_confirmed_at || data.user.user_metadata?.email_verified),
+        emailVerified: Boolean(
+          data.user.email_confirmed_at ?? data.user.user_metadata?.email_verified,
+        ),
         name: typeof data.user.user_metadata?.name === 'string' ? data.user.user_metadata.name : undefined,
         avatar: typeof data.user.user_metadata?.avatar === 'string' ? data.user.user_metadata.avatar : undefined,
       })
@@ -1150,27 +1152,6 @@ export const authService = {
         error: error instanceof Error ? error.message : String(error),
       })
       throw error
-    }
-  },
-
-  /**
-   * Get instructions on how to refresh an access token
-   */
-  getRefreshInstructions(): {
-    message: string
-    endpoint: string
-    method: string
-    body: Record<string, string>
-    example: string
-  } {
-    return {
-      message: 'To refresh your access token, send a POST request to the /auth/refresh endpoint with your refresh token',
-      endpoint: '/auth/refresh',
-      method: 'POST',
-      body: {
-        refresh_token: 'your_refresh_token_here',
-      },
-      example: 'curl -X POST http://localhost:3000/auth/refresh -H "Content-Type: application/json" -d \'{"refresh_token": "your_refresh_token"}\'',
     }
   },
 
