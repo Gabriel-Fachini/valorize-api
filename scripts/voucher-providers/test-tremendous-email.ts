@@ -3,32 +3,27 @@
  *
  * Uso:
  * 1. Configure o TREMENDOUS_API_KEY no .env
- * 2. Execute: npx tsx src/lib/voucher-providers/test-tremendous-email.ts
+ * 2. Execute: npx tsx scripts/voucher-providers/test-tremendous-email.ts
  */
 
-// Carregar variáveis de ambiente do .env
 import 'dotenv/config'
 
-import { TremendousAdapter } from './adapters/tremendous/TremendousAdapter'
-import { logger } from '@/lib/logger'
+import { TremendousAdapter } from '../../src/lib/voucher-providers/adapters/tremendous/TremendousAdapter'
 
 async function testTremendousEmail() {
   console.log('\n📧 Testing Tremendous Email Delivery\n')
   console.log('='.repeat(60))
 
-  // Verificar se as variáveis de ambiente foram carregadas
   console.log('\n🔑 Environment variables:')
   console.log(`   TREMENDOUS_API_KEY: ${process.env.TREMENDOUS_API_KEY ? '✅ Configured' : '❌ Missing'}`)
   console.log(`   TREMENDOUS_BASE_URL: ${process.env.TREMENDOUS_BASE_URL ?? 'Using default'}`)
   console.log(`   TREMENDOUS_FUNDING_SOURCE_ID: ${process.env.TREMENDOUS_FUNDING_SOURCE_ID ?? 'Using default'}`)
 
   try {
-    // 1. Criar instância do adapter
     console.log('\n📦 Step 1: Creating Tremendous adapter...')
     const tremendous = new TremendousAdapter()
     console.log(`✅ Adapter created: ${tremendous.getName()}`)
 
-    // 2. Listar produtos disponíveis para Brazil
     console.log('\n📋 Step 2: Listing available products for Brazil...')
     const products = await tremendous.listProducts({
       country: 'BR',
@@ -41,7 +36,6 @@ async function testTremendousEmail() {
       throw new Error('No products found for Brazil')
     }
 
-    // Mostrar primeiro produto
     const product = products[1]
     console.log('\n📦 Selected product:')
     console.log(`   Name: ${product.name}`)
@@ -49,8 +43,7 @@ async function testTremendousEmail() {
     console.log(`   Category: ${product.category}`)
     console.log(`   Value range: ${product.currency} ${product.minValue} - ${product.maxValue}`)
 
-    // 3. Criar voucher via EMAIL com campaign template customizada
-    const CAMPAIGN_ID = '8IJ7H3VPC766' // Campaign template criada no dashboard da Tremendous
+    const CAMPAIGN_ID = '8IJ7H3VPC766'
 
     console.log('\n📧 Step 3: Creating voucher with EMAIL delivery...')
     console.log('   Recipient: gabriel.fachini@usevalorize.com.br')
@@ -66,7 +59,7 @@ async function testTremendousEmail() {
         name: 'Gabriel Fachini',
         email: 'gabriel.fachini@usevalorize.com.br',
       },
-      campaignId: CAMPAIGN_ID, // Usar template customizado
+      campaignId: CAMPAIGN_ID,
     })
 
     console.log('✅ Voucher created and email queued!')
@@ -96,7 +89,6 @@ async function testTremendousEmail() {
   }
 }
 
-// Executar teste
 testTremendousEmail()
   .then(() => {
     console.log('✅ Test completed successfully')

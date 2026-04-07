@@ -41,7 +41,7 @@ src/lib/seed/
 npm run db:seed
 
 # Or directly with tsx
-tsx src/lib/seed.ts
+tsx scripts/seed.ts
 ```
 
 ### Adding New Data

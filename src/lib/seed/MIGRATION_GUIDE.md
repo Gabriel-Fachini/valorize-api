@@ -172,15 +172,15 @@ export class UserSeeder extends BaseSeeder {
 
 ## Breaking Changes
 
-**None!** The old `seed.ts` file still works as a wrapper:
+**None in the modular seed internals.** The runtime entrypoint now uses an external wrapper:
 
 ```typescript
-// src/lib/seed.ts
-import { seed } from './seed/index'
+// scripts/seed.ts
+import { seed } from '../src/lib/seed/index'
 export { seed }
 ```
 
-All existing code that imports from `seed.ts` continues to work.
+The `db:seed` command now points to `scripts/seed.ts`.
 
 ## Imports Update
 

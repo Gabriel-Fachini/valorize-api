@@ -2,18 +2,16 @@
  * Script de teste para Bulk Redemption
  * Testa a funcionalidade de envio de vouchers em lote (100 usuários)
  *
- * Uso: npx ts-node src/lib/voucher-providers/test-bulk-redemption.ts
+ * Uso: npx tsx scripts/voucher-providers/test-bulk-redemption.ts
  */
 
 import axios from 'axios'
 
-// Configuração
 const API_BASE_URL = 'http://localhost:4000'
 const TEST_EMAIL = 'gabriel.fachini@usevalorize.com.br'
 const TEST_PASSWORD = 'V@alorize'
-const TEST_USER_ID = 'cmhnjq22m002rtpnjhr75eeda' // ID do usuário gabriel.fachini@usevalorize.com.br
+const TEST_USER_ID = 'cmhnjq22m002rtpnjhr75eeda'
 
-// Estatísticas
 interface TestStats {
   totalItems: number
   successCount: number
@@ -30,9 +28,6 @@ interface TestStats {
   }
 }
 
-/**
- * Login e obter access token
- */
 async function login(): Promise<string> {
   try {
     console.log('🔐 Fazendo login...')
@@ -50,30 +45,20 @@ async function login(): Promise<string> {
   }
 }
 
-/**
- * Gera array com 100 items de teste
- * Usa o mesmo userId para simular um resgate em massa
- */
 function generateTestItems(count: number = 100) {
-  // Prize criado automaticamente pelo sync de vouchers
-  // Nome: Livraria da Vila
-  // Preço: 300 moedas (R$ 30.00)
   const prizeId = 'cmhnjz99r000ltpz2swb6t1g5'
 
   const items = []
   for (let i = 1; i <= count; i++) {
     items.push({
-      userId: TEST_USER_ID, // Usar o mesmo userId para todos os 100 items
-      prizeId: prizeId, // Mesmo voucher para todos os 100 usuários
+      userId: TEST_USER_ID,
+      prizeId,
     })
   }
 
   return items
 }
 
-/**
- * Faz requisição de bulk redemption
- */
 async function bulkRedeem(token: string, items: any[]): Promise<any> {
   try {
     console.log(`\n📤 Enviando ${items.length} itens para bulk redemption...`)
@@ -104,9 +89,6 @@ async function bulkRedeem(token: string, items: any[]): Promise<any> {
   }
 }
 
-/**
- * Calcula e exibe estatísticas
- */
 function displayStats(response: any, totalTimeMs: number): TestStats {
   const summary = response.data.summary
   const results = response.data.results
@@ -119,7 +101,6 @@ function displayStats(response: any, totalTimeMs: number): TestStats {
   const totalTimeSec = (totalTimeMs / 1000).toFixed(2)
   const averageTimePerItem = (totalTimeMs / totalItems).toFixed(2)
 
-  // Tempo estimado: (10 batches × ~2s) + (9 sleeps × 1s) = ~29s
   const estimatedTimeSec = totalItems <= 10 ? 2 : (Math.ceil(totalItems / 10) * 2 + (Math.ceil(totalItems / 10) - 1) * 1)
 
   const stats: TestStats = {
@@ -138,7 +119,6 @@ function displayStats(response: any, totalTimeMs: number): TestStats {
     },
   }
 
-  // Exibir estatísticas
   console.log('\n' + '='.repeat(70))
   console.log('📊 ESTATÍSTICAS DE BULK REDEMPTION')
   console.log('='.repeat(70))
@@ -177,39 +157,27 @@ function displayStats(response: any, totalTimeMs: number): TestStats {
   return stats
 }
 
-/**
- * Main: Executa o teste completo
- */
 async function main() {
   try {
     console.log('🚀 Iniciando teste de Bulk Redemption\n')
 
-    // 1. Login
     const token = await login()
-
-    // 2. Gerar items
     const items = generateTestItems(100)
     console.log(`\n📝 Gerados ${items.length} items de teste`)
     console.log(`   Usando userId: ${TEST_USER_ID}`)
     console.log(`   Exemplo: ${JSON.stringify(items[0], null, 2)}`)
 
-    // 3. Fazer requisição de bulk redemption
     const result = await bulkRedeem(token, items)
-
-    // 4. Exibir estatísticas
     const stats = displayStats(result, result.totalTimeMs)
 
-    // 5. Salvar resultado em arquivo
     const filename = `/tmp/bulk-redemption-test-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
     const fs = await import('fs').then(m => m.promises)
     await fs.writeFile(filename, JSON.stringify({ stats, response: result.data }, null, 2))
     console.log(`📁 Resultado salvo em: ${filename}\n`)
-
   } catch (error: any) {
     console.error('\n🔴 Erro fatal:', error.message)
     process.exit(1)
   }
 }
 
-// Executar
 main()

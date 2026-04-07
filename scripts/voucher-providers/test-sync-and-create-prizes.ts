@@ -2,19 +2,15 @@
  * Script de teste para sincronizar vouchers e criar Prizes
  * Testa a lógica idempotente de criação de Prizes
  *
- * Uso: npx ts-node src/lib/voucher-providers/test-sync-and-create-prizes.ts
+ * Uso: npx tsx scripts/voucher-providers/test-sync-and-create-prizes.ts
  */
 
 import axios from 'axios'
 
-// Configuração
 const API_BASE_URL = 'http://localhost:4000'
 const TEST_EMAIL = 'gabriel.fachini@usevalorize.com.br'
 const TEST_PASSWORD = 'V@alorize'
 
-/**
- * Login e obter access token
- */
 async function login(): Promise<string> {
   try {
     console.log('🔐 Fazendo login...')
@@ -32,9 +28,6 @@ async function login(): Promise<string> {
   }
 }
 
-/**
- * Sincroniza catálogo e cria Prizes
- */
 async function syncCatalog(token: string): Promise<any> {
   try {
     console.log('\n📤 Iniciando sincronização de catálogo...')
@@ -63,9 +56,6 @@ async function syncCatalog(token: string): Promise<any> {
   }
 }
 
-/**
- * Exibe resultado da sincronização
- */
 function displayResult(response: any, totalTimeMs: number) {
   const result = response.data.result
 
@@ -89,20 +79,13 @@ function displayResult(response: any, totalTimeMs: number) {
   console.log('='.repeat(70) + '\n')
 }
 
-/**
- * Main: Executa o teste completo
- */
 async function main() {
   try {
     console.log('🚀 Iniciando teste de sincronização de catálogo e criação de Prizes\n')
 
-    // 1. Login
     const token = await login()
-
-    // 2. Sincronizar catálogo
     const result = await syncCatalog(token)
 
-    // 3. Exibir resultado
     displayResult(result, result.totalTimeMs)
 
     console.log('💡 Dica: Execute este script novamente para verificar que:')
@@ -115,5 +98,4 @@ async function main() {
   }
 }
 
-// Executar
 main()

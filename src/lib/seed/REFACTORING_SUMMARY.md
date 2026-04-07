@@ -157,15 +157,15 @@ SeedVerifier → Verify and report
 
 ## Backward Compatibility
 
-The original `seed.ts` file still exists as a thin wrapper:
+The seed entrypoint now lives outside `src` as a thin wrapper:
 
 ```typescript
-// src/lib/seed.ts
-import { seed } from './seed/index'
+// scripts/seed.ts
+import { seed } from '../src/lib/seed/index'
 export { seed }
 ```
 
-All existing imports and scripts continue to work without changes.
+The `db:seed` script now points to this wrapper so the modular seed code stays out of Sonar's production scope.
 
 ## Documentation
 
